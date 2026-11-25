@@ -93,7 +93,7 @@ theorem atomic_is_valuativeInterval [Field K] (O : ValuationSubring K)
 
 /-- Open and closed descriptions of a disc sharing a chosen center.
 A closed description at value zero is a singleton. -/
-def taggedDisc {K : Type*} [Field K] (O : ValuationSubring K) (closed : Bool)
+@[expose] def taggedDisc {K : Type*} [Field K] (O : ValuationSubring K) (closed : Bool)
     (a : K) (r : O.ValueGroup) := (if closed then closedDisc else openDisc) O a r
 
 private theorem taggedDisc_bounds {K : Type*} [Field K] (O : ValuationSubring K) (b : Bool)

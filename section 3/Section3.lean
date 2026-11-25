@@ -6,6 +6,7 @@ public import Section3.AffineSlopes
 public import Section3.ConvexCuts
 public import Section3.Atomicity
 public import Section3.AtomicIntervals
+public import Section3.AtomicShapes
 public import Section3.ResidueDerivatives
 public import Section3.TopTerms
 public import Section3.FieldBranches
