@@ -45,3 +45,5 @@ public import Section3.ResidueInterval
 public import Section3.BoundaryCharts
 public import Section3.TupleValueParameters
 public import Section3.SliceExceptions
+public import Section3.DiscAtomicSlices
+public import Section3.PiecewiseFunctions
