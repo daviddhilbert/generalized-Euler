@@ -94,7 +94,10 @@ public import Section2.SmallBackAndForth
 public import Section2.SmallImmediateAdjunction
 public import Section2.RecoveredValuedField
 public import Section2.InterpretedValuedTheory
+public import Section2.TransportLift
 public import Section2.InterpretedValuedQE
 public import Section2.FieldDefinableClosure
 public import Section2.PrescribedValueComparison
 public import Section2.WilkieRVStep
+public import Section2.FieldCellTransfer
+public import Section2.CommonValuedAdjunction

@@ -140,6 +140,108 @@ theorem fieldPower_agrees_of_elementary
   rw [← hy, totalFieldPower_positive] at hb
   exact hb.symm
 
+/-- A positive field power whose total graph is parameter-free restricts
+to every elementary submodel, with the same defining graph. -/
+theorem exists_fieldPower_of_elementary
+    (i : K ↪ₑ[L] F) (f : K →+* F) (hi : ∀ x, i x = f x) (hmono : StrictMono f)
+    (g' : PositiveField F →* PositiveField F) (graph : L.Formula (Fin 2))
+    (hgraph' : ∀ x, graph.Realize x ↔ totalFieldPower g' (x 0) = x 1) :
+    ∃ g : PositiveField K →* PositiveField K,
+      ∀ x, graph.Realize x ↔ totalFieldPower g (x 0) = x 1 := by
+  classical
+  let fpos (x : PositiveField K) : PositiveField F :=
+    ⟨f x, (map_zero f) ▸ hmono x.property⟩
+  have hex (x : K) : ∃ y : K, graph.Realize ![x, y] := by
+    let φ := (graph.relabel (fun j : Fin 2 => if j = 0 then Sum.inl () else Sum.inr ())).iExs Unit
+    have heF : φ.Realize (i ∘ fun _ : Unit => x) := by
+      apply Language.Formula.realize_iExs.mpr
+      refine ⟨fun _ => totalFieldPower g' (i x), ?_⟩
+      rw [Language.Formula.realize_relabel]
+      have he : (Sum.elim (i ∘ fun _ : Unit => x) (fun _ : Unit => totalFieldPower g' (i x)) ∘
+          (fun j : Fin 2 => if j = 0 then Sum.inl () else Sum.inr ())) =
+          ![i x, totalFieldPower g' (i x)] := by
+        funext j
+        fin_cases j <;> rfl
+      rw [he, hgraph']
+      rfl
+    obtain ⟨y, hy⟩ := Language.Formula.realize_iExs.mp
+      ((i.map_formula φ (fun _ => x)).mp heF)
+    rw [Language.Formula.realize_relabel] at hy
+    have hy' : (Sum.elim (fun _ : Unit => x) y ∘
+        (fun j : Fin 2 => if j = 0 then Sum.inl () else Sum.inr ())) = ![x, y ()] := by
+      funext j
+      fin_cases j <;> rfl
+    exact ⟨y (), hy' ▸ hy⟩
+  have out (x : Fin 2 → K) (h : graph.Realize x) :
+      totalFieldPower g' (f (x 0)) = f (x 1) := by
+    have he := (hgraph' (i ∘ x)).mp ((i.map_formula graph x).mpr h)
+    change totalFieldPower g' (i (x 0)) = i (x 1) at he
+    rwa [hi, hi] at he
+  let val (x : K) := (hex x).choose
+  have hv (x : K) : totalFieldPower g' (f x) = f (val x) :=
+    out ![x, val x] (hex x).choose_spec
+  have hpos (x : PositiveField K) : 0 < val (x : K) := by
+    have h := hv (x : K)
+    rw [show f (x : K) = (fpos x : F) from rfl, totalFieldPower_positive] at h
+    apply hmono.lt_iff_lt.mp
+    rw [map_zero, ← h]
+    exact (g' (fpos x)).property
+  let p (x : PositiveField K) : PositiveField K := ⟨val x, hpos x⟩
+  have hmap (x : PositiveField K) : f (p x : K) = (g' (fpos x) : F) :=
+    (hv (x : K)).symm.trans (totalFieldPower_positive g' (fpos x))
+  have fone : fpos 1 = 1 := Subtype.ext (map_one f)
+  have fmul (x y : PositiveField K) : fpos (x * y) = fpos x * fpos y :=
+    Subtype.ext (map_mul f (x : K) (y : K))
+  let g : PositiveField K →* PositiveField K :=
+    { toFun := p
+      map_one' := Subtype.ext (f.injective (by
+        rw [hmap, fone, map_one g']
+        exact (map_one f).symm))
+      map_mul' := fun x y => Subtype.ext (f.injective (by
+        change f (p (x * y) : K) = f ((p x : K) * (p y : K))
+        rw [hmap, fmul, map_mul g', map_mul f, hmap, hmap]
+        rfl)) }
+  refine ⟨g, ?_⟩
+  intro x
+  have hg (a : K) : totalFieldPower g a = val a := by
+    by_cases ha : 0 < a
+    · let a' : PositiveField K := ⟨a, ha⟩
+      exact totalFieldPower_positive g a'
+    · have hz : ¬ 0 < f a := by
+        rw [← map_zero f, hmono.lt_iff_lt]
+        exact ha
+      have h := hv a
+      rw [totalFieldPower_of_not_pos g' hz] at h
+      rw [totalFieldPower_of_not_pos g ha]
+      exact f.injective ((map_zero f).trans h)
+  rw [hg]
+  constructor
+  · intro hx
+    exact f.injective ((hv _).symm.trans (out _ hx))
+  · intro hx
+    have he : x = ![x 0, val (x 0)] := by
+      funext j
+      fin_cases j
+      · rfl
+      · exact hx.symm
+    rw [he]
+    exact (hex (x 0)).choose_spec
+
+/-- Keeping the same field powers on a valued subfield transfers
+preservation of positive valuation units to that subfield. -/
+theorem fieldPower_preserves_units_of_valued_embedding
+    (f : K →+* F) (hf : RespectsValuationRing O P f) (hmono : StrictMono f)
+    (g : PositiveField K →* PositiveField K) (g' : PositiveField F →* PositiveField F)
+    (hg : ∀ (x : PositiveField K) (y : PositiveField F), (y : F) = f x →
+      f (g x : K) = (g' y : F))
+    (hunit : ∀ y : PositiveField F, P.valuation (y : F) = 1 → P.valuation (g' y : F) = 1)
+    (x : PositiveField K) (hx : O.valuation (x : K) = 1) :
+    O.valuation (g x : K) = 1 := by
+  let y : PositiveField F := ⟨f x, (map_zero f) ▸ hmono x.property⟩
+  have hv (z : K) : O.valuation z = 1 ↔ P.valuation (f z) = 1 := by
+    simpa only [map_one] using (valuation_eq_map_iff O P f hf z 1).symm
+  exact (hv _).mpr ((hg x y rfl).symm ▸ hunit y ((hv _).mp hx))
+
 /-- Canonical expansion of a valued-field embedding. Elementarity on
 the field preserves the named powers, and the residue embedding
 preserves the extended residue primitives. -/

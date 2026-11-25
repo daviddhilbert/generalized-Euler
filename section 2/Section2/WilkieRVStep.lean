@@ -59,7 +59,9 @@ theorem exists_fixedRVExtension_of_wilkie_new_value
     (hRank : RelativeValueRankLEOne I g hzero hone hadd hmul D hStable PI hPI hunit)
     (hResidue : ∀ x : J, I.valuation x = 1 → rv I x ∈ rv I '' (D : Set J)) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   letI := unsignedValueModule I g PI hPI hzero hone hadd hmul hunit
   let U := oldValueSubspace I g hzero hone hadd hmul D hStable PI hPI hunit
   obtain ⟨hFin, hRank⟩ := hRank
@@ -99,7 +101,9 @@ theorem exists_fixedRVExtension_of_wilkie_new_residue {T : L.Theory}
     (hClosure : ∀ r x, x ∈ M.closure {r} → ∃ φ : L.Formula ((old ⊕ Unit) ⊕ Unit),
       ∀ y : Residue I, φ.Realize (Sum.elim (Sum.elim Subtype.val (fun _ => r)) (fun _ => y)) ↔ y = x) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   obtain ⟨c, hc, _, r, hr, hrNew⟩ := exists_new_residue_of_old_value I (hValues a) hNew
   have hc' : c ∈ (D : Set J) := hc
   obtain ⟨d, rfl⟩ := hD.symm ▸ hc'
@@ -116,5 +120,52 @@ theorem exists_fixedRVExtension_of_wilkie_new_residue {T : L.Theory}
     obtain ⟨z, hz, h⟩ := hValues x
     obtain ⟨c, rfl⟩ := hD.symm ▸ hz
     exact ⟨c, h⟩
+
+section BothCases
+
+variable [Field E] (g : E → PositiveField J →* PositiveField J)
+  (hPI : ∀ e, AgreesWithFieldPower I (g e) (PI e))
+  (hzero : ∀ x, g 0 x = 1) (hone : ∀ x, g 1 x = x)
+  (hadd : ∀ e d x, g (e + d) x = g e x * g d x)
+  (hmul : ∀ e d x, g (e * d) x = g e (g d x))
+  (hunit : ∀ e (x : PositiveField J), I.valuation (x : J) = 1 → I.valuation (g e x : J) = 1)
+  (hStable : ∀ e (x : PositiveField J), (x : J) ∈ D → (g e x : J) ∈ D)
+
+/-- The rank alternatives extend the original embedding at a chosen
+new positive leading term, and preserve the specified field embedding. -/
+theorem exists_fixedRVExtension_of_wilkie_cases {T : L.Theory}
+    [T.IsUniversal] [Residue I ⊨ T] (hQE : EliminatesQuantifiers T)
+    (a : PositiveField J) (t : A.source.carrier .rv)
+    (ht : t.val ∉ rv O '' A.source.carrier .vf)
+    (ha : rv O (left.toEmbedding .vf a.val) = t.val)
+    (hb : rv Q (right.toEmbedding .vf a.val) = A.embedding.toEmbedding .rv t)
+    (hRank : RelativeValueRankLEOne I g hzero hone hadd hmul D hStable PI hPI hunit)
+    (hValue : I.valuation a.val ∈ I.valuation '' (D : Set J) →
+      ∀ x : J, I.valuation x ∈ I.valuation '' (D : Set J))
+    (hResidue : I.valuation a.val ∉ I.valuation '' (D : Set J) →
+      ∀ x : J, I.valuation x = 1 → rv I x ∈ rv I '' (D : Set J))
+    (old : Set (Residue I)) (hold : ∀ r, r ∈ old ↔ residueRV I r ∈ rv I '' (D : Set J))
+    (M : Matroid (Residue I)) (hFull : M.E = Set.univ)
+    (hResRank : I.valuation a.val ∈ I.valuation '' (D : Set J) → M.eRk M.E ≤ 1)
+    (hNonloop : ∀ r, r ∉ old → M.IsNonloop r)
+    (hClosure : ∀ r x, x ∈ M.closure {r} → ∃ φ : L.Formula ((old ⊕ Unit) ⊕ Unit),
+      ∀ y : Residue I, φ.Realize (Sum.elim (Sum.elim Subtype.val (fun _ => r)) (fun _ => y)) ↔ y = x) :
+    ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
+  have hNew : rv I a.val ∉ rv I '' (D : Set J) := by
+    rintro ⟨d, hd, h⟩
+    obtain ⟨c, rfl⟩ := hD.symm ▸ hd
+    have he := congrArg left.rvHom h
+    rw [left.rvHom_rv, left.rvHom_rv, hleft, ha] at he
+    exact ht ⟨c.val, c.property, he⟩
+  by_cases hOld : I.valuation a.val ∈ I.valuation '' (D : Set J)
+  · exact exists_fixedRVExtension_of_wilkie_new_residue A left right B field hbase hfield rep hleft hright D
+      hD hQE a.val t ha hb hNew (hValue hOld) old hold M hFull (hResRank hOld) hNonloop hClosure
+  · exact exists_fixedRVExtension_of_wilkie_new_value A left right B field hbase hfield rep hleft hright D
+      hD g hPI hzero hone hadd hmul hunit hStable a t ha hb hOld hRank (hResidue hOld)
+
+end BothCases
 
 end GeneralizedEuler.Section2

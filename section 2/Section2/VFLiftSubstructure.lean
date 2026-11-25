@@ -290,21 +290,19 @@ theorem canonicalEmbedding_rv_le_iff
   exact e.map_rel .rvLE args
 
 set_option linter.style.haveILetI false in
-/-- A specified new RV element can be lifted in the target, and each
-target representative has the required cut over the old VF substructure. -/
-theorem exists_prescribedLift_sameCut
+/-- Representatives of a fresh named leading term in the two fields
+make the same cut over the old VF substructure. -/
+theorem prescribedLift_sameCut_of_sortedEmbedding
     {S : SortedSubstructure (canonicalStructure (L := L) O hO P)}
     (e : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
     (t : S.carrier .rv) (ht : t.val ∉ rv O '' S.carrier .vf)
-    {a : K} (ha : rv O a = t.val) :
-    ∃ b : F, rv Q b = e.toEmbedding .rv t ∧
-      ∀ x : S.carrier .vf,
+    {a : K} {b : F} (ha : rv O a = t.val) (hb : rv Q b = e.toEmbedding .rv t) :
+    ∀ x : S.carrier .vf,
         (x.val < a ↔ e.toEmbedding .vf x < b) ∧ (a < x.val ↔ b < e.toEmbedding .vf x) := by
   letI := rvLinearOrder O hO
   letI := rvLinearOrder Q hQ
   have hlt (s t : S.carrier .rv) : s.val < t.val ↔ e.toEmbedding .rv s < e.toEmbedding .rv t := by
     simp only [lt_iff_le_not_ge, canonicalEmbedding_rv_le_iff O hO P Q hQ PQ e]
-  obtain ⟨b, hb⟩ := rv_surjective Q (e.toEmbedding .rv t)
   have haW : rv O a ∈ S.carrier .rv := ha.symm ▸ t.property
   have hW (x : S.carrier .vf) : rv O x.val ∈ S.carrier .rv :=
     canonicalSubstructure_rvMap O hO P S x ▸ (S.structureOn.rvMap x).property
@@ -313,10 +311,22 @@ theorem exists_prescribedLift_sameCut
     have heq : (⟨rv O x.val, hW x⟩ : S.carrier .rv) = S.structureOn.rvMap x :=
       Subtype.ext (canonicalSubstructure_rvMap O hO P S x).symm
     rw [heq, e.map_rv, canonicalStructure_rvMap]
-  refine ⟨b, hb, prescribedLift_sameCut_on O Q hO hQ (S.carrier .rv)
-    (e.toEmbedding .rv) hlt (e.toEmbedding .vf) (ha.symm ▸ ht) haW ?_ hW hcomm⟩
+  refine prescribedLift_sameCut_on O Q hO hQ (S.carrier .rv)
+    (e.toEmbedding .rv) hlt (e.toEmbedding .vf) (ha.symm ▸ ht) haW ?_ hW hcomm
   have heq : (⟨rv O a, haW⟩ : S.carrier .rv) = t := Subtype.ext ha
   rw [heq, hb]
+
+/-- A new named leading term has a matching target representative. -/
+theorem exists_prescribedLift_sameCut
+    {S : SortedSubstructure (canonicalStructure (L := L) O hO P)}
+    (e : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
+    (t : S.carrier .rv) (ht : t.val ∉ rv O '' S.carrier .vf)
+    {a : K} (ha : rv O a = t.val) :
+    ∃ b : F, rv Q b = e.toEmbedding .rv t ∧
+      ∀ x : S.carrier .vf,
+        (x.val < a ↔ e.toEmbedding .vf x < b) ∧ (a < x.val ↔ b < e.toEmbedding .vf x) := by
+  obtain ⟨b, hb⟩ := rv_surjective Q (e.toEmbedding .rv t)
+  exact ⟨b, hb, prescribedLift_sameCut_of_sortedEmbedding O hO P Q hQ PQ e t ht ha hb⟩
 
 /-- The compatible field extension is a step in the fixed-RV iteration.
 The resulting domain has precisely the specified field carrier. -/
@@ -330,12 +340,14 @@ theorem exists_fixedRVExtension_of_compatible_field
       field ⟨x.val, hbase x.property⟩ = A.embedding.toEmbedding .vf x)
     (hRV : ∀ x : B, A.embedding.toEmbedding .rv ⟨rv O x.val, hB x x.property⟩ = rv Q (field x)) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO P) (canonicalStructure (L := L) Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   let S := enlargeVF O hO P A.source B hB
   let lift := liftVFEmbedding O hO P Q hQ PQ A.source B hB A.embedding field hRV
   let C : FixedRVLift (canonicalStructure (L := L) O hO P) (canonicalStructure (L := L) Q hQ PQ) R :=
     ⟨S, A.rv_eq, lift⟩
-  refine ⟨C, ?_, rfl⟩
+  refine ⟨C, ?_, rfl, fun _ _ => rfl⟩
   have hm (s : TCsort) : A.source.carrier s ⊆ C.source.carrier s := by
     cases s with
     | vf => exact hbase

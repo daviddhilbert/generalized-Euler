@@ -101,7 +101,9 @@ adjunction, it gives an extension in the fixed-RV iteration. -/
 theorem exists_fixedRVExtension_of_canonical_agreement
     (hagree : ∀ x : B, RVMapsAgree A.embedding left.rvHom right.rvHom (rv I (rep x))) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   have hB (x : K) (hx : x ∈ B) : rv O x ∈ A.source.carrier .rv := by
     obtain ⟨hh, _⟩ := hagree ⟨x, hx⟩
     rwa [left.rvHom_rv, hleft ⟨x, hx⟩] at hh
@@ -119,7 +121,9 @@ representatives. Compatibility follows from the common field map. -/
 theorem exists_fixedRVExtension_of_unchanged_leadingTerms
     (hOld : ∀ x : B, rv O x.val ∈ rv O '' A.source.carrier .vf) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   apply exists_fixedRVExtension_of_canonical_agreement A left right B field hbase hfield rep hleft hright
   intro x
   obtain ⟨c, hc, he⟩ := hOld x
@@ -142,7 +146,9 @@ theorem exists_fixedRVExtension_of_canonical_monomials
     (hnormal : ∀ s : RV0 I, s ≠ 0 → ∃ c : A.source.carrier .vf, ∃ d : E,
       s = rv I (rep ⟨c.val, hbase c.property⟩) * PI d (rv I a)) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   have hgen := rvMapsAgree_of_prescribed_representatives A left right a t ha hb
   let w (c : A.source.carrier .vf) := rv I (rep ⟨c.val, hbase c.property⟩)
   have hW (s : RV0 I) (hs : s ∈ Set.range w) : RVMapsAgree A.embedding left.rvHom right.rvHom s := by
@@ -167,7 +173,9 @@ theorem exists_fixedRVExtension_of_canonical_residue_generation
     (hvalues : ∀ x : J, ∃ c : A.source.carrier .vf,
       I.valuation (rep ⟨c.val, hbase c.property⟩) = I.valuation x) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   let w (c : A.source.carrier .vf) := rep ⟨c.val, hbase c.property⟩
   have hW (s : J) (hs : s ∈ Set.range w) : RVMapsAgree A.embedding left.rvHom right.rvHom (rv I s) := by
     obtain ⟨c, rfl⟩ := hs
@@ -198,7 +206,9 @@ theorem exists_fixedRVExtension_of_normalized_residue
     (hvalues : ∀ x : J, ∃ d : A.source.carrier .vf,
       I.valuation (rep ⟨d.val, hbase d.property⟩) = I.valuation x) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
-      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) ∧
+        ∀ (x : B) (hx : x.val ∈ C.source.carrier .vf),
+          C.embedding.toEmbedding .vf ⟨x.val, hx⟩ = field x := by
   let oldRep (d : A.source.carrier .vf) := rep ⟨d.val, hbase d.property⟩
   have hOld (d : A.source.carrier .vf) :
       RVMapsAgree A.embedding left.rvHom right.rvHom (rv I (oldRep d)) :=

@@ -1,6 +1,8 @@
 module
 
 public import Section2.PrescribedRVStep
+public import Section2.FieldReduct
+public import Section2.FieldOperations
 public import Section2.RelativeValueSubspace
 public import Section2.RVMonomials
 public import Section2.ValueMonomials
@@ -71,5 +73,56 @@ theorem pulledValuations_agree_on_old_ring
   rw [← hp, ← hq, hLeft, hRight]
   exact (mem_valuationRing_iff_of_sortedEmbedding O hO PO Q hQ PQ S σ
     minusOne c hminus hminus').symm
+
+/-- A step for positive representatives suffices. A negative
+representative is recovered by adjoining its opposite. -/
+theorem exists_fixedRVExtension_of_positive_representative_step
+    (terms : OrderedFieldTerms L) (hK : InterpretsOrderedFieldTerms (A := K) terms)
+    {W : Set (RV0 O)} (C : FixedRVLift (canonicalStructure (L := L) O hO PO)
+      (canonicalStructure (L := L) Q hQ PQ) W)
+    (hPos : ∀ x : K, 0 < x → rv O x ∈ W → rv O x ∉ rv O '' C.source.carrier .vf →
+      ∃ D : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) W,
+        C ≤ D ∧ x ∈ D.source.carrier .vf)
+    (t : RV0 O) (ht : t ∈ W) (hNew : t ∉ rv O '' C.source.carrier .vf) :
+    ∃ D : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) W,
+      C ≤ D ∧ t ∈ rv O '' D.source.carrier .vf := by
+  obtain ⟨x, rfl⟩ := rv_surjective O t
+  let A := subfieldOfFieldSubstructure terms hK (vfReductOfSortedSubstructure O hO PO C.source)
+  have ha (z : K) : z ∈ A ↔ z ∈ C.source.carrier .vf :=
+    mem_subfieldOfFieldSubstructure terms hK (vfReductOfSortedSubstructure O hO PO C.source) z
+  have hx0 : x ≠ 0 := by
+    rintro rfl
+    exact hNew ⟨0, (ha 0).mp A.zero_mem, rfl⟩
+  rcases lt_or_gt_of_ne hx0 with hx | hx
+  · let m : C.source.carrier .vf := ⟨-1, (ha _).mp (A.neg_mem A.one_mem)⟩
+    have hm : rv O (-1) ∈ C.source.carrier .rv := by
+      rw [← canonicalSubstructure_rvMap O hO PO C.source m]
+      exact (C.source.structureOn.rvMap m).property
+    have hx' : rv O x ∈ C.source.carrier .rv := C.rv_eq.symm ▸ ht
+    have hn : rv O (-x) ∈ W := by
+      rw [← C.rv_eq, ← neg_one_mul x, map_mul]
+      let args : SortedArgs (CanonicalSort O) [.rv, .rv] :=
+        Fin.cases (rv O (-1)) (Fin.cases (rv O x) (fun j => j.elim0))
+      have hClosed := C.source.closed .rvMul args
+      change (∀ j, args j ∈ C.source.carrier ([.rv, .rv].get j)) →
+        rv O (-1) * rv O x ∈ C.source.carrier .rv at hClosed
+      apply hClosed
+      intro j
+      fin_cases j
+      · exact hm
+      · exact hx'
+    have hFresh : rv O (-x) ∉ rv O '' C.source.carrier .vf := by
+      rintro ⟨y, hy, he⟩
+      have hNeg := congrArg (rv O (-1) * ·) he
+      rw [← map_mul, ← map_mul, neg_one_mul, neg_one_mul, neg_neg] at hNeg
+      exact hNew ⟨-y, (ha _).mp (A.neg_mem ((ha _).mpr hy)), hNeg⟩
+    obtain ⟨D, hCD, hDx⟩ := hPos (-x) (neg_pos.mpr hx) hn hFresh
+    let B := subfieldOfFieldSubstructure terms hK (vfReductOfSortedSubstructure O hO PO D.source)
+    have hB (z : K) : z ∈ B ↔ z ∈ D.source.carrier .vf :=
+      mem_subfieldOfFieldSubstructure terms hK (vfReductOfSortedSubstructure O hO PO D.source) z
+    have hxB : x ∈ B := neg_neg x ▸ B.neg_mem ((hB _).mpr hDx)
+    exact ⟨D, hCD, x, (hB x).mp hxB, rfl⟩
+  · obtain ⟨D, hCD, hDx⟩ := hPos x hx ht hNew
+    exact ⟨D, hCD, x, hDx, rfl⟩
 
 end GeneralizedEuler.Section2

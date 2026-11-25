@@ -19,6 +19,7 @@ inductive UnaryCellCode (A : Type*)
   | between (a b : A)
 
 /-- The realization of a cell in the ambient order containing the base. -/
+@[expose]
 def UnaryCellCode.asSet (i : A → X) : UnaryCellCode A → Set X
   | .univ => Set.univ
   | .point a => {i a}

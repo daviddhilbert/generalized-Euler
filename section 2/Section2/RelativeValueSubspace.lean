@@ -95,6 +95,54 @@ def RelativeValueRankLEOne : Prop :=
   ∃ (_ : FiniteDimensional E (Additive (O.ValueGroupˣ) ⧸ U)),
     Module.finrank E (Additive (O.ValueGroupˣ) ⧸ U) ≤ 1
 
+set_option linter.style.haveILetI false in
+/-- If each leading term is an old factor times a power of one
+generator, its value spans the relative value group. This applies to
+the leading-term formula over a trivially valued base. -/
+theorem relativeValueRankLEOne_of_monomials (a : PositiveField K)
+    (hnormal : ∀ x : K, x ≠ 0 → ∃ d ∈ A, ∃ e : E, rv O x = rv O d * P e (rv O a.val)) :
+    RelativeValueRankLEOne O g hzero hone hadd hmul A hA P hP hunit := by
+  letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+  let U := oldValueSubspace O g hzero hone hadd hmul A hA P hP hunit
+  let f := LinearMap.toSpanSingleton E (_ ⧸ U) (U.mkQ (positiveFieldValue O a))
+  have hOnto : Function.Surjective f := by
+    intro y
+    obtain ⟨z, rfl⟩ := U.mkQ_surjective y
+    obtain ⟨x, hx⟩ := O.valuation_surjective (z.toMul : O.ValueGroup)
+    have hx0 : x ≠ 0 := (map_ne_zero O.valuation).mp (hx.trans_ne z.toMul.ne_zero)
+    obtain ⟨d, hd, e, he⟩ := hnormal x hx0
+    have hv := congrArg (unsignedValue O) he
+    rw [hP e a, ← map_mul, unsignedValue_rv, unsignedValue_rv, map_mul] at hv
+    have hd0 : d ≠ 0 := by
+      intro hd0
+      rw [hd0, map_zero, zero_mul] at hv
+      exact ((map_ne_zero O.valuation).mpr hx0) hv
+    let c : PositiveField K := ⟨|d|, abs_pos.mpr hd0⟩
+    have hc : positiveFieldValue O c ∈ U := by
+      apply (mem_oldValueSubspace_iff O g hzero hone hadd hmul A hA P hP hunit _).mpr
+      refine ⟨d, hd, ?_⟩
+      rw [positiveFieldValue_coe]
+      exact (valuation_abs O d).symm
+    have hz : z = positiveFieldValue O c + e • positiveFieldValue O a := by
+      apply Units.ext
+      change (z.toMul : O.ValueGroup) = (positiveFieldValue O c).toMul *
+        (e • positiveFieldValue O a).toMul
+      rw [← hx, ← positiveFieldValue_power O g P hP hzero hone hadd hmul hunit,
+        positiveFieldValue_coe, positiveFieldValue_coe]
+      change O.valuation x = O.valuation |d| * O.valuation (g e a : K)
+      rw [valuation_abs]
+      exact hv
+    refine ⟨e, ?_⟩
+    have hc0 : U.mkQ (positiveFieldValue O c) = 0 := by
+      have hm : positiveFieldValue O c ∈ LinearMap.ker U.mkQ := by
+        rw [Submodule.ker_mkQ]
+        exact hc
+      exact LinearMap.mem_ker.mp hm
+    change e • U.mkQ (positiveFieldValue O a) = U.mkQ z
+    rw [hz, map_add, map_smul, hc0, zero_add]
+  refine ⟨FiniteDimensional.of_surjective f hOnto, ?_⟩
+  simpa only [Module.finrank_self] using LinearMap.finrank_le_finrank_of_surjective hOnto
+
 variable (Q : ValuationSubring K)
   (R : E → RV0 Q → RV0 Q) (hR : ∀ e, AgreesWithFieldPower Q (g e) (R e))
   (hunitQ : ∀ e (x : PositiveField K), Q.valuation (x : K) = 1 → Q.valuation (g e x : K) = 1)

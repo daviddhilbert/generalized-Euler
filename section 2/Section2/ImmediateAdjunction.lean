@@ -139,7 +139,9 @@ theorem exists_fixedRVExtension_of_represented_adjunction
     let u : A.source.carrier .rv := ⟨rv O x.val, hB x x.property⟩
     have he : (⟨u.val, hinclude .rv u.property⟩ : C.source.carrier .rv) = t x := Subtype.ext (ht x).symm
     exact (hmaps .rv u).trans ((congrArg (C.embedding.toEmbedding .rv) he).trans (himage x).symm)
-  exact exists_fixedRVExtension_of_compatible_field O hO P Q hQ PQ A B field hbase hB hfield hcomm
+  obtain ⟨C, hAC, hC, _⟩ :=
+    exists_fixedRVExtension_of_compatible_field O hO P Q hQ PQ A B field hbase hB hfield hcomm
+  exact ⟨C, hAC, hC⟩
 
 /-- A larger lift can be restricted to any intermediate field
 substructure while keeping its fixed RV sort. -/

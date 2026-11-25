@@ -57,6 +57,42 @@ theorem convexStructure_expansion {K : Type*} [Field K] {L : Language.{u, v}} [L
   letI := convexStructure O L
   exact ⟨fun _ _ => by rfl, fun _ _ => by rfl⟩
 
+set_option linter.style.haveILetI false in
+/-- An embedding in the field language extends to the valued-field
+language when it preserves and reflects the two valuation rings. -/
+@[expose]
+def convexEmbeddingOfFieldEmbedding {K F : Type*} [Field K] [Field F]
+    {L : Language.{u, v}} [L.Structure K] [L.Structure F]
+    (O : ValuationSubring K) (P : ValuationSubring F) (e : K ↪[L] F)
+    (h : ∀ x, e x ∈ P ↔ x ∈ O) :
+    letI := convexStructure O L
+    letI := convexStructure P L
+    K ↪[convexLanguage L] F := by
+  letI := convexStructure O L
+  letI := convexStructure P L
+  let i : L →ᴸ convexLanguage L := LHom.sumInl
+  letI : i.IsExpansionOn K := convexStructure_expansion O
+  letI : i.IsExpansionOn F := convexStructure_expansion P
+  refine { toFun := e, inj' := e.injective, map_fun' := ?_, map_rel' := ?_ }
+  · intro n f x
+    change L.Functions n ⊕ ringPredicateLanguage.Functions n at f
+    cases f with
+    | inl f =>
+      change e (Structure.funMap (i.onFunction f) x) = Structure.funMap (i.onFunction f) (e ∘ x)
+      rw [LHom.map_onFunction i, LHom.map_onFunction i]
+      exact e.map_fun f x
+    | inr f => exact f.elim
+  · intro n r x
+    change L.Relations n ⊕ ringPredicateLanguage.Relations n at r
+    cases r with
+    | inl r =>
+      change Structure.RelMap (i.onRelation r) (e ∘ x) ↔ Structure.RelMap (i.onRelation r) x
+      rw [LHom.map_onRelation i, LHom.map_onRelation i]
+      exact e.map_rel r x
+    | inr r =>
+      cases r
+      exact (convexStructure_mem P _).trans ((h (x 0)).trans (convexStructure_mem O _).symm)
+
 /-- The graph of a parameter-free function, as a formula with one extra
 free variable for the output. The same formula can be evaluated in VF and k. -/
 def DefinesTotalFunction {L : Language.{u, v}} {K : Type*} [L.Structure K]

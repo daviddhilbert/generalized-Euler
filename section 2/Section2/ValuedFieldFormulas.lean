@@ -256,6 +256,10 @@ theorem totalFieldPower_positive (g : PositiveField K →* PositiveField K) (x :
     totalFieldPower g (x : K) = (g x : K) := by
   rw [totalFieldPower, dite_eq_left x.property]
 
+theorem totalFieldPower_of_not_pos (g : PositiveField K →* PositiveField K) {x : K}
+    (hx : ¬ 0 < x) : totalFieldPower g x = 0 := by
+  rw [totalFieldPower, dite_eq_right hx]
+
 /-- Apply a field power to an input representative and compare leading
 terms with its output representative. -/
 noncomputable def rvPowerGraphFormula (F : FieldTerms (convexLanguage L))

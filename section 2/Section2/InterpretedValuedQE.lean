@@ -1,7 +1,7 @@
 module
 
 public import Section2.InterpretedValuedTheory
-public import Section2.DirectedSubstructure
+public import Section2.TransportLift
 
 /-! The Shoenfield test for the interpreted theory reduces to the
 prescribed leading-term representative step. -/
@@ -96,5 +96,39 @@ theorem exists_qf_equivalent_of_interpreted_representative_step
     ψ.realize Q.model (fun s i => A.embedding.toEmbedding s (x s i))) at h
   rw [show (fun s i => A.embedding.toEmbedding s (x s i)) = Q.point from funext fun s => funext (he s)] at h
   exact h
+
+/-- The compactness argument may check the representative step on
+canonical presentations. Isomorphisms transfer the step to arbitrary
+models of the interpreting axioms. -/
+theorem exists_qf_equivalent_of_canonical_representative_step
+    {Var : TCsort → Type a}
+    (hCanonical : ∀ {X : TCsort → Type (max u v w a)} (M : SortedStructure L E X),
+      (∀ φ ∈ interpretedValuedTheory I minusOne T, φ.realize M) →
+      ∃ (K : Type (max u v w a)) (_ : Field K) (_ : LinearOrder K) (_ : IsStrictOrderedRing K)
+        (_ : L.Structure K) (O : ValuationSubring K) (_ : L.Structure (Residue O))
+        (hO : IsOrderConvex O) (P : E → RV0 O → RV0 O),
+        Nonempty (SortedIsomorphism M (canonicalStructure O hO P)))
+    (hStep : ∀ {K F : Type (max u v w a)} [Field K] [LinearOrder K] [IsStrictOrderedRing K] [L.Structure K]
+      [Field F] [LinearOrder F] [IsStrictOrderedRing F] [L.Structure F]
+      (O : ValuationSubring K) (Q : ValuationSubring F)
+      [L.Structure (Residue O)] [L.Structure (Residue Q)]
+      (hO : IsOrderConvex O) (hQ : IsOrderConvex Q) (P : E → RV0 O → RV0 O) (P' : E → RV0 Q → RV0 Q),
+      (∀ φ ∈ interpretedValuedTheory I minusOne T, φ.realize (canonicalStructure O hO P)) →
+      (∀ φ ∈ interpretedValuedTheory I minusOne T, φ.realize (canonicalStructure Q hQ P')) →
+      ∀ {R : Set (RV0 O)} (B : FixedRVLift (canonicalStructure (L := L) O hO P)
+        (canonicalStructure Q hQ P') R) (t : RV0 O), t ∈ R →
+      t ∉ (canonicalStructure (L := L) O hO P).rvMap '' B.source.carrier .vf →
+      ∃ C : FixedRVLift (canonicalStructure (L := L) O hO P) (canonicalStructure Q hQ P') R,
+        B ≤ C ∧ t ∈ (canonicalStructure (L := L) O hO P).rvMap '' C.source.carrier .vf)
+    (φ : SortedFormula L E Var) :
+    ∃ ψ : SortedFormula L E Var, ψ.IsQF ∧
+      ∀ P : (interpretedValuedTheory I minusOne T).PointedModel Var, P.realizes φ ↔ P.realizes ψ := by
+  apply exists_qf_equivalent_of_interpreted_representative_step I minusOne hQE _ φ
+  intro X Y M N hM hN R B t ht hn
+  obtain ⟨K, hFieldK, hOrderK, hStrictK, hStructK, O, hResO, hO, P, ⟨p⟩⟩ := hCanonical M hM
+  obtain ⟨F, hFieldF, hOrderF, hStrictF, hStructF, Q, hResQ, hQ, P', ⟨q⟩⟩ := hCanonical N hN
+  exact B.exists_extension_of_isomorphic_step p q t ht hn
+    (hStep O Q hO hQ P P' (fun θ hθ => (p.realize_sentence θ).mp (hM θ hθ))
+      (fun θ hθ => (q.realize_sentence θ).mp (hN θ hθ)))
 
 end GeneralizedEuler.Section2
