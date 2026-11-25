@@ -139,6 +139,28 @@ theorem residueRV_mul (r s : Residue O) :
     residueRV_residue_of_ne_zero O y (hy.trans_ne hs)]
   exact map_mul (rv O) (x : K) (y : K)
 
+/-- The residue field embeds multiplicatively in RV with its zero. -/
+def residueRVMonoidHom : Residue O →*₀ RV0 O where
+  toFun := residueRV O
+  map_zero' := residueRV_zero O
+  map_one' := residueRV_one O
+  map_mul' := residueRV_mul O
+
+theorem residueRV_inv (r : Residue O) : residueRV O r⁻¹ = (residueRV O r)⁻¹ :=
+  map_inv₀ (residueRVMonoidHom O) r
+
+theorem residueRV_neg_one : residueRV O (-1 : Residue O) = rv O (-1) := by
+  let x : O := -1
+  have h : IsLocalRing.residue O x = -1 := by
+    change IsLocalRing.residue O (-1) = -1
+    rw [map_neg, map_one]
+  have h' : IsLocalRing.residue O x ≠ 0 := h.trans_ne (neg_ne_zero.mpr one_ne_zero)
+  rw [← h, residueRV_residue_of_ne_zero O x h']
+  rfl
+
+theorem residueRV_neg (r : Residue O) : residueRV O (-r) = rv O (-1) * residueRV O r := by
+  rw [← neg_one_mul r, residueRV_mul, residueRV_neg_one]
+
 /-- Reduction on VF, extended by zero outside the valuation ring. -/
 def totalResidue (x : K) : Residue O := by
   classical

@@ -109,3 +109,7 @@ public import Section2.TrivialAdjunctionRank
 public import Section2.ImmediateFieldLift
 public import Section2.ImmediateTranslateLift
 public import Section2.RVExchange
+public import Section2.RVResidueClosure
+public import Section2.DiscCodes
+public import Section2.ElementaryGenerated
+public import Section2.HahnExample

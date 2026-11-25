@@ -16,15 +16,23 @@ open FirstOrder
 universe u v w z
 
 variable {L : Language.{u, v}} {E : Type w}
-  {X : TCsort → Type (max u v w z)} (M : SortedStructure L E X)
+
+section DefinablyClosed
+
+variable {X : TCsort → Type z} (M : SortedStructure L E X)
 
 /-- Being definably closed on RV says that a unique RV point defined
 using only the given RV parameters already belongs to the base. -/
+@[expose]
 def RVDefinablyClosed (W : Set (X .rv)) : Prop :=
   ∀ t, SortedDefinableOver M (fun s => match s with
       | .vf => ∅
       | .rv => W)
     {x : ∀ s, RVVariables Unit s → X s | x .rv () = t} → t ∈ W
+
+end DefinablyClosed
+
+variable {X : TCsort → Type (max u v w z)} (M : SortedStructure L E X)
 
 /-- An elementary sorted substructure contains every point defined by
 a unique RV solution over its RV parameters. -/
@@ -136,6 +144,7 @@ variable {K E' : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K] [Field
 
 /-- The old RV coefficients multiplied by powers of a new positive
 leading term. The separate RV zero remains in the set. -/
+@[expose]
 def rvOneGeneratorMonomials (W : Set (RV0 O)) (t : RV0 O) : Set (RV0 O) :=
   {x | x = 0 ∨ ∃ u ∈ W, u ≠ 0 ∧ ∃ e, x = u * P e t}
 
@@ -316,6 +325,12 @@ def adjoinNewValueRV (t : RV0 O) (ht : IsPositiveRV O t)
     · obtain ⟨i, hi⟩ := not_forall.mp h
       rw [extendResidueOperation_off_residue O fn ⟨i, hi⟩]
       exact Or.inl rfl
+
+theorem adjoinNewValueRV_rv_carrier (t : RV0 O) (ht : IsPositiveRV O t)
+    (hnew : ∀ u ∈ S.carrier .rv, u ≠ 0 → ∀ e,
+      unsignedValue O (u * P e t) = 1 → e = 0) :
+    (adjoinNewValueRV O g P hP hzero hone hadd hmul hO hclamp S t ht hnew).carrier .rv =
+      rvOneGeneratorMonomials O P (S.carrier .rv) t := by rfl
 
 end Adjoin
 

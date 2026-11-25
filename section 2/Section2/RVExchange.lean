@@ -129,4 +129,104 @@ theorem definable_rv_exchange_of_residue {T : L.Theory} [T.IsUniversal] [Residue
   rw [realize_rvMulTerm, SortedTerm.realize_subst, hV, realize_liftResidueTerm, hτ]
   exact ht.symm
 
+section NewValue
+
+variable (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
+  (hunit : ∀ e (x : PositiveField K), O.valuation (x : K) = 1 → O.valuation (g e x : K) = 1)
+
+include hP hone hmul hunit in
+/-- At a new value, a monomial can be a residue only if its exponent
+is zero. Applying the inverse power would otherwise produce an old
+representative of the new value. -/
+theorem exponent_eq_zero_of_new_value_of_substructure
+    (minusIn : rv O (-1) ∈ S.carrier .rv) {t : RV0 O} (ht : IsPositiveRV O t)
+    (hNew : unsignedValue O t ∉ unsignedValue O '' S.carrier .rv)
+    (u : RV0 O) (hu : u ∈ S.carrier .rv) (hu0 : u ≠ 0) (e : E)
+    (h : unsignedValue O (u * P e t) = 1) : e = 0 := by
+  by_contra he
+  obtain ⟨a, rfl⟩ := ht
+  obtain ⟨c, rfl⟩ := rv_surjective O u
+  have hc0 : c ≠ 0 := (rv_eq_zero_iff O).not.mp hu0
+  let r : PositiveField K := ⟨|c|, abs_pos.mpr hc0⟩
+  have hr : rv O r.val ∈ S.carrier .rv := by
+    change rv O |c| ∈ S.carrier .rv
+    rcases le_or_gt 0 c with hc | hc
+    · rw [abs_of_nonneg hc]
+      exact hu
+    · rw [abs_of_neg hc, ← neg_one_mul c, map_mul]
+      let args : SortedArgs (CanonicalSort O) [.rv, .rv] :=
+        Fin.cases (rv O (-1)) (Fin.cases (rv O c) (fun i => i.elim0))
+      exact S.closed .rvMul args
+        (fun i => Fin.cases minusIn (Fin.cases hu (fun j => j.elim0)) i)
+  have hInv : rv O (r⁻¹ : PositiveField K).val ∈ S.carrier .rv := by
+    rw [Positive.coe_inv, map_inv₀]
+    let args : SortedArgs (CanonicalSort O) [.rv] := Fin.cases (rv O r.val) (fun i => i.elim0)
+    exact S.closed .rvInv args (fun i => Fin.cases hr (fun j => j.elim0) i)
+  rw [hP e a, ← map_mul (rv O), unsignedValue_rv, map_mul O.valuation] at h
+  have hVal : O.valuation (g e a : K) = O.valuation (r⁻¹ : PositiveField K).val := by
+    rw [Positive.coe_inv, map_inv₀]
+    change O.valuation (g e a : K) = (O.valuation |c|)⁻¹
+    rw [valuation_abs]
+    apply (mul_eq_one_iff_eq_inv₀ ((map_ne_zero O.valuation).mpr hc0)).mp
+    rw [mul_comm]
+    exact h
+  have hv := power_respects_unsignedValue O (g e⁻¹) (hunit e⁻¹) hVal
+  rw [← hmul, inv_mul_cancel₀ he, hone] at hv
+  let s := rv O (r⁻¹ : PositiveField K).val
+  have hPold : P e⁻¹ s ∈ S.carrier .rv := by
+    let args : SortedArgs (CanonicalSort O) [.rv] := Fin.cases s (fun i => i.elim0)
+    exact S.closed (.power e⁻¹) args (fun i => Fin.cases hInv (fun j => j.elim0) i)
+  refine hNew ⟨P e⁻¹ s, hPold, ?_⟩
+  change unsignedValue O (P e⁻¹ (rv O (r⁻¹ : PositiveField K).val)) = unsignedValue O (rv O a.val)
+  rw [hP, unsignedValue_rv, unsignedValue_rv]
+  exact hv.symm
+
+include hP hzero hone hadd hmul hunit in
+/-- At a new value, definable closure puts a point defined from the
+generator in the checked monomial extension of the old RV base. -/
+theorem definable_rv_exchange_at_new_value
+    (minusIn : rv O (-1) ∈ S.carrier .rv)
+    (hOff : ∀ e t, ¬IsPositiveRV O t → P e t = 0)
+    (hDcl : ∀ C : SortedSubstructure (canonicalStructure (L := L) O hO P),
+      RVDefinablyClosed (canonicalStructure (L := L) O hO P) (C.carrier .rv))
+    {t x : RV0 O} (ht : IsPositiveRV O t)
+    (hVal : unsignedValue O t ∉ unsignedValue O '' S.carrier .rv)
+    (hNew : x ∉ S.carrier .rv)
+    (hDef : SortedDefinableOver (canonicalStructure (L := L) O hO P)
+      (fun s => match s with | .vf => ∅ | .rv => insert t (S.carrier .rv))
+      {a : ∀ s, RVVariables Unit s → CanonicalSort O s | a .rv () = x}) :
+    SortedDefinableOver (canonicalStructure (L := L) O hO P)
+      (fun s => match s with | .vf => ∅ | .rv => insert x (S.carrier .rv))
+      {a : ∀ s, RVVariables Unit s → CanonicalSort O s | a .rv () = t} := by
+  let V := S.carrier .rv
+  have hExponent := exponent_eq_zero_of_new_value_of_substructure O hO P g hP hone hmul S hunit
+    minusIn ht hVal
+  let C := adjoinNewValueRV O g P hP hzero hone hadd hmul hO hOff S t ht hExponent
+  have hCarrier : C.carrier .rv = rvOneGeneratorMonomials O P V t :=
+    adjoinNewValueRV_rv_carrier O g P hP hzero hone hadd hmul hO hOff S t ht hExponent
+  have hL := leadingTermPower_scalarLaws O hP hzero hone hadd hmul ht
+  have htC : t ∈ C.carrier .rv := by
+    rw [hCarrier]
+    exact Or.inr ⟨1, S.closed .rvOne (fun i => i.elim0) (fun i => i.elim0),
+      IsPositiveRV.ne_zero O (isPositiveRV_one O), 1, by rw [hL.2.1, one_mul (M := RV0 O)]⟩
+  have hxC : x ∈ C.carrier .rv := hDcl C x (hDef.mono (fun s => by
+    cases s with
+    | vf => exact Set.Subset.rfl
+    | rv =>
+      intro u hu
+      rcases hu with rfl | hu
+      · exact htC
+      · rw [hCarrier]
+        by_cases h : u = 0
+        · exact Or.inl h
+        · exact Or.inr ⟨u, hu, h, 0, by rw [hL.1, mul_one (M := RV0 O)]⟩))
+  rw [hCarrier] at hxC
+  have hx0 : x ≠ 0 := fun he =>
+    hNew (he.symm ▸ S.closed .rvZero (fun i => i.elim0) (fun i => i.elim0))
+  obtain ⟨u, hu, hu0, e, hx⟩ := hxC.resolve_left hx0
+  have he : e ≠ 0 := fun he => hNew (by rwa [hx, he, hL.1, mul_one (M := RV0 O)])
+  exact definable_rv_exchange_of_monomial O hO P g hP hzero hone hadd hmul V ht hu hu0 he hx
+
+end NewValue
+
 end GeneralizedEuler.Section2

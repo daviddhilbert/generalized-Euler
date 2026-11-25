@@ -124,4 +124,30 @@ theorem exists_qf_equivalent_of_tconvex_adjunction_inputs
   refine ⟨C, hBC, ?_⟩
   simpa only [CanonicalQEModel.structureOn, canonicalStructure_rvMap] using hC
 
+set_option linter.style.haveILetI false in
+/-- An interpreted model with its recovered valued-field data is
+isomorphic to the canonical expansion supplied by those data. -/
+theorem CanonicalQEModel.exists_isomorphism_of_recovery
+    {X : TCsort → Type z} (M : SortedStructure L E X)
+    (d : CanonicalQEModel T Tconvex terms graph (X .vf))
+    (I : QuotientInterpretation (convexLanguage L) L E) (minusOne : L.Term Empty)
+    (hM : ∀ φ ∈ interpretedValuedTheory I minusOne Tconvex, φ.realize M) :
+    letI := d.field
+    letI := d.languageStructure
+    letI := convexStructure d.ring L
+    valuedStructureOfSorted M (recoveredRing M minusOne) = convexStructure d.ring L →
+    ∀ R : RealizesQuotientInterpretation I (A := X .vf) d.structureOn,
+      (∀ x, R.rep .vf x = x) → (∀ x, R.rep .rv x = rv d.ring x) →
+      Nonempty (SortedIsomorphism M d.structureOn) := by
+  letI := d.field
+  letI := d.order
+  letI := d.orderedRing
+  letI := d.languageStructure
+  letI := d.residueStructure
+  letI := convexStructure d.ring L
+  intro hRec R hVF hRV
+  obtain ⟨e, _, _⟩ := exists_canonicalIsomorphism_of_interpretedValuedModel M I minusOne
+    d.ring d.convex d.rvPowers.pow Tconvex hRec hM R hVF hRV
+  exact ⟨e⟩
+
 end GeneralizedEuler.Section2
