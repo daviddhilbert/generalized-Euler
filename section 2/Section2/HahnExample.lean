@@ -199,6 +199,86 @@ multiplicative coordinates. -/
 def hahnRVEquiv := rvEquivFromCoordinates realRationalHahnRing hahnLeadingCoordinates
   hahnLeadingCoordinates_surjective hahnLeadingCoordinates_eq_iff_rv_eq
 
+@[simp] theorem hahnRVEquiv_rv (x : RealRationalHahn) :
+    hahnRVEquiv (rv realRationalHahnRing x) = hahnLeadingCoordinates x :=
+  (hahnLeadingCoordinates_eq_iff_rv_eq _ _).mpr ((rv_surjective _ _).choose_spec)
+
+private theorem hahn_rv_single_eq_iff {q r : ℚ} {c d : ℝ} (hc : c ≠ 0) (hd : d ≠ 0) :
+    rv realRationalHahnRing (HahnSeries.single q c) =
+      rv realRationalHahnRing (HahnSeries.single r d) ↔ q = r ∧ c = d := by
+  rw [hahn_rv_eq_iff_leading_pair, HahnSeries.orderTop_single hc, HahnSeries.orderTop_single hd,
+    WithTop.coe_eq_coe, HahnSeries.leadingCoeff_of_single, HahnSeries.leadingCoeff_of_single]
+
+private def hahnCoefficientSign (c : ℝ) : ℝ := if c < 0 then -1 else 1
+
+private theorem hahnCoefficientSign_mul {c d : ℝ} (hc : c ≠ 0) (hd : d ≠ 0) :
+    hahnCoefficientSign (c * d) = hahnCoefficientSign c * hahnCoefficientSign d := by
+  rcases lt_or_gt_of_ne hc with hc | hc <;> rcases lt_or_gt_of_ne hd with hd | hd
+  · simp [hahnCoefficientSign, hc, hd, (mul_pos_of_neg_of_neg hc hd).not_gt]
+  · simp [hahnCoefficientSign, hc, hd.not_gt, mul_neg_of_neg_of_pos hc hd]
+  · simp [hahnCoefficientSign, hc.not_gt, hd, mul_neg_of_pos_of_neg hc hd]
+  · simp [hahnCoefficientSign, hc.not_gt, hd.not_gt, (mul_pos hc hd).not_gt]
+
+def hahnSignedCoordinateHom : (Multiplicative ℚ × ℝˣ) →* ℝ where
+  toFun p := hahnCoefficientSign (p.2 : ℝ) * Real.exp (-(p.1.toAdd : ℝ))
+  map_one' := by change hahnCoefficientSign 1 * Real.exp (-(↑(0 : ℚ) : ℝ)) = 1; simp [hahnCoefficientSign]
+  map_mul' p q := by
+    change hahnCoefficientSign ((p.2 : ℝ) * ↑q.2) * Real.exp (-((p.1.toAdd + q.1.toAdd : ℚ) : ℝ)) =
+      hahnCoefficientSign (p.2 : ℝ) * Real.exp (-(p.1.toAdd : ℝ)) *
+        (hahnCoefficientSign (q.2 : ℝ) * Real.exp (-(q.1.toAdd : ℝ)))
+    rw [hahnCoefficientSign_mul p.2.ne_zero q.2.ne_zero, Rat.cast_add, neg_add, Real.exp_add]
+    ac_rfl
+
+/-- The signed valuation in Example 2.8, including its value at zero. -/
+def hahnSignedValue : RealRationalHahn →*₀ ℝ :=
+  (WithZero.lift' hahnSignedCoordinateHom).comp hahnLeadingCoordinates
+
+theorem hahnSignedValue_apply_ne_zero {x : RealRationalHahn} (hx : x ≠ 0) :
+    hahnSignedValue x =
+      (if x.leadingCoeff < 0 then -1 else 1) * Real.exp (-(x.order : ℝ)) := by
+  change WithZero.lift' hahnSignedCoordinateHom (hahnLeadingCoordinates x) = _
+  rw [hahnLeadingCoordinates_apply_ne_zero hx]
+  rfl
+
+/-- The signed valuation factors through the leading-term class. -/
+theorem hahnSignedValue_eq_of_rv_eq {x y : RealRationalHahn}
+    (h : rv realRationalHahnRing x = rv realRationalHahnRing y) :
+    hahnSignedValue x = hahnSignedValue y :=
+  congrArg (WithZero.lift' hahnSignedCoordinateHom) ((hahnLeadingCoordinates_eq_iff_rv_eq x y).mpr h)
+
+/-- On nonzero classes the signed valuation has kernel the positive
+real coefficient group at exponent zero. -/
+theorem hahnSignedCoordinateHom_eq_one_iff (q : ℚ) (c : ℝˣ) :
+    hahnSignedCoordinateHom (Multiplicative.ofAdd q, c) = 1 ↔ q = 0 ∧ 0 < (c : ℝ) := by
+  change hahnCoefficientSign (c : ℝ) * Real.exp (-(q : ℝ)) = 1 ↔ q = 0 ∧ 0 < (c : ℝ)
+  rcases lt_or_gt_of_ne c.ne_zero with h | h
+  · simp only [hahnCoefficientSign, h, ↓reduceIte, neg_one_mul]
+    refine ⟨fun he => ?_, fun he => (h.not_gt he.2).elim⟩
+    have hn := neg_neg_of_pos (Real.exp_pos (-(q : ℝ)))
+    rw [he] at hn
+    exact (not_lt_of_ge zero_le_one hn).elim
+  · simp [hahnCoefficientSign, h, h.not_gt, Real.exp_eq_one_iff]
+
+/-- The nonzero signed values are exactly the reals of the form
+(e^{-q}) and (-e^{-q}) for rational (q). -/
+theorem hahnSignedCoordinateHom_range :
+    Set.range hahnSignedCoordinateHom =
+      {y | ∃ q : ℚ, y = Real.exp (-(q : ℝ)) ∨ y = -Real.exp (-(q : ℝ))} := by
+  ext y
+  constructor
+  · rintro ⟨⟨q, c⟩, rfl⟩
+    refine ⟨q.toAdd, ?_⟩
+    change hahnCoefficientSign (c : ℝ) * Real.exp (-(q.toAdd : ℝ)) = _ ∨
+      hahnCoefficientSign (c : ℝ) * Real.exp (-(q.toAdd : ℝ)) = _
+    by_cases h : (c : ℝ) < 0 <;> simp [hahnCoefficientSign, h]
+  · rintro ⟨q, rfl | rfl⟩
+    · refine ⟨(Multiplicative.ofAdd q, (1 : ℝˣ)), ?_⟩
+      change hahnCoefficientSign (1 : ℝ) * Real.exp (-(q : ℝ)) = _
+      simp [hahnCoefficientSign]
+    · refine ⟨(Multiplicative.ofAdd q, (-1 : ℝˣ)), ?_⟩
+      change hahnCoefficientSign (-1 : ℝ) * Real.exp (-(q : ℝ)) = _
+      simp [hahnCoefficientSign]
+
 private theorem order_eq_zero_of_orderTop_eq_zero {x : RealRationalHahn}
     (h : x.orderTop = 0) : x.order = 0 := by
   have hn : x ≠ 0 := by
@@ -361,6 +441,115 @@ theorem hahnRing_nontrivially_valued : realRationalHahnRing.valuation.IsNontrivi
   change (0 : WithTop ℚ) < (HahnSeries.single (1 : ℚ) (1 : ℝ)).orderTop
   rw [HahnSeries.orderTop_single one_ne_zero]
   exact WithTop.coe_lt_coe.mpr (zero_lt_one : (0 : ℚ) < 1)
+
+private theorem hahn_single_inv (q : ℚ) {c : ℝ} (hc : c ≠ 0) :
+    (HahnSeries.single q c)⁻¹ = HahnSeries.single (-q) c⁻¹ := by
+  have hs : HahnSeries.single q c ≠ 0 :=
+    HahnSeries.leadingCoeff_ne_zero.mp (by rwa [HahnSeries.leadingCoeff_of_single])
+  symm
+  apply (mul_eq_one_iff_eq_inv₀ hs).mp
+  rw [HahnSeries.single_mul_single, neg_add_cancel, inv_mul_cancel₀ hc, HahnSeries.single_zero_one]
+
+private theorem hahn_single_zpow (q : ℚ) {c : ℝ} (hc : c ≠ 0) (n : ℤ) :
+    HahnSeries.single q c ^ n = HahnSeries.single ((n : ℚ) * q) (c ^ n) := by
+  cases n with
+  | ofNat n =>
+    change HahnSeries.single q c ^ (n : ℤ) = HahnSeries.single ((n : ℤ) * (q : ℚ)) (c ^ (n : ℤ))
+    rw [zpow_natCast, zpow_natCast, HahnSeries.single_pow, nsmul_eq_mul, Int.cast_natCast]
+  | negSucc n =>
+    rw [zpow_negSucc, HahnSeries.single_pow, hahn_single_inv _ (pow_ne_zero _ hc),
+      zpow_negSucc, nsmul_eq_mul, Int.cast_negSucc, neg_mul, Nat.cast_add, Nat.cast_one]
+
+set_option linter.style.haveILetI false in
+private theorem hahn_single_pos (q : ℚ) {c : ℝ} (hc : 0 < c) :
+    letI := hahnLinearOrder
+    0 < HahnSeries.single q c := by
+  letI := hahnLinearOrder
+  change 0 < toLex (HahnSeries.single q c)
+  apply HahnSeries.leadingCoeff_pos_iff.mp
+  change 0 < (HahnSeries.single q c).leadingCoeff
+  rwa [HahnSeries.leadingCoeff_of_single]
+
+set_option linter.style.haveILetI false in
+/-- The RV order compares the first coefficient at which the two
+monomials differ. In a fixed sign branch this reverses the comparison
+of exponents on the positive branch. -/
+theorem hahn_rv_single_lt_iff {q r : ℚ} {c d : ℝ} (hc : c ≠ 0) (hd : d ≠ 0) :
+    letI := hahnLinearOrder
+    letI := hahnIsStrictOrderedRing
+    letI := rvLinearOrder realRationalHahnRing hahnRing_isOrderConvex
+    rv realRationalHahnRing (HahnSeries.single q c) <
+      rv realRationalHahnRing (HahnSeries.single r d) ↔
+      (q < r ∧ c < 0) ∨ (r < q ∧ 0 < d) ∨ (q = r ∧ c < d) := by
+  letI := hahnLinearOrder
+  letI := hahnIsStrictOrderedRing
+  letI := rvLinearOrder realRationalHahnRing hahnRing_isOrderConvex
+  rw [rv_lt_rv_iff realRationalHahnRing hahnRing_isOrderConvex, ne_eq, hahn_rv_single_eq_iff hc hd,
+    ← sub_pos]
+  have hPos (x : RealRationalHahn) : 0 < x ↔ 0 < x.leadingCoeff :=
+    (HahnSeries.leadingCoeff_pos_iff (x := toLex x)).symm
+  rw [hPos]
+  rcases lt_trichotomy q r with h | rfl | h
+  · have ho : (-(HahnSeries.single q c)).orderTop < (HahnSeries.single r d).orderTop := by
+      rw [HahnSeries.orderTop_neg, HahnSeries.orderTop_single hc, HahnSeries.orderTop_single hd,
+        WithTop.coe_lt_coe]
+      exact h
+    rw [sub_eq_add_neg, HahnSeries.leadingCoeff_add_eq_right ho, HahnSeries.leadingCoeff_neg,
+      HahnSeries.leadingCoeff_of_single, neg_pos]
+    simp [h, h.ne, h.not_gt]
+  · rw [← HahnSeries.single_sub, HahnSeries.leadingCoeff_of_single, sub_pos]
+    simp only [lt_irrefl, false_and, true_and, false_or]
+    exact ⟨And.left, fun h => ⟨h, h.ne⟩⟩
+  · have ho : (HahnSeries.single r d).orderTop < (HahnSeries.single q c).orderTop := by
+      rw [HahnSeries.orderTop_single hc, HahnSeries.orderTop_single hd, WithTop.coe_lt_coe]
+      exact h
+    rw [HahnSeries.leadingCoeff_sub ho, HahnSeries.leadingCoeff_of_single]
+    simp [h, h.ne', h.not_gt]
+
+set_option linter.style.haveILetI false in
+/-- The positive rational power of a Hahn monomial is determined by
+the positive root characterizing that rational power. -/
+theorem hahn_rationalPower_on_monomial (e q : ℚ) {c : ℝ} (hc : 0 < c) :
+    letI := hahnLinearOrder
+    ∀ {y : RealRationalHahn}, 0 < y →
+      y ^ e.den = HahnSeries.single q c ^ e.num →
+      y = HahnSeries.single (e * q) (c ^ (e : ℝ)) := by
+  letI := hahnLinearOrder
+  letI := hahnIsStrictOrderedRing
+  intro y hy h
+  let b := HahnSeries.single (e * q) (c ^ (e : ℝ))
+  have hb : 0 < b := hahn_single_pos _ (Real.rpow_pos_of_pos hc _)
+  apply (pow_left_inj₀ hy.le hb.le e.den_nz).mp
+  rw [h, hahn_single_zpow _ hc.ne', HahnSeries.single_pow, nsmul_eq_mul]
+  have hRat {F : Type} [Field F] [CharZero F] :
+      (e : F) * (e.den : F) = (e.num : F) :=
+    (eq_div_iff (Nat.cast_ne_zero.mpr e.den_nz)).mp (Rat.cast_def e)
+  have hExp : (e.den : ℚ) * (e * q) = (e.num : ℚ) * q := by
+    rw [← mul_assoc, mul_comm (e.den : ℚ) e]
+    exact congrArg (fun t : ℚ => t * q) (by simpa only [Rat.cast_id] using (hRat (F := ℚ)))
+  have hCoeff : (c ^ (e : ℝ)) ^ e.den = c ^ e.num := by
+    rw [← Real.rpow_natCast, ← Real.rpow_mul hc.le, hRat (F := ℝ), Real.rpow_intCast]
+  rw [hExp, hCoeff]
+
+set_option linter.style.haveILetI false in
+/-- The named RV power has the rational-power formula in Hahn coordinates. -/
+theorem hahn_rv_rationalPower_on_positive_monomial (e q : ℚ) {c : ℝ} (hc : 0 < c) :
+    letI := hahnLinearOrder
+    letI := hahnIsStrictOrderedRing
+    ∀ (g : PositiveField RealRationalHahn →* PositiveField RealRationalHahn)
+      (P : RV0 realRationalHahnRing → RV0 realRationalHahnRing),
+      AgreesWithFieldPower realRationalHahnRing g P →
+      (∀ x : PositiveField RealRationalHahn, (g x).val ^ e.den = x.val ^ e.num) →
+      hahnRVEquiv (P (rv realRationalHahnRing (HahnSeries.single q c))) =
+        ((Multiplicative.ofAdd (e * q), Units.mk0 (c ^ (e : ℝ))
+          (Real.rpow_pos_of_pos hc _).ne') : Multiplicative ℚ × ℝˣ) := by
+  letI := hahnLinearOrder
+  letI := hahnIsStrictOrderedRing
+  intro g P hP hRoot
+  let x : PositiveField RealRationalHahn := ⟨HahnSeries.single q c, hahn_single_pos q hc⟩
+  change hahnRVEquiv (P (rv realRationalHahnRing x.val)) = _
+  rw [hP x, hahnRVEquiv_rv, hahn_rationalPower_on_monomial e q hc (g x).property (hRoot x)]
+  exact hahnLeadingCoordinates_single (e * q) (Units.mk0 _ (Real.rpow_pos_of_pos hc _).ne')
 
 open FirstOrder
 

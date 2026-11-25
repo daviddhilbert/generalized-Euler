@@ -1,6 +1,7 @@
 module
 
 public import Section2.ConvexLanguage
+public import Section2.DiscCodes
 public import Section2.QuotientInterpretation
 public import Section2.SortedStructure
 
@@ -106,6 +107,73 @@ theorem realize_rvEqualFormula {α : Type a} {F : FieldTerms (convexLanguage L)}
   · simp [hy]
   · rw [rv_eq_rv_iff_ring O hy, div_eq_mul_inv]
     simp [hy]
+
+/-- The multiplicative valuation comparison, including the zero radius. -/
+def valuationLEFormula {α : Type a} (F : FieldTerms (convexLanguage L))
+    (x y : (convexLanguage L).Term α) : (convexLanguage L).Formula α :=
+  (x.equal (zeroTerm F)) ⊔ ((y.equal (zeroTerm F)).not ⊓
+    valuationRingFormula (mulTerm F x (invTerm F y)))
+
+set_option linter.style.haveILetI false in
+theorem realize_valuationLEFormula {α : Type a} {F : FieldTerms (convexLanguage L)}
+    (hF : letI := convexStructure O L; InterpretsFieldTerms (K := K) F)
+    (x y : (convexLanguage L).Term α) (v : α → K) :
+    letI := convexStructure O L
+    (valuationLEFormula F x y).Realize v ↔ O.valuation (x.realize v) ≤ O.valuation (y.realize v) := by
+  letI := convexStructure O L
+  simp only [valuationLEFormula, Formula.realize_sup, Formula.realize_inf, Formula.realize_not,
+    Formula.realize_equal, realize_valuationRingFormula, realize_zeroTerm O hF, invTerm,
+    mulTerm, Term.realize_subst, hF.inv, hF.mul, Fin.cases_zero, finCases_one]
+  by_cases hy : y.realize v = 0
+  · rw [hy, map_zero, nonpos_iff_eq_zero, map_eq_zero]
+    simp
+  · rw [← div_eq_mul_inv, ← O.valuation_le_one_iff, map_div₀,
+      div_le_one₀ (pos_iff_ne_zero.mpr ((map_ne_zero O.valuation).mpr hy))]
+    simp only [hy, not_false_eq_true, true_and]
+    exact or_iff_right_of_imp (fun hx => by simp [hx])
+
+/-- Membership in the open or closed disc with a represented radius. -/
+def discMemberFormula {α : Type a} (F : FieldTerms (convexLanguage L)) (closed : Bool)
+    (x c r : (convexLanguage L).Term α) : (convexLanguage L).Formula α :=
+  if closed then valuationLEFormula F (subTerm F x c) r
+  else (valuationLEFormula F r (subTerm F x c)).not
+
+set_option linter.style.haveILetI false in
+theorem realize_discMemberFormula {α : Type a} {F : FieldTerms (convexLanguage L)}
+    (hF : letI := convexStructure O L; InterpretsFieldTerms (K := K) F)
+    (closed : Bool) (x c r : (convexLanguage L).Term α) (v : α → K) :
+    letI := convexStructure O L
+    (discMemberFormula F closed x c r).Realize v ↔
+      x.realize v ∈ (if closed then closedDisc else openDisc) O (c.realize v) (O.valuation (r.realize v)) := by
+  letI := convexStructure O L
+  cases closed <;>
+    simp [discMemberFormula, realize_valuationLEFormula O hF, subTerm, Term.realize_subst,
+      hF.sub, finCases_one, openDisc, closedDisc, not_le]
+
+/-- Equality of disc codes is the first-order equivalence of the
+membership formulas on all field points. -/
+noncomputable def discEqualFormula {α : Type a} (F : FieldTerms (convexLanguage L))
+    (closed₁ closed₂ : Bool) (c r d s : (convexLanguage L).Term α) :
+    (convexLanguage L).Formula α :=
+  let t : (convexLanguage L).Term (α ⊕ Unit) := .var (.inr ())
+  let lift := Term.relabel (L := convexLanguage L) (Sum.inl : α → α ⊕ Unit)
+  Formula.iAlls Unit ((discMemberFormula F closed₁ t (lift c) (lift r)).iff
+    (discMemberFormula F closed₂ t (lift d) (lift s)))
+
+set_option linter.style.haveILetI false in
+theorem realize_discEqualFormula {α : Type a} {F : FieldTerms (convexLanguage L)}
+    (hF : letI := convexStructure O L; InterpretsFieldTerms (K := K) F)
+    (closed₁ closed₂ : Bool) (c r d s : (convexLanguage L).Term α) (v : α → K) :
+    letI := convexStructure O L
+    (discEqualFormula F closed₁ closed₂ c r d s).Realize v ↔
+      (if closed₁ then closedDisc else openDisc) O (c.realize v) (O.valuation (r.realize v)) =
+      (if closed₂ then closedDisc else openDisc) O (d.realize v) (O.valuation (s.realize v)) := by
+  letI := convexStructure O L
+  simp only [discEqualFormula, Formula.realize_iAlls, Formula.realize_iff,
+    realize_discMemberFormula O hF, Term.realize_relabel, Term.realize_var, Sum.elim_inr,
+    Sum.elim_comp_inl]
+  rw [Set.ext_iff]
+  exact ⟨fun h x => h (fun _ => x), fun h f => h (f ())⟩
 
 set_option linter.style.haveILetI false in
 /-- A common valued-field substructure preserves equality with any
