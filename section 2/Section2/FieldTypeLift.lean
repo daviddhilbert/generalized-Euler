@@ -20,6 +20,7 @@ variable {L : Language.{u, v}} {K F : Type*} [L.Structure K] [L.Structure F]
 
 /-- The part of saturation needed for one-point types over a family of
 parameters indexed by `Names`. -/
+@[expose]
 def RealizesFinitelySatisfiableFieldTypes (L : Language.{u, v}) (F : Type*)
     [L.Structure F] (Names : Type a) : Prop :=
   ∀ v : Names → F, ∀ Δ : Set (L.Formula (Names ⊕ Unit)),

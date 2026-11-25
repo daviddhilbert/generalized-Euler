@@ -153,6 +153,34 @@ theorem signedValuation_eq_iff (hO : IsOrderConvex O) (x y : K) :
     Prod.mk.injEq, ← Units.val_inj, ← Units.val_inj]
   rfl
 
+set_option linter.style.haveILetI false in
+/-- The signed value equivalence is detected by unsigned value and the
+negative branch test in RV. -/
+theorem signedValue_eq_iff (hO : IsOrderConvex O) (s t : RV0 O) :
+    letI := rvLinearOrder O hO
+    signedValue O hO s = signedValue O hO t ↔
+      unsignedValue O s = unsignedValue O t ∧ (s < 0 ↔ t < 0) := by
+  letI := rvLinearOrder O hO
+  obtain ⟨x, rfl⟩ := rv_surjective O s
+  obtain ⟨y, rfl⟩ := rv_surjective O t
+  change signedValuation O hO x = signedValuation O hO y ↔ _
+  rw [signedValuation_eq_iff, unsignedValue_rv, unsignedValue_rv,
+    rv_lt_zero_iff O hO, rv_lt_zero_iff O hO]
+  constructor
+  · rintro ⟨h, v⟩
+    exact ⟨v, by rw [← sign_eq_neg_one_iff, ← sign_eq_neg_one_iff, h]⟩
+  · rintro ⟨v, hs⟩
+    refine ⟨?_, v⟩
+    by_cases hx : x = 0
+    · have hy : y = 0 := (map_eq_zero O.valuation).mp (v.symm.trans (hx ▸ map_zero O.valuation))
+      rw [hx, hy]
+    by_cases hn : x < 0
+    · rw [sign_eq_neg_one_iff.mpr hn, sign_eq_neg_one_iff.mpr (hs.mp hn)]
+    have hy : y ≠ 0 := fun h => hx ((map_eq_zero O.valuation).mp (v.trans (h ▸ map_zero O.valuation)))
+    have hp : 0 < x := lt_of_le_of_ne (le_of_not_gt hn) (fun h => hx h.symm)
+    have hq : 0 < y := lt_of_le_of_ne (le_of_not_gt (fun h => hn (hs.mpr h))) hy.symm
+    rw [sign_eq_one_iff.mpr hp, sign_eq_one_iff.mpr hq]
+
 theorem signedValuation_fiber_ordConnected (hO : IsOrderConvex O)
     (t : WithZero (SignedValueGroup O)) : Set.OrdConnected (signedValuation O hO ⁻¹' {t}) := by
   constructor
@@ -218,5 +246,22 @@ theorem signedValuation_lt_iff (hO : IsOrderConvex O) (x y : K) :
   change e.symm (signedValuation O hO x) < e.symm (signedValuation O hO y) ↔ _
   rw [he, he]
   exact @Quotient.mk_lt_mk _ _ _ h _ _
+
+set_option linter.style.haveILetI false in
+/-- Order of different signed values is read from their leading terms. -/
+theorem signedValue_lt_iff (hO : IsOrderConvex O) (s t : RV0 O) :
+    letI := rvLinearOrder O hO
+    (signedValueLinearOrder O hO).lt (signedValue O hO s) (signedValue O hO t) ↔
+      s ≤ t ∧ signedValue O hO s ≠ signedValue O hO t := by
+  letI := rvLinearOrder O hO
+  obtain ⟨x, rfl⟩ := rv_surjective O s
+  obtain ⟨y, rfl⟩ := rv_surjective O t
+  change (signedValueLinearOrder O hO).lt (signedValuation O hO x) (signedValuation O hO y) ↔ _
+  rw [signedValuation_lt_iff, rv_le_rv_iff O hO]
+  constructor
+  · exact fun h => ⟨Or.inl h.1.le, h.2⟩
+  · rintro ⟨h | h, hn⟩
+    · exact ⟨lt_of_le_of_ne h (fun he => hn (he ▸ rfl)), hn⟩
+    · exact (hn (congrArg (signedValue O hO) h)).elim
 
 end GeneralizedEuler.Section2

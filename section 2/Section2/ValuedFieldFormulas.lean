@@ -108,6 +108,22 @@ theorem realize_rvEqualFormula {α : Type a} {F : FieldTerms (convexLanguage L)}
   · rw [rv_eq_rv_iff_ring O hy, div_eq_mul_inv]
     simp [hy]
 
+/-- Equality of leading terms after translation by the same field point. -/
+def rvTranslateEqualFormula {α : Type a} (F : FieldTerms (convexLanguage L))
+    (x y c : (convexLanguage L).Term α) : (convexLanguage L).Formula α :=
+  rvEqualFormula F (subTerm F x c) (subTerm F y c)
+
+set_option linter.style.haveILetI false in
+theorem realize_rvTranslateEqualFormula {α : Type a} {F : FieldTerms (convexLanguage L)}
+    (hF : letI := convexStructure O L; InterpretsFieldTerms (K := K) F)
+    (x y c : (convexLanguage L).Term α) (v : α → K) :
+    letI := convexStructure O L
+    (rvTranslateEqualFormula F x y c).Realize v ↔
+      rv O (x.realize v - c.realize v) = rv O (y.realize v - c.realize v) := by
+  letI := convexStructure O L
+  simp only [rvTranslateEqualFormula, realize_rvEqualFormula O hF, subTerm,
+    Term.realize_subst, hF.sub, Fin.cases_zero, finCases_one]
+
 /-- The multiplicative valuation comparison, including the zero radius. -/
 def valuationLEFormula {α : Type a} (F : FieldTerms (convexLanguage L))
     (x y : (convexLanguage L).Term α) : (convexLanguage L).Formula α :=

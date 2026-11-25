@@ -114,3 +114,4 @@ public import Section2.RVResidueClosure
 public import Section2.DiscCodes
 public import Section2.ElementaryGenerated
 public import Section2.HahnExample
+public import Section2.FieldClosureUnderRV

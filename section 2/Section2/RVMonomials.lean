@@ -1,5 +1,7 @@
 module
 
+public import Section2.SignedValue
+
 public import Section2.RVReduct
 public import Section2.ResidueFiber
 public import Mathlib.Algebra.BigOperators.Group.List.Basic
@@ -50,6 +52,36 @@ theorem rvSameUnsignedValueFormula_isQF (x y : SortedTerm L E Var .rv) :
     (.imp (.equal x rvZeroTerm) (SortedFormula.neg_isQF (.equal y rvZeroTerm)))))
     (.rel .residueNonzero _)
 
+private def rvLessEqualFormula (x y : SortedTerm L E Var .rv) : SortedFormula L E Var :=
+  .rel .rvLE (Fin.cases x (fun i => unaryRVArgs y i))
+
+private def rvNegativeFormula (x : SortedTerm L E Var .rv) : SortedFormula L E Var :=
+  (rvLessEqualFormula rvZeroTerm x).neg
+
+/-- The equivalence relation defining the signed value group is
+quantifier-free in RV. -/
+def rvSameSignedValueFormula (x y : SortedTerm L E Var .rv) : SortedFormula L E Var :=
+  let a := rvNegativeFormula x
+  let b := rvNegativeFormula y
+  (rvSameUnsignedValueFormula x y).conjunction ((a.imp b).conjunction (b.imp a))
+
+theorem rvSameSignedValueFormula_isQF (x y : SortedTerm L E Var .rv) :
+    (rvSameSignedValueFormula x y).IsQF := by
+  have h (t : SortedTerm L E Var .rv) : (rvNegativeFormula t).IsQF :=
+    SortedFormula.neg_isQF (.rel .rvLE _)
+  exact SortedFormula.conjunction_isQF (rvSameUnsignedValueFormula_isQF x y)
+    (SortedFormula.conjunction_isQF (.imp (h x) (h y)) (.imp (h y) (h x)))
+
+/-- Strict comparison of represented signed values is also
+quantifier-free in RV. -/
+def rvSignedValueLTFormula (x y : SortedTerm L E Var .rv) : SortedFormula L E Var :=
+  (rvLessEqualFormula x y).conjunction (rvSameSignedValueFormula x y).neg
+
+theorem rvSignedValueLTFormula_isQF (x y : SortedTerm L E Var .rv) :
+    (rvSignedValueLTFormula x y).IsQF :=
+  SortedFormula.conjunction_isQF (.rel .rvLE _)
+    (SortedFormula.neg_isQF (rvSameSignedValueFormula_isQF x y))
+
 variable {K : Type z} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
   [L.Structure K] (O : ValuationSubring K) [L.Structure (Residue O)]
   (hO : IsOrderConvex O) (P : E → RV0 O → RV0 O)
@@ -88,6 +120,47 @@ theorem realize_rvSameUnsignedValueFormula (x y : SortedTerm L E Var .rv)
       unsignedValue O ((rvDivTerm x y).realize M a) = 1) ↔ _
   rw [realize_rvDivTerm]
   exact (unsignedValue_eq_iff_div_residue O _ _).symm
+
+set_option linter.style.haveILetI false in
+/-- The formula defines equality of represented signed values. -/
+theorem realize_rvSameSignedValueFormula (x y : SortedTerm L E Var .rv)
+    (a : ∀ s, Var s → CanonicalSort O s) :
+    let M := canonicalStructure (L := L) O hO P
+    (rvSameSignedValueFormula x y).realize M a ↔
+      signedValue O hO (x.realize M a) = signedValue O hO (y.realize M a) := by
+  let M := canonicalStructure (L := L) O hO P
+  letI := rvLinearOrder O hO
+  have h (t : SortedTerm L E Var .rv) :
+      (rvNegativeFormula t).realize M a ↔ t.realize M a < 0 := by
+    rw [rvNegativeFormula, SortedFormula.realize_neg]
+    change (¬ (0 : RV0 O) ≤ t.realize M a) ↔ _
+    exact not_le
+  have hU : (rvSameUnsignedValueFormula x y).realize M a ↔
+      unsignedValue O (x.realize M a) = unsignedValue O (y.realize M a) :=
+    realize_rvSameUnsignedValueFormula O hO P x y a
+  change (rvSameSignedValueFormula x y).realize M a ↔
+    signedValue O hO (x.realize M a) = signedValue O hO (y.realize M a)
+  simp only [rvSameSignedValueFormula, SortedFormula.realize_conjunction, SortedFormula.realize,
+    hU, h]
+  rw [signedValue_eq_iff O hO]
+  exact and_congr_right fun _ => ⟨fun he => ⟨he.1, he.2⟩, fun he => ⟨he.mp, he.mpr⟩⟩
+
+set_option linter.style.haveILetI false in
+theorem realize_rvSignedValueLTFormula (x y : SortedTerm L E Var .rv)
+    (a : ∀ s, Var s → CanonicalSort O s) :
+    let M := canonicalStructure (L := L) O hO P
+    (rvSignedValueLTFormula x y).realize M a ↔
+      (signedValueLinearOrder O hO).lt (signedValue O hO (x.realize M a))
+        (signedValue O hO (y.realize M a)) := by
+  let M := canonicalStructure (L := L) O hO P
+  letI := rvLinearOrder O hO
+  change (rvSignedValueLTFormula x y).realize M a ↔ _
+  rw [rvSignedValueLTFormula, SortedFormula.realize_conjunction, SortedFormula.realize_neg]
+  have hs : (rvSameSignedValueFormula x y).realize M a ↔
+      signedValue O hO (x.realize M a) = signedValue O hO (y.realize M a) :=
+    realize_rvSameSignedValueFormula O hO P x y a
+  rw [hs]
+  exact (signedValue_lt_iff O hO (x.realize M a) (y.realize M a)).symm
 
 /-- A tuple's unsigned value fiber is definable over any base containing
 one representative of each coordinate value. -/

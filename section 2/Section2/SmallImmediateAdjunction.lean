@@ -21,7 +21,7 @@ variable {L : Language.{u, v}} {E : Type w}
   (P : E → RV0 O → RV0 O)
 
 omit [Field K] [LinearOrder K] [IsStrictOrderedRing K] in
-private theorem card_fieldClosure_le {c : Cardinal.{u}} (hc : ℵ₀ ≤ c)
+theorem card_fieldClosure_le {c : Cardinal.{u}} (hc : ℵ₀ ≤ c)
     (hL : #(Σ i, L.Functions i) ≤ c)
     (B : Set K) (hB : #B ≤ c) : #(Substructure.closure L B) ≤ c := by
   have h : #(Substructure.closure L B) ≤
