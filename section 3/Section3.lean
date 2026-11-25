@@ -49,3 +49,8 @@ public import Section3.DiscAtomicSlices
 public import Section3.PiecewiseFunctions
 public import Section3.AtomicPolydiscImage
 public import Section3.RVBoundaryTheorem
+public import Section3.DefinableContraction
+public import Section3.ReducedJets
+public import Section3.DiscRayQuotient
+public import Section3.ObjectPartitions
+public import Section3.AtomicAffine
