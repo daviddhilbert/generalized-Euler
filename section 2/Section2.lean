@@ -51,3 +51,4 @@ public import Section2.ValuedFieldFormulas
 public import Section2.FieldGeneratedEmbedding
 public import Section2.FieldTypeLift
 public import Section2.DirectedSubstructure
+public import Section2.ResidueInterpretation

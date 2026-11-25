@@ -47,11 +47,30 @@ theorem convexStructure_mem {K : Type*} [Field K] {L : Language.{u, v}} [L.Struc
     Language.Structure.RelMap (L := convexLanguage L) (.inr RingPredicate.mem) x ↔ x 0 ∈ O := by
   rfl
 
+set_option linter.style.haveILetI false in
+/-- The original field symbols have their original interpretations in the
+expansion by the valuation-ring predicate. -/
+theorem convexStructure_expansion {K : Type*} [Field K] {L : Language.{u, v}} [L.Structure K]
+    (O : ValuationSubring K) :
+    letI := convexStructure O L
+    (LHom.sumInl : L →ᴸ convexLanguage L).IsExpansionOn K := by
+  letI := convexStructure O L
+  exact ⟨fun _ _ => by rfl, fun _ _ => by rfl⟩
+
 /-- The graph of a parameter-free function, as a formula with one extra
 free variable for the output. The same formula can be evaluated in VF and k. -/
 def DefinesTotalFunction {L : Language.{u, v}} {K : Type*} [L.Structure K]
     {n : ℕ} (φ : L.Formula (Option (Fin n))) (f : (Fin n → K) → K) : Prop :=
   ∀ a, φ.Realize a ↔ f (a ∘ some) = a none
+
+theorem DefinesTotalFunction.realize_iff {L : Language.{u, v}} {K : Type*} [L.Structure K]
+    {n : ℕ} {φ : L.Formula (Option (Fin n))} {f : (Fin n → K) → K}
+    (h : DefinesTotalFunction φ f) (a : Option (Fin n) → K) :
+    φ.Realize a ↔ f (a ∘ some) = a none := h a
+
+theorem DefinesTotalFunction.of_realize {L : Language.{u, v}} {K : Type*} [L.Structure K]
+    {n : ℕ} {φ : L.Formula (Option (Fin n))} {f : (Fin n → K) → K}
+    (h : ∀ a, φ.Realize a ↔ f (a ∘ some) = a none) : DefinesTotalFunction φ f := h
 
 /-- Ax. 7 with order convexity included in the definition of a T-convex
 valuation ring. The topology on the field is its order topology. -/
@@ -80,6 +99,23 @@ def MatchesContinuousFunctions {K : Type*} [Field K] [TopologicalSpace K]
       ∀ a : Fin n → O, ∃ h : f (fun i => (a i : K)) ∈ O,
         IsLocalRing.residue O ⟨f (fun i => (a i : K)), h⟩ =
           g (fun i => IsLocalRing.residue O (a i))
+
+/-- The same graph names a unique function in the residue field. -/
+theorem MatchesContinuousFunctions.reduces {K : Type*} [Field K] [TopologicalSpace K]
+    {L : Language.{u, v}} [L.Structure K] {O : ValuationSubring K}
+    [L.Structure (Residue O)] [TopologicalSpace (Residue O)]
+    (H : MatchesContinuousFunctions L O) {n : ℕ} {φ : L.Formula (Option (Fin n))}
+    {f : (Fin n → K) → K} {g : (Fin n → Residue O) → Residue O}
+    (hf : DefinesTotalFunction φ f) (hc : Continuous f) (hg : DefinesTotalFunction φ g)
+    (a : Fin n → O) : ∃ h : f (fun i => (a i : K)) ∈ O,
+    IsLocalRing.residue O ⟨f (fun i => (a i : K)), h⟩ =
+      g (IsLocalRing.residue O ∘ a) := by
+  obtain ⟨g', hg', _, h⟩ := H n φ f hf hc
+  have heq : g = g' := by
+    funext x
+    let v : Option (Fin n) → Residue O := fun i => i.elim (g' x) x
+    exact (hg v).mp ((hg' v).mpr rfl)
+  exact heq.symm ▸ h a
 
 /-- Quantifier elimination, stated with Mathlib formulas and semantic
 entailment. The free variables of each formula form a finite tuple. -/

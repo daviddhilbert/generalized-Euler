@@ -107,6 +107,12 @@ theorem range_residueRV :
     refine ⟨IsLocalRing.residue O y, residueRV_residue_of_ne_zero O y ?_⟩
     exact (residue_ne_zero_iff_value_one O y).mpr hx
 
+theorem mem_ring_of_rv_mem_residue {x : K} (h : rv O x ∈ Set.range (residueRV O)) : x ∈ O := by
+  rw [range_residueRV, Set.mem_ofPred_eq, rv_eq_zero_iff, unsignedValue_rv] at h
+  rcases h with rfl | h
+  · exact O.zero_mem
+  · exact (O.valuation_le_one_iff x).mp h.le
+
 @[simp] theorem residueRV_one : residueRV O (1 : Residue O) = 1 := by
   have h : IsLocalRing.residue O (1 : O) ≠ 0 := by simp
   simpa only [map_one, OneMemClass.coe_one] using residueRV_residue_of_ne_zero O 1 h

@@ -36,6 +36,13 @@ theorem homogeneousArgs_map {X : TCsort → Type*} {Y : TCsort → Type*}
   funext i
   exact commute _ _
 
+theorem homogeneousArgs_const {A : Type*} {s : TCsort} {n : ℕ}
+    (xs : Fin (List.replicate n s).length → A) (i : Fin n) :
+    homogeneousArgs (X := fun _ => A) (s := s) xs i =
+      xs (Fin.cast (List.length_replicate).symm i) := by
+  simp only [homogeneousArgs, eq_rec_constant]
+  rfl
+
 structure SortedStructure (L : Language.{u, v}) (E : Type w) (X : TCsort → Type z) where
   funMap : ∀ {ss s}, FunctionSymbol L E ss s → SortedArgs X ss → X s
   relMap : ∀ {ss}, RelationSymbol L ss → SortedArgs X ss → Prop
