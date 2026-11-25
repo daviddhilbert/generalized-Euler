@@ -2,6 +2,7 @@ module
 
 public import Section2.PowerOrder
 public import Section2.ResidueOrder
+public import Section2.ConvexRingComparison
 public import Mathlib.Algebra.Group.Subgroup.Ker
 public import Mathlib.Algebra.Module.LinearMap.Defs
 
@@ -146,16 +147,21 @@ theorem positiveValueMap_coe (t : PositiveRV O) :
   change unsignedValueUnit O t.val = unsignedValue O (t.val : RV0 O)
   rw [unsignedValue_coe]
 
+private theorem positiveValueMap_field (x : PositiveField K) :
+    (positiveValueMap O ((positiveRv O).rangeRestrict x) : O.ValueGroup) =
+      O.valuation (x : K) := by
+  rw [positiveValueMap_coe]
+  have hrv : positiveRVToRV0 O ((positiveRv O).rangeRestrict x) = rv O (x : K) :=
+    (rv_coe_unit O (Units.mk0 x x.property.ne')).symm
+  rw [hrv, unsignedValue_rv]
+
 theorem positiveValueMap_surjective : Function.Surjective (positiveValueMap O) := by
   intro γ
   obtain ⟨x, hx⟩ := O.valuation_surjective (γ : O.ValueGroup)
   have hx0 : x ≠ 0 := (map_ne_zero O.valuation).mp (hx.trans_ne γ.ne_zero)
   let p : PositiveField K := ⟨|x|, abs_pos.mpr hx0⟩
   refine ⟨(positiveRv O).rangeRestrict p, Units.ext ?_⟩
-  rw [positiveValueMap_coe]
-  have hrv : positiveRVToRV0 O ((positiveRv O).rangeRestrict p) = rv O (p : K) :=
-    (rv_coe_unit O (Units.mk0 p p.property.ne')).symm
-  rw [hrv, unsignedValue_rv]
+  rw [positiveValueMap_field]
   change O.valuation |x| = _
   rw [valuation_abs, hx]
 
@@ -270,6 +276,89 @@ theorem positiveValueLinearMap_surjective :
     Function.Surjective (positiveValueLinearMap O g P hP hzero hone hadd hmul hunit) := by
   exact positiveValueMap_surjective O
 
+omit [Semiring E] in
+include hP in
+private theorem positiveRVPower_field (e : E) (x : PositiveField K) :
+    positiveRVPower O (g e) ((positiveRv O).rangeRestrict x) =
+      (positiveRv O).rangeRestrict (g e x) := by
+  apply positiveRVToRV0_injective O
+  rw [positiveRVToRV0_power O (hP e)]
+  simpa only [show ∀ y : PositiveField K,
+    positiveRVToRV0 O ((positiveRv O).rangeRestrict y) = rv O (y : K) from
+      fun y => (rv_coe_unit O (Units.mk0 y y.property.ne')).symm] using hP e x
+
+set_option linter.style.haveILetI false in
+/-- Coarsening a valuation commutes with the exponent action when both
+value spaces are induced by the same field powers. -/
+def valueCoarseningLinearMap (Q : ValuationSubring K) (h : O ≤ Q)
+    (R : E → RV0 Q → RV0 Q) (hR : ∀ e, AgreesWithFieldPower Q (g e) (R e))
+    (hunitQ : ∀ e (x : PositiveField K), Q.valuation (x : K) = 1 →
+      Q.valuation (g e x : K) = 1) :
+    letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+    letI := unsignedValueModule Q g R hR hzero hone hadd hmul hunitQ
+    Additive (O.ValueGroupˣ) →ₗ[E] Additive (Q.ValueGroupˣ) := by
+  letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+  letI := unsignedValueModule Q g R hR hzero hone hadd hmul hunitQ
+  have onField (x : PositiveField K) :
+      valueCoarseningUnits O Q h (positiveValueMap O ((positiveRv O).rangeRestrict x)) =
+        positiveValueMap Q ((positiveRv Q).rangeRestrict x) := by
+    apply Units.ext
+    rw [valueCoarseningUnits_coe, positiveValueMap_field, positiveValueMap_field,
+      ValuationSubring.mapOfLE_valuation_apply]
+  refine { (valueCoarseningUnits O Q h).toAdditive with map_smul' := ?_ }
+  intro e γ
+  obtain ⟨t, ht⟩ := positiveValueMap_surjective O γ.toMul
+  obtain ⟨x, hx⟩ := MonoidHom.mem_range.mp t.property
+  have hx' : (positiveRv O).rangeRestrict x = t := Subtype.ext hx
+  rw [← hx'] at ht
+  have hγ : γ = Additive.ofMul (positiveValueMap O ((positiveRv O).rangeRestrict x)) :=
+    congrArg Additive.ofMul ht.symm
+  subst γ
+  change Additive.ofMul (valueCoarseningUnits O Q h
+      (valueScalar O g e (Additive.ofMul (positiveValueMap O
+        ((positiveRv O).rangeRestrict x)))).toMul) =
+    valueScalar Q g e (Additive.ofMul (valueCoarseningUnits O Q h
+      (positiveValueMap O ((positiveRv O).rangeRestrict x))))
+  rw [valueScalar_eq O g P hP hunit, positiveRVPower_field O g P hP]
+  rw [onField x, valueScalar_eq Q g R hR hunitQ, positiveRVPower_field Q g R hR]
+  exact congrArg Additive.ofMul (onField (g e x))
+
 end ValueModule
+
+section RelativeRank
+
+variable {E : Type*} [Field E]
+  (g : E → PositiveField K →* PositiveField K)
+  (P : E → RV0 O → RV0 O) (hP : ∀ e, AgreesWithFieldPower O (g e) (P e))
+  (hzero : ∀ x, g 0 x = 1) (hone : ∀ x, g 1 x = x)
+  (hadd : ∀ e d x, g (e + d) x = g e x * g d x)
+  (hmul : ∀ e d x, g (e * d) x = g e (g d x))
+  (hunit : ∀ e (x : PositiveField K), O.valuation (x : K) = 1 → O.valuation (g e x : K) = 1)
+
+set_option linter.style.haveILetI false in
+/-- Comparison in the new-value case of Theorem 2.16. If the value
+coarsening is injective on the old subspace and keeps a new generator
+outside its image, the relative rank bound forces equality of the rings. -/
+theorem eq_of_coarsening_preserving_new_value (Q : ValuationSubring K) (h : O ≤ Q)
+    (R : E → RV0 Q → RV0 Q) (hR : ∀ e, AgreesWithFieldPower Q (g e) (R e))
+    (hunitQ : ∀ e (x : PositiveField K), Q.valuation (x : K) = 1 →
+      Q.valuation (g e x : K) = 1) :
+    letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+    letI := unsignedValueModule Q g R hR hzero hone hadd hmul hunitQ
+    let f := valueCoarseningLinearMap O g P hP hzero hone hadd hmul hunit Q h R hR hunitQ
+    ∀ (U : Submodule E (Additive (O.ValueGroupˣ))) [FiniteDimensional E (_ ⧸ U)],
+      Module.finrank E (_ ⧸ U) ≤ 1 →
+      Set.InjOn f U → ∀ a, f a ∉ U.map f → O = Q := by
+  letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+  letI := unsignedValueModule Q g R hR hzero hone hadd hmul hunitQ
+  intro f U _ hd hU a ha
+  have ha' : a ∉ U := fun hm => ha (Submodule.mem_map_of_mem hm)
+  have hspan := span_base_and_new_value_of_relative_finrank_le_one U hd ha'
+  have hf := injective_valueMap_of_base_and_generator f U hspan hU ha
+  apply eq_of_injective_valueCoarseningUnits O Q h
+  intro x y hxy
+  exact congrArg Additive.toMul (hf (congrArg Additive.ofMul hxy))
+
+end RelativeRank
 
 end GeneralizedEuler.Section2

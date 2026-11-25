@@ -22,6 +22,46 @@ private theorem mem_of_abs_le_mem {x y : K} (hO : IsOrderConvex O) (hy : y ∈ O
     · simpa only [abs_of_neg h] using O.neg_mem y hy
   exact hO.out (O.neg_mem _ habs) habs (abs_le.mp hxy)
 
+/-- Equality of leading terms for a convex valuation forces equality of
+unsigned values for every convex valuation on the same ordered field. -/
+theorem value_eq_of_rv_eq_for_convex_valuations (hO : IsOrderConvex O)
+    (hP : IsOrderConvex P) {x y : K} (hxy : rv O x = rv O y) :
+    P.valuation x = P.valuation y := by
+  by_cases hy : y = 0
+  · subst y
+    rw [map_zero, rv_eq_zero_iff] at hxy
+    rw [hxy]
+  have hx : x ≠ 0 := by
+    intro hx
+    rw [hx, map_zero, eq_comm, rv_eq_zero_iff] at hxy
+    exact hy hxy
+  let u := Units.mk0 (x / y) (div_ne_zero hx hy)
+  have hunit : u ∈ O.principalUnitGroup := by
+    apply (O.mem_principalUnitGroup_iff u).mpr
+    apply O.mem_nonunits_iff.mp
+    change x / y - 1 ∈ O.nonunits
+    rw [← div_self hy, ← sub_div]
+    exact (rv_eq_rv_iff O hy).mp hxy
+  have htwo : (2 : K) ∈ P := by
+    rw [← one_add_one_eq_two]
+    exact P.add_mem 1 1 P.one_mem P.one_mem
+  have mem_of_bounds (v : Kˣ) (hv : v ∈ O.principalUnitGroup) : (v : K) ∈ P := by
+    obtain ⟨hl, hr⟩ := principalUnit_bounds O hO hv
+    have hpos : (0 : K) ≤ 1 / 2 := by positivity
+    exact hP.out P.zero_mem htwo ⟨hpos.trans hl.le, hr.le⟩
+  have hv := (valuation_eq_one_iff_mem_and_inv P (x / y)).mpr
+    ⟨u.ne_zero, mem_of_bounds u hunit, mem_of_bounds u⁻¹ (O.principalUnitGroup.inv_mem hunit)⟩
+  rw [map_div₀] at hv
+  exact (div_eq_one_iff_eq ((map_ne_zero P.valuation).mpr hy)).mp hv
+
+/-- A translate with a new value for the finer convex ring has a new
+leading term for the coarser ring, as needed in Lemma 2.22. -/
+theorem rv_not_mem_range_of_new_fine_value (hO : IsOrderConvex O)
+    (hP : IsOrderConvex P) {A : Set K} {x : K}
+    (hx : P.valuation x ∉ P.valuation '' A) : rv O x ∉ rv O '' A := by
+  rintro ⟨y, hy, h⟩
+  exact hx ⟨y, hy, value_eq_of_rv_eq_for_convex_valuations O P hO hP h⟩
+
 /-- Convex valuation rings of the same ordered field are comparable. -/
 theorem convexValuationRing_comparable (hO : IsOrderConvex O) (hP : IsOrderConvex P) :
     O ≤ P ∨ P ≤ O := by
@@ -97,6 +137,11 @@ omit [LinearOrder K] [IsStrictOrderedRing K] in
 /-- The coarsening homomorphism on nonzero unsigned values. -/
 noncomputable def valueCoarseningUnits (h : O ≤ P) : O.ValueGroupˣ →* P.ValueGroupˣ :=
   Units.map (ValuationSubring.mapOfLE O P h).toMonoidHom
+
+omit [LinearOrder K] [IsStrictOrderedRing K] in
+theorem valueCoarseningUnits_coe (h : O ≤ P) (x : O.ValueGroupˣ) :
+    (valueCoarseningUnits O P h x : P.ValueGroup) = ValuationSubring.mapOfLE O P h x := by
+  rfl
 
 omit [LinearOrder K] [IsStrictOrderedRing K] in
 theorem eq_of_injective_valueCoarseningUnits (h : O ≤ P)

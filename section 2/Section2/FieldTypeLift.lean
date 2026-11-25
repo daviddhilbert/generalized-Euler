@@ -2,6 +2,7 @@ module
 
 public import Section2.ConvexLanguage
 public import Section2.FieldGeneratedEmbedding
+public import Section2.ValuedFieldFormulas
 
 /-! Transfer of a one-point field type over matching parameters. The
 saturation hypothesis is explicit, as in the use of the monster model
@@ -67,5 +68,52 @@ theorem exists_simpleFieldLift_of_QE {T : L.Theory} (hQE : EliminatesQuantifiers
   obtain ⟨b, hb⟩ := exists_fieldPoint_of_same_parameter_type p q hmatch hsat a
   obtain ⟨e, he⟩ := exists_fieldGeneratedEmbedding _ _ hb
   exact ⟨b, e, he (.inr ()), fun c => he (.inl c)⟩
+
+section NamedLeadingTerms
+
+variable [Field K] [Field F]
+
+set_option linter.style.haveILetI false in
+/-- The second stage of Lemma 2.20 preserves every leading term named
+by the common field representatives used to extend the field map. -/
+theorem exists_simpleFieldLift_preserving_namedRV
+    (O : ValuationSubring K) (P : ValuationSubring F)
+    (terms : FieldTerms (convexLanguage L))
+    (hK : letI := convexStructure O L; InterpretsFieldTerms (K := K) terms)
+    (hF : letI := convexStructure P L; InterpretsFieldTerms (K := F) terms)
+    {T : (convexLanguage L).Theory} (hQE : EliminatesQuantifiers T)
+    {A : Type a} [(convexLanguage L).Structure A] {Names : Type*} :
+    letI := convexStructure O L
+    letI := convexStructure P L
+    ∀ (p : A ↪[convexLanguage L] K) (q : A ↪[convexLanguage L] F)
+      (_ : K ⊨ T) (_ : F ⊨ T)
+      (_ : RealizesFinitelySatisfiableFieldTypes (convexLanguage L) F A)
+      (a : K) (representative : Names → A),
+      let B := Substructure.closure (convexLanguage L)
+        (Set.range (Sum.elim p (fun _ : Unit => a)))
+      ∃ (b : F) (e : B ↪[convexLanguage L] F),
+        e ⟨a, Substructure.subset_closure ⟨.inr (), rfl⟩⟩ = b ∧
+        (∀ c : A, e ⟨p c, Substructure.subset_closure ⟨.inl c, rfl⟩⟩ = q c) ∧
+        ∀ (x : B) (t : Names),
+          rv O x.val = rv O (p (representative t)) ↔
+            rv P (e x) = rv P (q (representative t)) := by
+  letI := convexStructure O L
+  letI := convexStructure P L
+  intro p q hTK hTF hsat a representative
+  letI := hTK
+  letI := hTF
+  let B := Substructure.closure (convexLanguage L) (Set.range (Sum.elim p (fun _ : Unit => a)))
+  obtain ⟨b, e, ha, he⟩ := exists_simpleFieldLift_of_QE hQE p q hsat a
+  refine ⟨b, e, ha, he, ?_⟩
+  intro x t
+  let c : B := ⟨p (representative t), Substructure.subset_closure ⟨.inl (representative t), rfl⟩⟩
+  let args : Fin 2 → B := fun i => if i = 0 then x else c
+  have h := rv_eq_iff_of_pair_embeddings O P terms hK hF B.subtype e args
+  have h0 : args 0 = x := by simp [args]
+  have h1 : args 1 = c := by simp [args]
+  rw [h0, h1, he (representative t)] at h
+  exact h
+
+end NamedLeadingTerms
 
 end GeneralizedEuler.Section2

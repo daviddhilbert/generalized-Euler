@@ -76,6 +76,10 @@ def SortedEmbedding.mapAssignment (ι : SortedEmbedding M N)
     {Var : TCsort → Type a} (assign : ∀ s, Var s → X s) (s : TCsort) : Var s → Y s :=
   ι.toEmbedding s ∘ assign s
 
+theorem SortedEmbedding.mapAssignment_apply (ι : SortedEmbedding M N)
+    {Var : TCsort → Type a} (assign : ∀ s, Var s → X s) (s : TCsort) (i : Var s) :
+    ι.mapAssignment assign s i = ι.toEmbedding s (assign s i) := by rfl
+
 theorem SortedEmbedding.realize_term (ι : SortedEmbedding M N) {Var : TCsort → Type a}
     (assign : ∀ s, Var s → X s) {s : TCsort} (t : SortedTerm L E Var s) :
     ι.toEmbedding s (t.realize M assign) = t.realize N (ι.mapAssignment assign) := by

@@ -1,6 +1,7 @@
 module
 
 public import Section2.SortedTypes
+public import Section2.GeneratedSubstructure
 
 /-! The compactness step of the Shoenfield test used in Theorem 2.16. -/
 
@@ -273,6 +274,31 @@ theorem exists_qf_equivalent_of_onePoint (T : SortedTheory L E)
     obtain ⟨R, y, hQR, hxy⟩ := hstep P Q hPQ s x
     exact (hxy ψ hψ).mpr ((R.realizes_all s ψ).mp ((hQR _).mp hq) y)
   exact ⟨transfer Q P (fun θ hθ => (hPQ θ hθ).symm), transfer P Q hPQ⟩
+
+/-- The substructure form of the Shoenfield test. The field-specific
+argument supplies the extension of a generated embedding to the
+enlarged tuple in a target with the same pointed theory. -/
+theorem exists_qf_equivalent_of_generated_extension (T : SortedTheory L E)
+    (hstep : ∀ {Var : TCsort → Type a} (P Q : T.PointedModel Var)
+      (e : SortedEmbedding (P.model.termGenerated P.point).structureOn Q.model),
+      (∀ s i, e.toEmbedding s (P.model.termGeneratedAssignment P.point s i) = Q.point s i) →
+      ∀ (s : TCsort) (x : P.carrier s),
+        ∃ (R : T.PointedModel Var) (y : R.carrier s)
+          (j : SortedEmbedding
+            (P.model.termGenerated (extendSortedAssignment P.point x)).structureOn R.model),
+          (∀ θ, Q.realizes θ ↔ R.realizes θ) ∧
+          ∀ t i, j.toEmbedding t
+            (P.model.termGeneratedAssignment (extendSortedAssignment P.point x) t i) =
+              extendSortedAssignment R.point y t i)
+    (φ : SortedFormula L E Var) :
+    ∃ ψ : SortedFormula L E Var, ψ.IsQF ∧
+      ∀ P : T.PointedModel Var, P.realizes φ ↔ P.realizes ψ := by
+  apply T.exists_qf_equivalent_of_onePoint _ φ
+  intro Var P Q hPQ s x
+  obtain ⟨e, he⟩ := exists_embedding_of_same_qf_type P.model P.point Q.point hPQ
+  obtain ⟨R, y, j, hR, hj⟩ := hstep P Q e he s x
+  exact ⟨R, y, hR, fun ψ hψ => same_qf_type_of_generatedEmbedding P.model
+    (extendSortedAssignment P.point x) (extendSortedAssignment R.point y) j hj ψ hψ⟩
 
 end SortedTheory
 

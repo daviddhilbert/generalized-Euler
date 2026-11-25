@@ -72,13 +72,19 @@ def SortedStructure.termGenerated {Var : TCsort → Type a} (x : ∀ s, Var s �
     choose ts hts using hys
     exact ⟨.app f ts, congrArg (M.funMap f) (funext hts)⟩
 
+/-- The named tuple viewed in the substructure that it generates. -/
+@[expose]
+def SortedStructure.termGeneratedAssignment {Var : TCsort → Type a} (x : ∀ s, Var s → X s)
+    (s : TCsort) (i : Var s) : (M.termGenerated x).carrier s :=
+  ⟨x s i, .intro (.var i) rfl⟩
+
 /-- Matching quantifier-free types give an embedding of the generated
 substructure carrying the first tuple to the second. -/
 theorem exists_embedding_of_same_qf_type {Var : TCsort → Type a}
     (x : ∀ s, Var s → X s) (y : ∀ s, Var s → Y s)
     (hqf : ∀ φ : SortedFormula L E Var, φ.IsQF → (φ.realize M x ↔ φ.realize N y)) :
     ∃ e : SortedEmbedding (M.termGenerated x).structureOn N,
-      ∀ s (i : Var s), e.toEmbedding s ⟨x s i, .intro (.var i) rfl⟩ = y s i := by
+      ∀ s (i : Var s), e.toEmbedding s (M.termGeneratedAssignment x s i) = y s i := by
   classical
   let S := M.termGenerated x
   let rep (s : TCsort) (a : S.carrier s) : SortedTerm L E Var s := a.property.choose
@@ -103,5 +109,29 @@ theorem exists_embedding_of_same_qf_type {Var : TCsort → Type a}
         exact (hqf (.rel r (fun i => rep _ (as i))) (.rel ..)).symm.trans
           (congrArg (M.relMap r) hr).to_iff }
   exact ⟨e, fun s i => onTerm s _ (.var i) rfl⟩
+
+/-- An embedding of the generated substructure transports the
+quantifier-free type of the generator tuple. -/
+theorem same_qf_type_of_generatedEmbedding {Var : TCsort → Type a}
+    (x : ∀ s, Var s → X s) (y : ∀ s, Var s → Y s)
+    (e : SortedEmbedding (M.termGenerated x).structureOn N)
+    (h : ∀ s i, e.toEmbedding s (M.termGeneratedAssignment x s i) = y s i)
+    (φ : SortedFormula L E Var) (hφ : φ.IsQF) :
+    φ.realize M x ↔ φ.realize N y := by
+  let S := M.termGenerated x
+  let z := M.termGeneratedAssignment x
+  have hi : S.inclusion.mapAssignment z = x := by
+    funext s i
+    rw [SortedEmbedding.mapAssignment_apply, SortedSubstructure.inclusion_apply]
+    rfl
+  have he : e.mapAssignment z = y := by
+    funext s i
+    rw [SortedEmbedding.mapAssignment_apply]
+    exact h s i
+  have hM := S.inclusion.realize_qf hφ z
+  have hN := e.realize_qf hφ z
+  rw [hi] at hM
+  rw [he] at hN
+  exact hM.trans hN.symm
 
 end GeneralizedEuler.Section2

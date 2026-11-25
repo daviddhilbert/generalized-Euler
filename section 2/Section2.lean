@@ -50,3 +50,4 @@ public import Section2.QuotientInterpretation
 public import Section2.ValuedFieldFormulas
 public import Section2.FieldGeneratedEmbedding
 public import Section2.FieldTypeLift
+public import Section2.DirectedSubstructure
