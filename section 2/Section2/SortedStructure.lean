@@ -58,6 +58,17 @@ theorem homogeneousArgs_expand {X : TCsort → Type*} {s : TCsort} {n : ℕ}
   simp only [homogeneousArgs, expandHomogeneousArgs, undo]
   rfl
 
+theorem homogeneousArgs_of_cast {X : TCsort → Type*} {s : TCsort} {n : ℕ}
+    (h : ∀ j : Fin (List.replicate n s).length, (List.replicate n s).get j = s)
+    (x : Fin (List.replicate n s).length → X s) :
+    homogeneousArgs (X := X) (fun j => (h j).symm ▸ x j) =
+      x ∘ Fin.cast List.length_replicate.symm := by
+  funext i
+  have undo {t : TCsort} (h : t = s) (x : X s) : h ▸ (h.symm ▸ x : X t) = x := by
+    cases h
+    rfl
+  exact undo (h (Fin.cast List.length_replicate.symm i)) _
+
 structure SortedStructure (L : Language.{u, v}) (E : Type w) (X : TCsort → Type z) where
   funMap : ∀ {ss s}, FunctionSymbol L E ss s → SortedArgs X ss → X s
   relMap : ∀ {ss}, RelationSymbol L ss → SortedArgs X ss → Prop

@@ -76,3 +76,4 @@ public import Section2.ImmediateBackAndForth
 public import Section2.RVSplitCoordinates
 public import Section2.SplitDefinability
 public import Section2.RVFormulaSeparation
+public import Section2.RVCoordinatePrimitives

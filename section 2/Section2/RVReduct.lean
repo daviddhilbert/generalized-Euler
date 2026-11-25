@@ -78,6 +78,7 @@ def fullRVAssignment (x : V → X .rv) : ∀ s, FullRVVariables S V s → X s
   | .vf => Sum.elim Subtype.val PEmpty.elim
   | .rv => Sum.elim Subtype.val x
 
+@[expose]
 def reductRVAssignment (x : V → X .rv) : ∀ s, ReductRVVariables S V s → X s
   | .vf => PEmpty.elim
   | .rv => Sum.elim Subtype.val x

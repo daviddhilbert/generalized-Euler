@@ -123,7 +123,7 @@ theorem image_relabel [Finite I] [Finite J] {D : Set (SplitAssignment G H I)}
     SplitDefinable JG JH A B (splitRelabel r '' D) :=
   SeparatedSets.image _ _ (fun h => h.image_comp r) (fun h => h.image_comp r) hD
 
-private theorem definable_coordinate_eq {J : Language} {M : Type*} [J.Structure M]
+theorem definable_coordinate_eq {J : Language} {M : Type*} [J.Structure M]
     {A : Set M} (i j : I) : A.Definable J {x : I → M | x i = x j} := by
   refine ⟨(Language.Term.var i).equal (Language.Term.var j), ?_⟩
   ext x
@@ -150,12 +150,16 @@ theorem graph_relabel (r : J → I) {f : SplitAssignment G H J → G × H}
   ext x
   rfl
 
-private theorem definable_coordinate_eq_param {J : Language} {M : Type*} [J.Structure M]
+theorem definable_coordinate_eq_param {J : Language} {M : Type*} [J.Structure M]
     {A : Set M} (i : I) (a : A) : A.Definable J {x : I → M | x i = a.val} := by
   refine ⟨(Language.Term.var i).equal (J.con a).term, ?_⟩
   ext x
   simp only [Set.mem_ofPred_eq, Language.Formula.realize_equal, Language.Term.realize_var,
     Language.Term.realize_con]
+
+theorem coordinateTermGraph_const {J : Language} {M : Type*} [J.Structure M]
+    {A : Set M} (a : A) : A.Definable J (coordinateTermGraph (fun _ : I → M => a.val)) :=
+  definable_coordinate_eq_param (.inr () : I ⊕ Unit) a
 
 theorem graph_constant (g : A) (h : B) :
     SplitDefinable JG JH A B (splitTermGraph (fun _ : SplitAssignment G H I => (g.val, h.val))) := by

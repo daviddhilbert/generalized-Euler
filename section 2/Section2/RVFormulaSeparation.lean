@@ -133,4 +133,35 @@ theorem RVCoordinatePresentation.separated_formula
       exact imp_iff_not_or
     exact he.symm ▸ (ihφ.compl.union ihψ)
 
+omit [Finite I] in
+/-- Separation of the normalized RV formula gives separation of the
+original definable set over the two sets of coordinate parameters. -/
+theorem RVCoordinatePresentation.separated_rv_pullback {I : Type b} [Finite I]
+    (C : SortedSubstructure M) {U : Set (I → X .rv)}
+    (hU : SortedDefinableOver M C.carrier {x : ∀ s, RVVariables I s → X s | x .rv ∈ U})
+    (hQE : ∀ φ : SortedFormula L E (FullRVVariables C I),
+      ∃ q : SortedFormula L E (FullRVVariables C I), q.IsQF ∧
+        ∀ v, q.realize M v ↔ φ.realize M v)
+    (hparam : ∀ t : C.carrier .rv, (P.encode t.val).1 ∈ A ∧ (P.encode t.val).2 ∈ B)
+    (hinput : ∀ i : I, SplitDefinable JG JH A B
+      (splitTermGraph (fun x : SplitAssignment G H I => P.encode (P.decode (x.1 i, x.2 i))))) :
+    SplitDefinable JG JH A B {x : SplitAssignment G H I |
+      (fun i => P.decode (x.1 i, x.2 i)) ∈ U} := by
+  obtain ⟨φ, hφ, he⟩ := exists_rv_formula_of_definable C hU hQE
+  let tuple (x : SplitAssignment G H I) : ∀ s, RVVariables I s → X s
+    | .vf => PEmpty.elim
+    | .rv => fun i => P.decode (x.1 i, x.2 i)
+  let assign (x : SplitAssignment G H I) := reductRVAssignment C (tuple x .rv)
+  have hgraphs (i : ReductRVVariables C I .rv) :
+      SplitDefinable JG JH A B (splitTermGraph (fun x => P.encode (assign x .rv i))) := by
+    rcases i with t | i
+    · exact SplitDefinable.graph_constant (JG := JG) (JH := JH)
+        ⟨(P.encode t.val).1, (hparam t).1⟩
+        ⟨(P.encode t.val).2, (hparam t).2⟩
+    · exact hinput i
+  have hs := P.separated_formula assign hgraphs hφ
+  convert hs using 1
+  ext x
+  exact he (tuple x)
+
 end GeneralizedEuler.Section2

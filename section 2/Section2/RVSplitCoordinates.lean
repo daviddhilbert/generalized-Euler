@@ -63,6 +63,7 @@ theorem coe_valueCoordinate {t : RV0 O} (ht : t ≠ 0) :
     (valueCoordinate t : O.ValueGroup) = unsignedValue O t := by
   simp [valueCoordinate, ht]
 
+@[expose]
 def residueCoordinate (t : RV0 O) : Residue O :=
   rvResidue O (t / S.representative (valueCoordinate t))
 
@@ -174,6 +175,13 @@ theorem valueCoordinate_eq_one_iff {t : RV0 O} :
     rw [← S.join_one, ← h, S.join_coordinates]
   · rintro ⟨r, rfl⟩
     exact valueCoordinate_residueRV r
+
+theorem join_mem_residue_iff (γ : O.ValueGroupˣ) (r : Residue O) :
+    S.join γ r ∈ Set.range (residueRV O) ↔ γ = 1 ∨ r = 0 := by
+  rcases eq_or_ne r 0 with rfl | hr
+  · rw [S.join_zero]
+    exact iff_of_true ⟨0, residueRV_zero O⟩ (.inr rfl)
+  · rw [← S.valueCoordinate_eq_one_iff, S.valueCoordinate_join γ hr, or_iff_left hr]
 
 theorem unsignedValue_eq_one_iff_coordinates {t : RV0 O} :
     unsignedValue O t = 1 ↔ valueCoordinate t = 1 ∧ S.residueCoordinate t ≠ 0 := by
@@ -304,6 +312,33 @@ theorem join_le_join_negative (hO : IsOrderConvex O) (γ δ : O.ValueGroupˣ) (r
   rw [← horder, S.join_le_join_positive hO δ γ (-s) (-r) (neg_pos.mpr hs) (neg_pos.mpr hr),
     neg_le_neg_iff, eq_comm (a := δ)]
 
+set_option linter.style.haveILetI false in
+theorem join_le_join_iff_coordinates (hO : IsOrderConvex O) (γ δ : O.ValueGroupˣ) (r s : Residue O) :
+    letI := rvLinearOrder O hO
+    letI := residueLinearOrder O hO
+    S.join γ r ≤ S.join δ s ↔
+      (r ≤ 0 ∧ 0 ≤ s) ∨
+      (0 < r ∧ 0 < s ∧ ((γ : O.ValueGroup) < δ ∨ (γ = δ ∧ r ≤ s))) ∨
+      (r < 0 ∧ s < 0 ∧ ((δ : O.ValueGroup) < γ ∨ (γ = δ ∧ r ≤ s))) := by
+  letI := rvLinearOrder O hO
+  letI := residueLinearOrder O hO
+  constructor
+  · intro h
+    by_cases hr : 0 < r
+    · have hs : 0 < s := (S.join_pos_iff hO δ s).mp
+        (((S.join_pos_iff hO γ r).mpr hr).trans_le h)
+      exact .inr (.inl ⟨hr, hs, (S.join_le_join_positive hO γ δ r s hr hs).mp h⟩)
+    · by_cases hs : s < 0
+      · have hr' : r < 0 := (S.join_neg_iff hO γ r).mp
+          (h.trans_lt ((S.join_neg_iff hO δ s).mpr hs))
+        exact .inr (.inr ⟨hr', hs, (S.join_le_join_negative hO γ δ r s hr' hs).mp h⟩)
+      · exact .inl ⟨le_of_not_gt hr, le_of_not_gt hs⟩
+  · rintro (⟨hr, hs⟩ | ⟨hr, hs, h⟩ | ⟨hr, hs, h⟩)
+    · exact (le_of_not_gt ((S.join_pos_iff hO γ r).not.mpr hr.not_gt)).trans
+        (le_of_not_gt ((S.join_neg_iff hO δ s).not.mpr hs.not_gt))
+    · exact (S.join_le_join_positive hO γ δ r s hr hs).mpr h
+    · exact (S.join_le_join_negative hO γ δ r s hr hs).mpr h
+
 /-- A residue operation uses only the residue coordinates when every
 input has unit value. On all other coordinate tuples it is clamped to zero. -/
 theorem extendResidueOperation_join {n : ℕ} (f : (Fin n → Residue O) → Residue O)
@@ -323,6 +358,29 @@ theorem extendResidueOperation_join {n : ℕ} (f : (Fin n → Residue O) → Res
     push Not at hg
     obtain ⟨i, hi⟩ := hg
     exact extendResidueOperation_off_residue O f ⟨i, (hvalid i).not.mpr hi⟩
+
+set_option linter.style.haveILetI false in
+/-- On the whole product of the coordinate spaces, any pair with zero
+residue decodes to RV zero, independently of the dummy value. -/
+theorem extendResidueOperation_join_with_zero {n : ℕ} (f : (Fin n → Residue O) → Residue O)
+    (γ : Fin n → O.ValueGroupˣ) (r : Fin n → Residue O) :
+    letI := Classical.propDecidable
+    extendResidueOperation O f (fun i => S.join (γ i) (r i)) =
+      if ∀ i, γ i = 1 ∨ r i = 0 then residueRV O (f r) else 0 := by
+  classical
+  by_cases hg : ∀ i, γ i = 1 ∨ r i = 0
+  · have heq : (fun i => S.join (γ i) (r i)) = residueRV O ∘ r := by
+      funext i
+      rcases hg i with hi | hi
+      · rw [hi, S.join_one]
+        rfl
+      · simp only [Function.comp_apply, hi, S.join_zero, residueRV_zero]
+    rw [ite_eq_left hg, heq, extendResidueOperation_on_residue]
+  · rw [ite_eq_right hg]
+    push Not at hg
+    obtain ⟨i, hi⟩ := hg
+    exact extendResidueOperation_off_residue O f ⟨i, (S.join_mem_residue_iff (γ i) (r i)).not.mpr
+      (fun h => h.elim hi.1 hi.2)⟩
 
 set_option linter.style.haveILetI false in
 theorem leadingTermPower_join_positive (hO : IsOrderConvex O)
