@@ -54,3 +54,10 @@ public import Section3.ReducedJets
 public import Section3.DiscRayQuotient
 public import Section3.ObjectPartitions
 public import Section3.AtomicAffine
+public import Section3.DefinableCutPoints
+public import Section3.RVValuePoints
+public import Section3.RayOrientation
+public import Section3.ChildSemilinear
+public import Section3.SmoothSlices
+public import Section3.FourForms
+public import Section3.ResidueChartGraph
