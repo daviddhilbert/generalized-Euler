@@ -52,7 +52,7 @@ theorem realize_disjunction {X : TCsort → Type*} (M : SortedStructure L E X)
 private def allOf (l : List (SortedFormula L E Var)) : SortedFormula L E Var :=
   l.foldr conjunction (.neg .falsum)
 
-private def anyOf (l : List (SortedFormula L E Var)) : SortedFormula L E Var :=
+def anyOf (l : List (SortedFormula L E Var)) : SortedFormula L E Var :=
   l.foldr disjunction .falsum
 
 private theorem allOf_isQF (l : List (SortedFormula L E Var)) (h : ∀ ψ ∈ l, ψ.IsQF) :
@@ -81,7 +81,7 @@ private theorem realize_allOf {X : TCsort → Type*} (M : SortedStructure L E X)
     change (conjunction ψ (allOf l)).realize M x ↔ _
     simp only [realize_conjunction, ih, List.forall_mem_cons]
 
-private theorem realize_anyOf {X : TCsort → Type*} (M : SortedStructure L E X)
+theorem realize_anyOf {X : TCsort → Type*} (M : SortedStructure L E X)
     (x : ∀ s, Var s → X s) (l : List (SortedFormula L E Var)) :
     (anyOf l).realize M x ↔ ∃ ψ ∈ l, ψ.realize M x := by
   classical
@@ -125,6 +125,38 @@ private theorem finite_unrealizable {Δ : Set (SortedFormula L E Var)}
   classical
   by_contra! H
   exact h (T.realizable_of_finite Δ H)
+
+/-- A cover of a formula by formulas that works in every pointed model has
+a finite subcover. This is the compactness step for choosing chart templates. -/
+theorem exists_finite_formula_cover {I : Type*} (φ : SortedFormula L E Var)
+    (charts : I → SortedFormula L E Var)
+    (hcover : ∀ P : T.PointedModel Var, P.realizes φ → ∃ i, P.realizes (charts i)) :
+    ∃ U : Finset I, ∀ P : T.PointedModel Var, P.realizes φ → ∃ i ∈ U, P.realizes (charts i) := by
+  classical
+  let negChart (i : I) := (charts i).neg
+  let Δ : Set (SortedFormula L E Var) := insert φ (negChart '' Set.univ)
+  have hunreal : ¬T.Realizable Δ := by
+    rw [T.realizable_iff_pointedModel]
+    rintro ⟨P, hP⟩
+    obtain ⟨i, hi⟩ := hcover P (hP φ (Set.mem_insert _ _))
+    exact (hP (negChart i) (Set.mem_insert_of_mem _ ⟨i, Set.mem_univ _, rfl⟩)) hi
+  obtain ⟨V, hV, hVunreal⟩ := T.finite_unrealizable hunreal
+  let V' := V.filter (· ≠ φ)
+  have hV' : (V' : Set _) ⊆ negChart '' Set.univ := by
+    intro ψ hψ
+    obtain ⟨hψV, hψφ⟩ := Finset.mem_filter.mp hψ
+    exact (Set.mem_insert_iff.mp (hV hψV)).resolve_left hψφ
+  obtain ⟨U, _, hU⟩ := Finset.subset_set_image_iff.mp hV'
+  refine ⟨U, fun P hP => ?_⟩
+  by_contra! hfail
+  apply hVunreal
+  apply (T.realizable_iff_pointedModel).mpr
+  refine ⟨P, fun ψ hψ => ?_⟩
+  by_cases hψφ : ψ = φ
+  · exact hψφ.symm ▸ hP
+  have hImage : ψ ∈ U.image negChart := hU ▸ Finset.mem_filter.mpr ⟨hψ, hψφ⟩
+  obtain ⟨i, hi, rfl⟩ := Finset.mem_image.mp hImage
+  exact hfail i hi
 
 variable {T}
 

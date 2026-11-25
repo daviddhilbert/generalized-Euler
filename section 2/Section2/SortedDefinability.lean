@@ -11,7 +11,7 @@ namespace GeneralizedEuler.Section2
 
 open FirstOrder
 
-universe u v w z a
+universe u v w z a b
 
 variable {L : Language.{u, v}} {E : Type w} {X : TCsort → Type z}
   {M : SortedStructure L E X} {Var : TCsort → Type a} {A B : ∀ s, Set (X s)}
@@ -49,6 +49,51 @@ theorem union (hD : SortedDefinableOver M A D) (hF : SortedDefinableOver M A F) 
   obtain ⟨ψ, hψ⟩ := hF
   exact ⟨φ.disjunction ψ, fun x =>
     ((hφ x).or (hψ x)).trans (SortedFormula.realize_disjunction M _ φ ψ).symm⟩
+
+/-- Finite unions preserve the same named parameter sets. -/
+theorem iUnion {I : Type*} [Finite I] {B : I → Set (∀ s, Var s → X s)}
+    (hB : ∀ i, SortedDefinableOver M A (B i)) : SortedDefinableOver M A (⋃ i, B i) := by
+  classical
+  let := Fintype.ofFinite I
+  choose φ hφ using hB
+  refine ⟨SortedFormula.anyOf (Finset.univ.toList.map φ), fun x => ?_⟩
+  simp only [Set.mem_iUnion, SortedFormula.realize_anyOf, List.mem_map, Finset.mem_toList,
+    Finset.mem_univ, true_and]
+  constructor
+  · rintro ⟨i, hi⟩
+    exact ⟨φ i, ⟨i, rfl⟩, (hφ i x).mp hi⟩
+  · rintro ⟨_, ⟨i, rfl⟩, hi⟩
+    exact ⟨i, (hφ i x).mpr hi⟩
+
+theorem iInter {I : Type*} [Finite I] {B : I → Set (∀ s, Var s → X s)}
+    (hB : ∀ i, SortedDefinableOver M A (B i)) : SortedDefinableOver M A (⋂ i, B i) := by
+  classical
+  have h := (iUnion (fun i => (hB i).compl)).compl
+  simpa only [Set.compl_iUnion, compl_compl] using h
+
+/-- Renaming or repeating coordinates of a definable set keeps the same
+parameters. -/
+theorem pullback_relabel (hD : SortedDefinableOver M A D) {W : TCsort → Type b}
+    (f : ∀ s, Var s → W s) :
+    SortedDefinableOver M A {x | (fun s => x s ∘ f s) ∈ D} := by
+  obtain ⟨φ, hφ⟩ := hD
+  let rename (s : TCsort) : (A s : Type z) ⊕ Var s → (A s : Type z) ⊕ W s :=
+    Sum.map id (f s)
+  refine ⟨φ.relabel rename, fun x => (hφ _).trans ?_⟩
+  rw [φ.realize_relabel]
+  have hr : (fun s => Sum.elim Subtype.val (x s) ∘ rename s) =
+      (fun s => Sum.elim Subtype.val (x s ∘ f s)) := by
+    funext s i
+    cases i <;> rfl
+  rw [hr]
+
+theorem coordinate_eq (s : TCsort) (i j : Var s) :
+    SortedDefinableOver M A {x | x s i = x s j} :=
+  ⟨.equal (.var (.inr i)) (.var (.inr j)), fun _ => Iff.rfl⟩
+
+theorem coordinate_eq_parameter (s : TCsort) (i : Var s) (c : A s) :
+    SortedDefinableOver M A {x | x s i = c.val} :=
+  ⟨.equal (.var (.inr i)) (.var (.inl c)), fun _ => Iff.rfl⟩
 
 /-- Existential projection of one variable keeps the same parameter sets. -/
 theorem project_one (s : TCsort) {D : Set (∀ t, AddSortedVar Var s t → X t)}

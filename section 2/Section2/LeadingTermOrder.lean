@@ -211,4 +211,36 @@ theorem mem_valuationRing_iff_rvOrder (hO : IsOrderConvex O) (x : K) :
       exact ((valuation_abs O x).symm.trans hv).le
     · exact h.le
 
+/-- The same ring test using two signed comparisons. This form can be
+read directly in a sorted substructure. -/
+theorem mem_valuationRing_iff_signed_bounds (hO : IsOrderConvex O) (x : K) :
+    letI := rvLinearOrder O hO
+    x ∈ O ↔ (rv O (-1) ≤ rv O x ∧ rv O x ≤ 1) ∨ unsignedValue O (rv O x) = 1 := by
+  let := rvLinearOrder O hO
+  rw [unsignedValue_rv, ← map_one (rv O), rv_le_rv_iff O hO, rv_le_rv_iff O hO]
+  have value_of_eq_one (h : rv O x = rv O 1) : O.valuation x = 1 := by
+    have h' := congrArg (unsignedValue O) h
+    rwa [unsignedValue_rv, unsignedValue_rv, map_one] at h'
+  have value_of_eq_neg_one (h : rv O (-1) = rv O x) : O.valuation x = 1 := by
+    have h' := congrArg (unsignedValue O) h.symm
+    rwa [unsignedValue_rv, unsignedValue_rv, O.valuation.map_neg, map_one] at h'
+  constructor
+  · intro hx
+    by_cases h : |x| ≤ 1
+    · exact Or.inl ⟨Or.inl (abs_le.mp h).1, Or.inl (abs_le.mp h).2⟩
+    · have hv := valuation_le_of_abs_le_abs O hO
+        (show |(1 : K)| ≤ |x| by simpa only [abs_one] using (lt_of_not_ge h).le)
+      rw [map_one] at hv
+      exact Or.inr (((O.valuation_le_one_iff x).mpr hx).antisymm hv)
+  · intro h
+    apply (O.valuation_le_one_iff x).mp
+    rcases h with ⟨hlo | heq, hhi | heq'⟩ | hval
+    · have h := valuation_le_of_abs_le_abs O hO
+        (show |x| ≤ |(1 : K)| by rw [abs_one]; exact abs_le.mpr ⟨hlo, hhi⟩)
+      rwa [map_one] at h
+    · exact (value_of_eq_one heq').le
+    · exact (value_of_eq_neg_one heq).le
+    · exact (value_of_eq_neg_one heq).le
+    · exact hval.le
+
 end GeneralizedEuler.Section2

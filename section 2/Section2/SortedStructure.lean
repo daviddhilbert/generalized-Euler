@@ -43,6 +43,21 @@ theorem homogeneousArgs_const {A : Type*} {s : TCsort} {n : ℕ}
   simp only [homogeneousArgs, eq_rec_constant]
   rfl
 
+/-- Turn a homogeneous tuple into the list-indexed arguments of a symbol. -/
+def expandHomogeneousArgs {X : TCsort → Type*} {s : TCsort} {n : ℕ}
+    (xs : Fin n → X s) (j : Fin (List.replicate n s).length) : X ((List.replicate n s).get j) := by
+  have h : (List.replicate n s).get j = s := by simp [List.get_eq_getElem]
+  exact h.symm ▸ xs (Fin.cast List.length_replicate j)
+
+theorem homogeneousArgs_expand {X : TCsort → Type*} {s : TCsort} {n : ℕ}
+    (xs : Fin n → X s) : homogeneousArgs (expandHomogeneousArgs xs) = xs := by
+  have undo {t s : TCsort} (h : t = s) (x : X s) : h ▸ (h.symm ▸ x : X t) = x := by
+    cases h
+    rfl
+  funext i
+  simp only [homogeneousArgs, expandHomogeneousArgs, undo]
+  rfl
+
 structure SortedStructure (L : Language.{u, v}) (E : Type w) (X : TCsort → Type z) where
   funMap : ∀ {ss s}, FunctionSymbol L E ss s → SortedArgs X ss → X s
   relMap : ∀ {ss}, RelationSymbol L ss → SortedArgs X ss → Prop

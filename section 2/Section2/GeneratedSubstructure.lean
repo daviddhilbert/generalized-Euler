@@ -28,6 +28,15 @@ private def vfArgument (x : X .vf) : SortedArgs X [.vf] :=
 def SortedStructure.rvMap (x : X .vf) : X .rv :=
   M.funMap (.rv : FunctionSymbol L E [.vf] .rv) (vfArgument x)
 
+theorem SortedSubstructure.rvMap_mem {M : SortedStructure L E X}
+    (S : SortedSubstructure M) {x : X .vf} (hx : x ∈ S.carrier .vf) :
+    M.rvMap x ∈ S.carrier .rv := by
+  apply S.closed .rv (vfArgument x)
+  intro i
+  have hi : i = 0 := Fin.fin_one_eq_zero (i : Fin 1)
+  subst i
+  exact hx
+
 theorem canonicalStructure_rvMap {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
     [L.Structure K] (O : ValuationSubring K) [L.Structure (Residue O)]
     (hO : IsOrderConvex O) (P : E → RV0 O → RV0 O) (x : K) :

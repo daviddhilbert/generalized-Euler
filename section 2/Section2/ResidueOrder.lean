@@ -125,6 +125,33 @@ theorem residue_isOrderedRing (hO : IsOrderConvex O) :
   · have h : (0 : O) ≤ 1 := (zero_le_one : (0 : K) ≤ 1)
     simpa only [map_zero, map_one] using residue_monotone O hO h
 
+/-- Natural numbers give distinct RV tags. A nonzero natural reduces to
+the same nonzero natural in the ordered residue field. -/
+theorem rv_natCast (hO : IsOrderConvex O) (n : ℕ) :
+    rv O (n : K) = residueRV O (n : Residue O) := by
+  let := residueLinearOrder O hO
+  let := residue_isOrderedRing O hO
+  rcases eq_or_ne n 0 with rfl | hn
+  · rw [Nat.cast_zero, Nat.cast_zero, map_zero, residueRV_zero]
+  have hK : ((n : O) : K) = (n : K) := map_natCast O.subtype n
+  have hR : IsLocalRing.residue O (n : O) = (n : Residue O) :=
+    map_natCast (IsLocalRing.residue O) n
+  rw [← hK, ← hR]
+  exact (residueRV_residue_of_ne_zero O (n : O) (hR.trans_ne (Nat.cast_ne_zero.mpr hn))).symm
+
+def natRVEmbedding (hO : IsOrderConvex O) : ℕ ↪ RV0 O where
+  toFun n := rv O (n : K)
+  inj' := by
+    let := residueLinearOrder O hO
+    let := residue_isOrderedRing O hO
+    intro m n h
+    change rv O (m : K) = rv O (n : K) at h
+    rw [rv_natCast O hO, rv_natCast O hO] at h
+    exact Nat.cast_injective (residueRV_injective O h)
+
+@[simp] theorem natRVEmbedding_apply (hO : IsOrderConvex O) (n : ℕ) :
+    natRVEmbedding O hO n = rv O (n : K) := by rfl
+
 omit [LinearOrder K] [IsStrictOrderedRing K] in
 private theorem exists_residueRV_representative (r : Residue O) :
     ∃ x : O, IsLocalRing.residue O x = r ∧ rv O (x : K) = residueRV O r := by

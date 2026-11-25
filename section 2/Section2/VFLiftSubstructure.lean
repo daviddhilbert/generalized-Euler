@@ -81,6 +81,54 @@ variable {F : Type*} [Field F] [LinearOrder F] [IsStrictOrderedRing F] [L.Struct
   (Q : ValuationSubring F) [L.Structure (Residue Q)] (hQ : IsOrderConvex Q)
   (PQ : E → RV0 Q → RV0 Q)
 
+set_option linter.style.haveILetI false in
+/-- The VF part of the old embedding preserves the valuation ring. The
+element `minusOne` is named by the ordered-field primitives in Theorem 2.16. -/
+theorem mem_valuationRing_iff_of_sortedEmbedding
+    (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
+    (e : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
+    (minusOne x : S.carrier .vf) (hminus : minusOne.val = -1)
+    (hminus' : e.toEmbedding .vf minusOne = -1) :
+    e.toEmbedding .vf x ∈ Q ↔ x.val ∈ O := by
+  letI := rvLinearOrder O hO
+  letI := rvLinearOrder Q hQ
+  let r (a : S.carrier .vf) : S.carrier .rv := S.structureOn.rvMap a
+  let o : S.carrier .rv := S.structureOn.funMap .rvOne (fun i => i.elim0)
+  have hr (a : S.carrier .vf) : (r a : RV0 O) = rv O a.val := by
+    have h := S.inclusion.map_rv a
+    rw [canonicalStructure_rvMap, SortedSubstructure.inclusion_apply] at h
+    rw [SortedSubstructure.inclusion_apply] at h
+    exact h
+  have hr' (a : S.carrier .vf) : e.toEmbedding .rv (r a) = rv Q (e.toEmbedding .vf a) := by
+    have h := e.map_rv a
+    rw [canonicalStructure_rvMap] at h
+    exact h
+  have ho : (o : RV0 O) = 1 := rfl
+  have ho' : e.toEmbedding .rv o = 1 := e.map_fun .rvOne (fun i => i.elim0)
+  have cmp (a b : S.carrier .rv) :
+      e.toEmbedding .rv a ≤ e.toEmbedding .rv b ↔ a.val ≤ b.val := by
+    let as : SortedArgs (fun s => S.carrier s) [.rv, .rv] :=
+      Fin.cases a (fun j => by
+        have hj : j = 0 := Fin.fin_one_eq_zero (j : Fin 1)
+        subst j
+        exact b)
+    exact e.map_rel .rvLE as
+  have res (a : S.carrier .rv) :
+      unsignedValue Q (e.toEmbedding .rv a) = 1 ↔ unsignedValue O a.val = 1 := by
+    let as : SortedArgs (fun s => S.carrier s) [.rv] := fun i => by
+      have hi : i = 0 := Fin.fin_one_eq_zero (i : Fin 1)
+      subst i
+      exact a
+    exact e.map_rel .residueNonzero as
+  rw [mem_valuationRing_iff_signed_bounds Q hQ, mem_valuationRing_iff_signed_bounds O hO]
+  have hcmp₀ := cmp (r minusOne) (r x)
+  have hcmp₁ := cmp (r x) o
+  have hres := res (r x)
+  rw [hr', hr', hr, hr, hminus, hminus'] at hcmp₀
+  rw [hr', hr, ho, ho'] at hcmp₁
+  rw [hr', hr] at hres
+  exact (hcmp₀.and hcmp₁).or hres
+
 private abbrev liftSortEmbedding
     (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
     (B : L.Substructure K) (hB : ∀ x ∈ B, rv O x ∈ S.carrier .rv)

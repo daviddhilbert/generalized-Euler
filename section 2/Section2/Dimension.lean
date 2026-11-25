@@ -115,14 +115,17 @@ omit [TopologicalSpace X] in
 /-- Coordinate projections that are injective on the fibers of a finite
 chart cover give a single injection after tagging the pieces in RV.
 Smaller charts are padded with the same named field element. -/
-theorem exists_embedding_of_piecewise_projection {Y R : Type*} {k l : ℕ}
+theorem exists_embedding_with_piecewise_projection_graph {Y R : Type*} {k l : ℕ}
     (D : Set ((Fin n → X) × Y)) (pieces : Fin l → Set D)
     (hcover : ∀ x : D, ∃ i, x ∈ pieces i) (m : Fin l → ℕ)
     (hm : ∀ i, m i ≤ k) (projection : ∀ i, Fin (m i) ↪ Fin n)
     (hinjective : ∀ i, Set.InjOn
       (fun x : D => (coordinateProjection (projection i) x.val.1, x.val.2)) (pieces i))
     (padding : X) (tag : Fin l ↪ R) :
-    Nonempty (D ↪ (Fin k → X) × (Y × R)) := by
+    ∃ f : D ↪ (Fin k → X) × (Y × R), ∀ x z,
+      f x = z ↔ ∃ i, x ∈ pieces i ∧ (∀ j < i, x ∉ pieces j) ∧
+        ((fun j : Fin k => if h : j.val < m i then x.val.1 (projection i ⟨j.val, h⟩)
+          else padding), x.val.2, tag i) = z := by
   classical
   let indices (x : D) : Finset (Fin l) := Finset.univ.filter (fun i => x ∈ pieces i)
   have hne (x : D) : (indices x).Nonempty := by
@@ -132,25 +135,50 @@ theorem exists_embedding_of_piecewise_projection {Y R : Type*} {k l : ℕ}
   have hp (x : D) : x ∈ pieces (piece x) := by
     have h : piece x ∈ indices x := Finset.min'_mem (indices x) (hne x)
     exact (Finset.mem_filter.mp h).2
+  have hmin (x : D) (j : Fin l) (hj : x ∈ pieces j) : piece x ≤ j :=
+    Finset.min'_le (indices x) j (Finset.mem_filter.mpr ⟨Finset.mem_univ _, hj⟩)
   let coordinates (i : Fin l) (x : D) (j : Fin k) : X :=
     if h : j.val < m i then x.val.1 (projection i ⟨j.val, h⟩) else padding
   let f (x : D) : (Fin k → X) × (Y × R) :=
     ⟨coordinates (piece x) x, x.val.2, tag (piece x)⟩
-  refine ⟨⟨f, ?_⟩⟩
-  intro x y hxy
-  have hlabel : piece x = piece y := tag.injective (congrArg (fun z => z.2.2) hxy)
-  apply hinjective (piece x) (hp x) (hlabel.symm ▸ hp y)
-  apply Prod.ext
-  · funext j
-    let j' : Fin k := Fin.castLE (hm (piece x)) j
-    have hcoord := congrFun (congrArg Prod.fst hxy) j'
-    change coordinates (piece x) x j' = coordinates (piece y) y j' at hcoord
-    rw [← hlabel] at hcoord
-    have hj : j'.val < m (piece x) := j.isLt
-    have hj' : (⟨j'.val, hj⟩ : Fin (m (piece x))) = j := Fin.ext rfl
-    simpa only [coordinates, dite_eq_left hj, hj', coordinateProjection, Function.comp_apply]
-      using hcoord
-  · exact congrArg (fun z => z.2.1) hxy
+  refine ⟨⟨f, ?_⟩, ?_⟩
+  · intro x y hxy
+    have hlabel : piece x = piece y := tag.injective (congrArg (fun z => z.2.2) hxy)
+    apply hinjective (piece x) (hp x) (hlabel.symm ▸ hp y)
+    apply Prod.ext
+    · funext j
+      let j' : Fin k := Fin.castLE (hm (piece x)) j
+      have hcoord := congrFun (congrArg Prod.fst hxy) j'
+      change coordinates (piece x) x j' = coordinates (piece y) y j' at hcoord
+      rw [← hlabel] at hcoord
+      have hj : j'.val < m (piece x) := j.isLt
+      have hj' : (⟨j'.val, hj⟩ : Fin (m (piece x))) = j := Fin.ext rfl
+      simpa only [coordinates, dite_eq_left hj, hj', coordinateProjection, Function.comp_apply]
+        using hcoord
+    · exact congrArg (fun z => z.2.1) hxy
+  · intro x z
+    constructor
+    · intro h
+      exact ⟨piece x, hp x, fun j hj hjx => (not_lt_of_ge (hmin x j hjx)) hj, h⟩
+    · rintro ⟨i, hi, hfirst, h⟩
+      have heq : piece x = i := (hmin x i hi).antisymm
+        (le_of_not_gt fun hj => hfirst _ hj (hp x))
+      change (coordinates (piece x) x, x.val.2, tag (piece x)) = z
+      rw [heq]
+      exact h
+
+omit [TopologicalSpace X] in
+theorem exists_embedding_of_piecewise_projection {Y R : Type*} {k l : ℕ}
+    (D : Set ((Fin n → X) × Y)) (pieces : Fin l → Set D)
+    (hcover : ∀ x : D, ∃ i, x ∈ pieces i) (m : Fin l → ℕ)
+    (hm : ∀ i, m i ≤ k) (projection : ∀ i, Fin (m i) ↪ Fin n)
+    (hinjective : ∀ i, Set.InjOn
+      (fun x : D => (coordinateProjection (projection i) x.val.1, x.val.2)) (pieces i))
+    (padding : X) (tag : Fin l ↪ R) :
+    Nonempty (D ↪ (Fin k → X) × (Y × R)) := by
+  obtain ⟨f, _⟩ := exists_embedding_with_piecewise_projection_graph D pieces hcover m hm
+    projection hinjective padding tag
+  exact ⟨f⟩
 
 /-- A continuous parametrization of a coordinate chart meets a single
 open value fiber on a nonempty open part of its parameter domain.
