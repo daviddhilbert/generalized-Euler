@@ -1,8 +1,10 @@
 module
 
 public import Section2.UniformCharts
+public import Section2.DimensionLower
 
-/-! A fiber's upper projection-dimension bound is first order. -/
+/-! A fiber's dimension bound is first order. The VF dimension is
+the least field arity of a definable injection. -/
 
 public section
 
@@ -157,6 +159,18 @@ theorem realize_fiberDimensionBoundFormula [LinearOrder (X .vf)] [TopologicalSpa
   rw [projectionDimension_le_iff, realize_fiberDimensionBoundFormula_iff]
   simp only [realize_projectionBoxFormula hLE]
 
+/-- Pointwise charts in every model of the named theory. The chart
+coordinates are drawn from the field tuple. Its defining formula can
+use the named base and the RV fiber coordinates. -/
+def HasPointwiseProjectionCharts (T : SortedTheory L E) (le : L.Relations 2)
+    (φ : SortedFormula L E (NamedChartVariables Param n R)) : Prop :=
+∀ P : T.PointedModel (NamedChartVariables Param n R),
+      P.realizes φ → ∃ (m : ℕ) (p : Fin m ↪ Fin n)
+        (χ : SortedFormula L E (NamedChartVariables Param n R)),
+        P.realizes χ ∧ P.realizes (projectionBoxFormula le φ p) ∧
+        ∀ x : Fin n → P.carrier .vf, (∀ i, P.point .vf (.inr (p i)) = x (p i)) →
+          χ.realize P.model (replaceChartField P.point x) → ∀ i, P.point .vf (.inr i) = x i
+
 /-- The upper bound of Lemma 2.26. The cited cell theorem supplies a
 chart through each point of a fiber, injective on its chosen coordinates
 and projecting onto a nonempty open set. The first-order bound restricts
@@ -171,12 +185,7 @@ theorem exists_definable_embedding_of_vfDimension_le
     (φ : SortedFormula L E (NamedChartVariables (fun s => (A s : Type (max u v w z))) n R))
     (hD : ∀ x : (∀ s, MixedVariables n R s → X s),
       mixedTuple x ∈ D ↔ φ.realize M (fun s => Sum.elim Subtype.val (x s)))
-    (hcharts : ∀ P : T.PointedModel (NamedChartVariables (fun s => (A s : Type (max u v w z))) n R),
-      P.realizes φ → ∃ (m : ℕ) (p : Fin m ↪ Fin n)
-        (χ : SortedFormula L E (NamedChartVariables (fun s => (A s : Type (max u v w z))) n R)),
-        P.realizes χ ∧ P.realizes (projectionBoxFormula le φ p) ∧
-        ∀ x : Fin n → P.carrier .vf, (∀ i, P.point .vf (.inr (p i)) = x (p i)) →
-          χ.realize P.model (replaceChartField P.point x) → ∀ i, P.point .vf (.inr i) = x i)
+    (hcharts : HasPointwiseProjectionCharts T le φ)
     (hdim : vfDimension D ≤ k) (padding : A .vf) (tag : ℕ ↪ X .rv) (htag : ∀ i, tag i ∈ A .rv) :
     ∃ f : D ↪ (Fin k → X .vf) × ((R → X .rv) × X .rv),
       SortedDefinableOver M A {a : ∀ s, ChartGraphVariables n R k s → X s |
@@ -210,5 +219,97 @@ theorem exists_definable_embedding_of_vfDimension_le
       (realize_fiberDimensionBoundFormula_iff P.model le φ P.point).mp hb
         ⟨j, Nat.lt_succ_of_le hj⟩ p h hp)
     exact ⟨⟨j, hjk, p, χ⟩, hχ, hu⟩
+
+private def mixedTupleEquiv (X : TCsort → Type z) (n : ℕ) (R : Type) :
+    (∀ s, MixedVariables n R s → X s) ≃ MixedTuple X n R where
+  toFun := mixedTuple
+  invFun x := fun
+    | .vf => x.1
+    | .rv => x.2
+  left_inv _ := by funext s; cases s <;> rfl
+  right_inv _ := rfl
+
+/-- The field arities for which a mixed set admits a definable
+injection into field and finitely many RV coordinates. -/
+def definableMixedEmbeddingArities (M : SortedStructure L E X) (A : ∀ s, Set (X s))
+    (D : Set (MixedTuple X n R)) : Set ℕ :=
+  {j | ∃ (S : Type) (_ : Finite S) (f : D ↪ MixedTuple X j S),
+    SortedDefinableOver M A {a : ∀ s, (MixedVariables n R s ⊕ MixedVariables j S s) → X s |
+      ∃ x : D, x.val = mixedTuple (fun s => a s ∘ Sum.inl) ∧
+        f x = mixedTuple (fun s => a s ∘ Sum.inr)}}
+
+/-- Lemma 2.26. The cited pointwise charts and compactness attain the
+minimum. Rank in the field pregeometry bounds every competing arity,
+using the no-new-VF-points property from §3. -/
+theorem isLeast_definableMixedEmbeddingArities
+    {X : TCsort → Type (max u v w z)} [LinearOrder (X .vf)] [TopologicalSpace (X .vf)]
+    [OrderTopology (X .vf)] [DenselyOrdered (X .vf)] [NoMinOrder (X .vf)] [NoMaxOrder (X .vf)]
+    (T : SortedTheory L E) (M : SortedStructure L E X)
+    (hM : ∀ ψ ∈ T, ψ.realize M) (hX : ∀ s, Nonempty (X s))
+    (le : L.Relations 2) (hLE : InterpretsVFOrder M le)
+    (A : ∀ s, Set (X s)) [Finite R] (D : Set (MixedTuple X n R)) (hne : D.Nonempty)
+    (φ : SortedFormula L E (NamedChartVariables (fun s => (A s : Type (max u v w z))) n R))
+    (hD : ∀ x : (∀ s, MixedVariables n R s → X s),
+      mixedTuple x ∈ D ↔ φ.realize M (fun s => Sum.elim Subtype.val (x s)))
+    (hcharts : HasPointwiseProjectionCharts T le φ)
+    (padding : A .vf) (tag : ℕ ↪ X .rv) (htag : ∀ i, tag i ∈ A .rv)
+    (B : Matroid (X .vf))
+    (hrank : ∀ (y : R → X .rv), (sortedFiber D y).Nonempty →
+      ∃ x ∈ sortedFiber D y, (B.eRk (Set.range x)).toNat = projectionDimension (sortedFiber D y))
+    (hclosure : ∀ {j : ℕ} {S : Type} [Finite S]
+      (p : ∀ s, MixedVariables n R s → X s) (q : ∀ s, MixedVariables j S s → X s),
+      SortedDefinableOver M (fun s => A s ∪ Set.range (q s)) {p} →
+        Set.range (p .vf) ⊆ B.closure (Set.range (q .vf))) :
+    IsLeast (definableMixedEmbeddingArities M A D) (vfDimension D) := by
+  constructor
+  · obtain ⟨f, hf⟩ := exists_definable_embedding_of_vfDimension_le T M hM hX le hLE
+      A D φ hD hcharts le_rfl padding tag htag
+    let recode : ((R → X .rv) × X .rv) ↪ (R ⊕ Unit → X .rv) :=
+      ⟨fun q => Sum.elim q.1 (fun _ => q.2), fun p q h =>
+        Prod.ext (funext fun r => congrFun h (.inl r)) (congrFun h (.inr ()))⟩
+    let g : D ↪ MixedTuple X (vfDimension D) (R ⊕ Unit) :=
+      f.trans (Function.Embedding.prodMap (Function.Embedding.refl _) recode)
+    refine ⟨R ⊕ Unit, inferInstance, g, ?_⟩
+    convert hf using 1
+    ext a
+    change (∃ x : D, x.val = chartInput a ∧ g x = _) ↔
+      ∃ x : D, x.val = chartInput a ∧ f x = chartOutput a
+    apply exists_congr
+    intro x
+    refine and_congr_right fun _ => ?_
+    have h : (Function.Embedding.prodMap (Function.Embedding.refl _) recode) (chartOutput a) =
+        mixedTuple (fun s => a s ∘ Sum.inr) := by
+      apply Prod.ext
+      · rfl
+      · funext i
+        cases i <;> rfl
+    rw [← h]
+    exact (Function.Embedding.prodMap (Function.Embedding.refl _) recode).injective.eq_iff
+  · rintro j ⟨S, hS, f, hf⟩
+    let e := mixedTupleEquiv X n R
+    let U := e ⁻¹' D
+    let i : U ↪ D := ⟨fun x => ⟨e x.val, x.property⟩, fun x y h =>
+      Subtype.ext (e.injective (congrArg Subtype.val h))⟩
+    let g := i.trans (f.trans (mixedTupleEquiv X j S).symm.toEmbedding)
+    have hImage : mixedTuple '' U = D := e.image_preimage D
+    have hg : SortedDefinableOver M A {a : ∀ s, (MixedVariables n R s ⊕ MixedVariables j S s) → X s |
+        ∃ x : U, x.val = (fun s => a s ∘ Sum.inl) ∧ g x = (fun s => a s ∘ Sum.inr)} := by
+      convert hf using 1
+      ext a
+      constructor
+      · rintro ⟨x, hx, hy⟩
+        refine ⟨i x, congrArg e hx, ?_⟩
+        have h := congrArg (mixedTupleEquiv X j S) hy
+        change (mixedTupleEquiv X j S) ((mixedTupleEquiv X j S).symm (f (i x))) = _ at h
+        rwa [Equiv.apply_symm_apply] at h
+      · rintro ⟨x, hx, hy⟩
+        let y : U := ⟨e.symm x.val, (e.apply_symm_apply x.val).symm ▸ x.property⟩
+        have hiy : i y = x := Subtype.ext (e.apply_symm_apply x.val)
+        refine ⟨y, e.injective ((e.apply_symm_apply _).trans hx), ?_⟩
+        change (mixedTupleEquiv X j S).symm (f (i y)) = _
+        rw [hiy, hy]
+        exact (mixedTupleEquiv X j S).symm_apply_apply _
+    exact hImage ▸ vfDimension_le_arity_of_definable_embedding M A U
+      (hne.preimage e.surjective) g hg B (hImage.symm ▸ hrank) hclosure
 
 end GeneralizedEuler.Section2

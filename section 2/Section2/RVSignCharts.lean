@@ -175,14 +175,68 @@ theorem signedValuePullback_definablyEquivalent [Finite I] (U : Set (I → Addit
   exact ⟨fun ⟨x, hx, he⟩ => ⟨hx ▸ x.property, fun i => by rw [← hx]; exact (congrFun he i).symm⟩,
     fun ⟨hx, he⟩ => ⟨⟨a .rv ∘ Sum.inl, hx⟩, rfl, funext fun i => (he i).symm⟩⟩
 
+private theorem signedValuePullback_definable_of_signIndexed [Finite I]
+    (U : (I → Bool) → Set (I → Additive O.ValueGroupˣ))
+    (hD : SortedDefinableOver (canonicalStructure (L := L) O hO power) A
+      {x : ∀ s, RVVariables I s → CanonicalSort O s | x .rv ∈ signIndexedValuePullback O hO U}) :
+    SortedDefinableOver (canonicalStructure (L := L) O hO power) A
+      {x : ∀ s, RVVariables I s → CanonicalSort O s | x .rv ∈ signedValuePullback O sign (U sign)} := by
+  let M := canonicalStructure (L := L) O hO power
+  let Var := RVVariables I
+  let Assign := ∀ s, Var s → CanonicalSort O s
+  let guard (i : I) : Set Assign := {a | IsPositiveRV O (changeRVSigns O sign (a .rv) i)}
+  have hg (i : I) : SortedDefinableOver M A (guard i) := by
+    let term : SortedTerm L E (fun s => (A s : Type z) ⊕ Var s) .rv := .var (.inr i)
+    let cmp (x y : SortedTerm L E (fun s => (A s : Type z) ⊕ Var s) .rv) :
+        SortedFormula L E (fun s => (A s : Type z) ⊕ Var s) :=
+      (.rel .rvLE (Fin.cases x (fun i => by
+        have hi : i = 0 := Fin.fin_one_eq_zero i
+        subst i
+        exact y)) : SortedFormula L E _).neg
+    let := rvLinearOrder O hO
+    cases hs : sign i
+    · refine ⟨cmp term rvZeroTerm, fun a => ?_⟩
+      rw [SortedFormula.realize_neg]
+      change IsPositiveRV O (changeRVSigns O sign (a .rv) i) ↔
+        ¬ term.realize M _ ≤ rvZeroTerm.realize M _
+      rw [realize_rvZeroTerm]
+      change IsPositiveRV O (changeRVSigns O sign (a .rv) i) ↔ ¬ a .rv i ≤ 0
+      simpa only [changeRVSigns, hs, Bool.false_eq_true, ↓reduceIte, not_le] using
+        (isPositiveRV_iff_pos O hO (t := a .rv i))
+    · refine ⟨cmp rvZeroTerm term, fun a => ?_⟩
+      rw [SortedFormula.realize_neg]
+      change IsPositiveRV O (changeRVSigns O sign (a .rv) i) ↔
+        ¬ rvZeroTerm.realize M _ ≤ term.realize M _
+      rw [realize_rvZeroTerm]
+      change IsPositiveRV O (changeRVSigns O sign (a .rv) i) ↔ ¬ (0 : RV0 O) ≤ a .rv i
+      rw [not_le]
+      obtain ⟨x, hx⟩ := rv_surjective O (a .rv i)
+      simp only [changeRVSigns, hs, ↓reduceIte, ← hx, signedRVNeg_rv,
+        isPositiveRV_rv_iff, neg_pos, rv_lt_zero_iff O hO]
+  convert hD.inter (SortedDefinableOver.iInter hg) using 1
+  ext a
+  simp only [Set.mem_inter_iff, Set.mem_iInter]
+  change a .rv ∈ signedValuePullback O sign (U sign) ↔
+    a .rv ∈ signIndexedValuePullback O hO U ∧
+      ∀ i, IsPositiveRV O (changeRVSigns O sign (a .rv) i)
+  constructor
+  · rintro ⟨hs, hv⟩
+    have h i := (changeRVSigns_positive_iff O sign hO (a .rv) i).mp (hs i)
+    have he : sign = rvSignPattern O hO (a .rv) := funext fun i => (h i).2
+    exact ⟨⟨fun i => (h i).1, he ▸ hv⟩, hs⟩
+  · rintro ⟨⟨_, hv⟩, hs⟩
+    have he : sign = rvSignPattern O hO (a .rv) :=
+      funext fun i => ((changeRVSigns_positive_iff O sign hO (a .rv) i).mp (hs i)).2
+    exact ⟨hs, he.symm ▸ hv⟩
+
 /-- The positive-case affine trivializations give the signed result
 by gluing the sign pieces over the same base. -/
 theorem signIndexedValuePullback_definablyEquivalent [Fintype I] [DecidableEq I] {J : Type} [Finite J]
     (U : (I → Bool) → Set (I → Additive O.ValueGroupˣ)) (target : (I → Bool) → Set (J → RV0 O))
     (hminus : rv O (-1) ∈ A .rv) (tag : Fin (Fintype.card (I → Bool)) ↪ RV0 O)
     (htag : ∀ i, tag i ∈ A .rv)
-    (hsigned : ∀ s, SortedDefinableOver (canonicalStructure (L := L) O hO power) A
-      {x : ∀ t, RVVariables I t → CanonicalSort O t | x .rv ∈ signedValuePullback O s (U s)})
+    (hD : SortedDefinableOver (canonicalStructure (L := L) O hO power) A
+      {x : ∀ s, RVVariables I s → CanonicalSort O s | x .rv ∈ signIndexedValuePullback O hO U})
     (hcharts : ∀ s, RVDefinablyEquivalent (canonicalStructure (L := L) O hO power) A
       (positiveValuePullback O (U s)) (target s)) :
     RVDefinablyEquivalent (canonicalStructure (L := L) O hO power) A
@@ -201,6 +255,6 @@ theorem signIndexedValuePullback_definablyEquivalent [Fintype I] [DecidableEq I]
   exact rvDefinablyEquivalent_tagged_union (M := canonicalStructure (L := L) O hO power)
     (A := A) source (target ∘ enum.symm) tag htag hdisj
     (fun i => (signedValuePullback_definablyEquivalent O (enum.symm i) hO power A (U (enum.symm i))
-      hminus (hsigned (enum.symm i))).trans (hcharts (enum.symm i)))
+      hminus (signedValuePullback_definable_of_signIndexed O (enum.symm i) hO power A U hD)).trans (hcharts (enum.symm i)))
 
 end GeneralizedEuler.Section2
