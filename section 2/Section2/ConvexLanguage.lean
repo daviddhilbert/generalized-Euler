@@ -97,6 +97,21 @@ def elementaryEmbeddingOfQE {L : Language.{u, v}} {T : L.Theory}
     exact (realizes_iff_of_entails h (ι ∘ x)).trans
       (hEmbedding.trans (realizes_iff_of_entails h x).symm)
 
+/-- Two embeddings of a common substructure into models of a theory with
+QE induce the same type. The common substructure can have trivial valuation. -/
+theorem partialElementaryOfQE {L : Language.{u, v}} {T : L.Theory}
+    {A K F : Type*} [L.Structure A] [L.Structure K] [L.Structure F]
+    [K ⊨ T] [F ⊨ T] [Nonempty K] [Nonempty F] (hT : EliminatesQuantifiers T)
+    (i : A ↪[L] K) (j : A ↪[L] F) {n : ℕ} (φ : L.Formula (Fin n)) (x : Fin n → A) :
+    φ.Realize (i ∘ x) ↔ φ.Realize (j ∘ x) := by
+  obtain ⟨ψ, hψ, h⟩ := hT n φ
+  have qi := hψ.realize_embedding i (v := x) (xs := default)
+  have qj := hψ.realize_embedding j (v := x) (xs := default)
+  rw [Subsingleton.elim (i ∘ (default : Fin 0 → A)) (default : Fin 0 → K)] at qi
+  rw [Subsingleton.elim (j ∘ (default : Fin 0 → A)) (default : Fin 0 → F)] at qj
+  exact (realizes_iff_of_entails h (i ∘ x)).trans
+    (qi.trans (qj.symm.trans (realizes_iff_of_entails h (j ∘ x)).symm))
+
 /-- The external input of Theorem 2.11 for the theory of proper T-convex
 pairs, from van den Dries–Lewenberg (1995), Theorem 3.10 and Corollary 3.13. -/
 structure ConvexTheoryFacts {L : Language.{u, v}} (Tconvex : (convexLanguage L).Theory) : Prop where

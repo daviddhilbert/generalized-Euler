@@ -26,13 +26,14 @@ theorem valuation_le_of_nonneg_le (hO : IsOrderConvex O) {x y : K}
     exact (O.valuation_le_iff x y).mpr
       ⟨⟨x / y, hdiv⟩, div_mul_cancel₀ x hy.ne'⟩
 
+theorem valuation_abs (a : K) : O.valuation |a| = O.valuation a := by
+  rcases le_or_gt 0 a with ha | ha
+  · rw [abs_of_nonneg ha]
+  · rw [abs_of_neg ha, O.valuation.map_neg]
+
 theorem valuation_le_of_abs_le_abs (hO : IsOrderConvex O) {x y : K}
     (hxy : |x| ≤ |y|) : O.valuation x ≤ O.valuation y := by
-  have vabs (a : K) : O.valuation |a| = O.valuation a := by
-    rcases le_or_gt 0 a with ha | ha
-    · rw [abs_of_nonneg ha]
-    · rw [abs_of_neg ha, O.valuation.map_neg]
-  simpa only [vabs] using valuation_le_of_nonneg_le O hO (abs_nonneg x) hxy
+  simpa only [valuation_abs] using valuation_le_of_nonneg_le O hO (abs_nonneg x) hxy
 
 /-- Every closed or open valuative disc is order-convex. This comparison
 works with both choices of the threshold relation. -/
@@ -170,9 +171,7 @@ theorem mem_valuationRing_iff_rvOrder (hO : IsOrderConvex O) (x : K) :
       simpa only [map_one] using hv
     · have hv := congrArg (unsignedValue O) h
       rw [unsignedValue_rv, unsignedValue_rv, map_one] at hv
-      have h_abs : O.valuation |x| = O.valuation x := by
-        apply le_antisymm <;> apply valuation_le_of_abs_le_abs O hO <;> rw [abs_abs]
-      exact (h_abs.symm.trans hv).le
+      exact ((valuation_abs O x).symm.trans hv).le
     · exact h.le
 
 end GeneralizedEuler.Section2

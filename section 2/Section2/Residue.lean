@@ -143,6 +143,11 @@ def rvResidue (t : RV0 O) : Residue O := by
   classical
   exact if h : t ∈ Set.range (residueRV O) then Classical.choose h else 0
 
+theorem rvResidue_eq_zero_of_not_mem_range {t : RV0 O}
+    (h : t ∉ Set.range (residueRV O)) : rvResidue O t = 0 := by
+  classical
+  exact dite_eq_right h
+
 @[simp] theorem rvResidue_residueRV (r : Residue O) : rvResidue O (residueRV O r) = r := by
   classical
   let h : residueRV O r ∈ Set.range (residueRV O) := ⟨r, rfl⟩

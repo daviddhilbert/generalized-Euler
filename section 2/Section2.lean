@@ -20,3 +20,12 @@ public import Section2.TrivialBaseLift
 public import Section2.SortedModelTheory
 public import Section2.PowerOrder
 public import Section2.PrescribedLift
+public import Section2.Dimension
+public import Section2.ValueFiberTopology
+public import Section2.ValueSplitting
+public import Section2.ResidueMap
+public import Section2.OminimalCuts
+public import Section2.CanonicalEmbedding
+public import Section2.GeneratedSubstructure
+public import Section2.WeakOminimal
+public import Section2.ValuativeInterval

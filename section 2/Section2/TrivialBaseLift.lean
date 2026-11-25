@@ -23,6 +23,43 @@ def LeadingTermMonomialTransfer (g : E → PositiveField K →* PositiveField K)
     ∃ (c : K) (_ : c ∈ A) (d : K) (_ : d ∈ A) (hc : a - c ≠ 0) (e : E),
       rv O y = rv O (d * (g e (positiveAbs (a - c) hc) : K))
 
+/-- The value-group conclusion of Proposition 2.21 from the approved
+leading-term input. Equal positive values remain equal after taking a
+fixed field power. -/
+theorem exists_translate_of_new_value
+    {g : E → PositiveField K →* PositiveField K} {A B : Subfield K} {a y : K}
+    (hFreni : LeadingTermMonomialTransfer O g A B a)
+    (hpowBase : ∀ e (x : PositiveField K), (x : K) ∈ A → (g e x : K) ∈ A)
+    (hpowValue : ∀ e (x z : PositiveField K),
+      O.valuation (x : K) = O.valuation (z : K) →
+      O.valuation (g e x : K) = O.valuation (g e z : K))
+    (hyB : y ∈ B) (hy : O.valuation y ∉ O.valuation '' (A : Set K)) :
+    ∃ c ∈ A, O.valuation (a - c) ∉ O.valuation '' (A : Set K) := by
+  obtain ⟨c, hc, d, hd, hne, e, hr⟩ := hFreni y hyB hy
+  refine ⟨c, hc, ?_⟩
+  rintro ⟨b, hb, hbval⟩
+  have hb0 : b ≠ 0 := by
+    intro hz
+    rw [hz, map_zero] at hbval
+    exact ((map_ne_zero O.valuation).mpr hne) hbval.symm
+  let x := positiveAbs (a - c) hne
+  let z := positiveAbs b hb0
+  change b ∈ A at hb
+  have hz : (z : K) ∈ A := by
+    change |b| ∈ A
+    rcases le_or_gt 0 b with h | h
+    · simpa only [abs_of_nonneg h] using hb
+    · simpa only [abs_of_neg h] using A.neg_mem hb
+  have hv : O.valuation (x : K) = O.valuation (z : K) := by
+    change O.valuation |a - c| = O.valuation |b|
+    rw [valuation_abs, valuation_abs, hbval]
+  refine hy ⟨d * (g e z : K), A.mul_mem hd (hpowBase e z hz), ?_⟩
+  have h := congrArg (unsignedValue O) hr
+  rw [unsignedValue_rv, unsignedValue_rv, map_mul,
+    hpowValue e x z hv] at h
+  rw [map_mul]
+  exact h.symm
+
 omit [LinearOrder K] [IsStrictOrderedRing K] in
 private theorem rv_translation_of_infinitesimal {a c : K}
     (ha : O.valuation a < 1) (hc : O.valuation c = 1) :

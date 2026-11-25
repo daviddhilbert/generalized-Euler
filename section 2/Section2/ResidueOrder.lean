@@ -69,6 +69,62 @@ theorem residue_monotone (hO : IsOrderConvex O) :
     Monotone (IsLocalRing.residue O) :=
   fun _ _ h => (residue_le_residue_iff O hO).mpr (Or.inl h)
 
+/-- A positive residue has a positive representative in the valuation ring. -/
+theorem exists_positive_residue_representative (hO : IsOrderConvex O) {r : Residue O}
+    (hr : letI := residueLinearOrder O hO; 0 < r) :
+    ∃ y : O, 0 < (y : K) ∧ IsLocalRing.residue O y = r := by
+  obtain ⟨y, hy⟩ := IsLocalRing.residue_surjective r
+  have h : letI := residueLinearOrder O hO
+           IsLocalRing.residue O 0 < IsLocalRing.residue O y := by
+    rw [map_zero, hy]
+    exact hr
+  exact ⟨y, ((residue_lt_residue_iff O hO).mp h).1, hy⟩
+
+set_option linter.style.haveILetI false in
+private theorem residue_mul_mono (hO : IsOrderConvex O) {a b c : Residue O} :
+    letI := residueLinearOrder O hO
+    0 ≤ a → b ≤ c → a * b ≤ a * c := by
+  letI := residueLinearOrder O hO
+  intro ha hbc
+  obtain ha0 | ha := ha.eq_or_lt
+  · subst a
+    rw [zero_mul, zero_mul]
+  obtain ⟨x, hx0, hx⟩ := exists_positive_residue_representative O hO ha
+  obtain ⟨y, hy⟩ := IsLocalRing.residue_surjective b
+  obtain ⟨z, hz⟩ := IsLocalRing.residue_surjective c
+  rw [← hy, ← hz] at hbc
+  rw [← hx, ← hy, ← hz]
+  rw [← map_mul, ← map_mul]
+  rcases (residue_le_residue_iff O hO).mp hbc with h | h
+  · exact residue_monotone O hO (show x * y ≤ x * z from
+      mul_le_mul_of_nonneg_left (α := K) h hx0.le)
+  · simp only [map_mul, h, le_refl]
+
+set_option linter.style.haveILetI false in
+/-- The quotient order and the residue-field operations form an ordered field. -/
+theorem residue_isOrderedRing (hO : IsOrderConvex O) :
+    letI := residueLinearOrder O hO
+    IsOrderedRing (Residue O) := by
+  letI := residueLinearOrder O hO
+  refine
+    { zero_le_one := ?_
+      add_le_add_left := ?_
+      mul_le_mul_of_nonneg_left := fun _ ha _ _ hbc => residue_mul_mono O hO ha hbc
+      mul_le_mul_of_nonneg_right := fun _ ha _ _ hbc => by
+        simpa only [mul_comm] using residue_mul_mono O hO ha hbc }
+  · intro a b hab c
+    obtain ⟨x, hx⟩ := IsLocalRing.residue_surjective a
+    obtain ⟨y, hy⟩ := IsLocalRing.residue_surjective b
+    obtain ⟨z, hz⟩ := IsLocalRing.residue_surjective c
+    rw [← hx, ← hy] at hab
+    rw [← hx, ← hy, ← hz]
+    rcases (residue_le_residue_iff O hO).mp hab with h | h
+    · rw [← map_add, ← map_add]
+      exact residue_monotone O hO (show x + z ≤ y + z from (add_le_add_left (α := K) h z))
+    · rw [h]
+  · have h : (0 : O) ≤ 1 := (zero_le_one : (0 : K) ≤ 1)
+    simpa only [map_zero, map_one] using residue_monotone O hO h
+
 omit [LinearOrder K] [IsStrictOrderedRing K] in
 private theorem exists_residueRV_representative (r : Residue O) :
     ∃ x : O, IsLocalRing.residue O x = r ∧ rv O (x : K) = residueRV O r := by

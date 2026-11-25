@@ -23,8 +23,18 @@ abbrev SortedArgs (X : TCsort → Type z) (ss : List TCsort) :=
 
 def homogeneousArgs {X : TCsort → Type z} {s : TCsort} {n : ℕ}
     (xs : SortedArgs X (List.replicate n s)) (i : Fin n) : X s := by
-  have hi : i.val < (List.replicate n s).length := by simp
-  simpa only [List.get_eq_getElem, List.getElem_replicate] using xs ⟨i.val, hi⟩
+  let j : Fin (List.replicate n s).length := ⟨i.val, by simp⟩
+  have h : (List.replicate n s).get j = s := by simp [List.get_eq_getElem]
+  exact h ▸ xs j
+
+theorem homogeneousArgs_map {X : TCsort → Type*} {Y : TCsort → Type*}
+    {s : TCsort} {n : ℕ} (f : ∀ t, X t → Y t)
+    (xs : SortedArgs X (List.replicate n s)) :
+    homogeneousArgs (fun i => f _ (xs i)) = f s ∘ homogeneousArgs xs := by
+  have commute {a b : TCsort} (h : a = b) (x : X a) :
+      (h ▸ f a x : Y b) = f b (h ▸ x) := by cases h; rfl
+  funext i
+  exact commute _ _
 
 structure SortedStructure (L : Language.{u, v}) (E : Type w) (X : TCsort → Type z) where
   funMap : ∀ {ss s}, FunctionSymbol L E ss s → SortedArgs X ss → X s
@@ -45,6 +55,13 @@ def extendResidueOperation {n : ℕ} (f : (Fin n → Residue O) → Residue O)
     (a : Fin n → RV0 O) : RV0 O := by
   classical
   exact if ∀ i, a i ∈ Set.range (residueRV O) then residueRV O (f (rvResidue O ∘ a)) else 0
+
+theorem extendResidueOperation_of_mem_range {n : ℕ}
+    (f : (Fin n → Residue O) → Residue O) {a : Fin n → RV0 O}
+    (h : ∀ i, a i ∈ Set.range (residueRV O)) :
+    extendResidueOperation O f a = residueRV O (f (rvResidue O ∘ a)) := by
+  classical
+  exact ite_eq_left h
 
 theorem extendResidueOperation_on_residue {n : ℕ} (f : (Fin n → Residue O) → Residue O)
     (a : Fin n → Residue O) :
@@ -68,6 +85,7 @@ variable {L : Language.{u, v}} [L.Structure K] [L.Structure (Residue O)]
 
 /-- The two-sorted interpretation associated to a convex valuation ring,
 its chosen residue T-structure, and the descended power operations. -/
+@[expose]
 def canonicalStructure (hO : IsOrderConvex O) (P : E → RV0 O → RV0 O) :
     SortedStructure L E (CanonicalSort O) where
   funMap

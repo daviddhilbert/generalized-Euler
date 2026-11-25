@@ -14,7 +14,7 @@ namespace GeneralizedEuler.Section2
 variable {K F : Type*} [Field K] [Field F] (O : ValuationSubring K) (P : ValuationSubring F)
 
 /-- The predicate for an embedding of valuation-ring pairs. -/
-def RespectsValuationRing (f : K →+* F) : Prop :=
+abbrev RespectsValuationRing (f : K →+* F) : Prop :=
   ∀ x, f x ∈ P ↔ x ∈ O
 
 theorem rv_map_eq_iff {f : K →+* F} (hf : RespectsValuationRing O P f)

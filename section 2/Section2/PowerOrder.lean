@@ -49,6 +49,26 @@ theorem positive_power_preserves_units (g : PositiveField K →* PositiveField K
   exact ((O.valuation_le_one_iff _).mpr (hg x hxO)).antisymm
     ((inv_le_one₀ (pos_iff_ne_zero.mpr hnonzero)).mp hInv)
 
+/-- A field power preserving positive valuation units acts on the unsigned
+values of all positive elements. -/
+theorem power_respects_unsignedValue (g : PositiveField K →* PositiveField K)
+    (hunit : ∀ x : PositiveField K, O.valuation (x : K) = 1 →
+      O.valuation (g x : K) = 1)
+    {x y : PositiveField K} (hxy : O.valuation (x : K) = O.valuation (y : K)) :
+    O.valuation (g x : K) = O.valuation (g y : K) := by
+  have coe_div (a b : PositiveField K) :
+      ((a / b : PositiveField K) : K) = (a : K) / (b : K) := by
+    rw [div_eq_mul_inv, div_eq_mul_inv]
+    rfl
+  have hy : O.valuation (y : K) ≠ 0 := (map_ne_zero O.valuation).mpr y.property.ne'
+  have hquot : O.valuation ((x / y : PositiveField K) : K) = 1 := by
+    rw [coe_div, map_div₀, hxy, div_self hy]
+  have h := hunit (x / y) hquot
+  have hgy : O.valuation (g y : K) ≠ 0 :=
+    (map_ne_zero O.valuation).mpr (g y).property.ne'
+  rw [map_div, coe_div, map_div₀] at h
+  exact (div_eq_one_iff_eq hgy).mp h
+
 /-- Agreement on positive residue elements follows by reducing a positive
 unit whenever the total positive-branch extension of the field power
 commutes with reduction. -/
