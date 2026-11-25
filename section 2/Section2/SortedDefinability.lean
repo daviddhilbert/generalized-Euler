@@ -17,6 +17,25 @@ variable {L : Language.{u, v}} {E : Type w} {X : TCsort → Type z}
   {M : SortedStructure L E X} {Var : TCsort → Type a} {A B : ∀ s, Set (X s)}
   {D F : Set (∀ s, Var s → X s)}
 
+/-- A block of additional RV coordinates. -/
+abbrev AddRVCoordinates (Var : TCsort → Type a) (I : Type a) : TCsort → Type a
+  | .vf => Var .vf
+  | .rv => Var .rv ⊕ I
+
+abbrev AddRVBlock (Var : TCsort → Type a) (n : ℕ) : TCsort → Type a
+  | .vf => Var .vf
+  | .rv => Var .rv ⊕ Fin n
+
+abbrev appendRVCoordinates (x : ∀ s, Var s → X s) {I : Type a} (y : I → X .rv) :
+    ∀ s, AddRVCoordinates Var I s → X s
+  | .vf => x .vf
+  | .rv => Sum.elim (x .rv) y
+
+abbrev appendRVAssignment (x : ∀ s, Var s → X s) {n : ℕ} (y : Fin n → X .rv) :
+    ∀ s, AddRVBlock Var n s → X s
+  | .vf => x .vf
+  | .rv => Sum.elim (x .rv) y
+
 namespace SortedDefinableOver
 
 theorem mono (hD : SortedDefinableOver M A D) (hAB : ∀ s, A s ⊆ B s) :
@@ -168,6 +187,85 @@ theorem project_one (s : TCsort) {D : Set (∀ t, AddSortedVar Var s t → X t)}
   change (∃ y : X s, extendSortedAssignment x y ∈ D) ↔
     ((.all s ψ.neg : SortedFormula L E (fun t => (A t : Type z) ⊕ Var t)).neg).realize M v
   simp only [SortedFormula.realize_neg, SortedFormula.realize, hψ, not_forall, not_not]
+
+/-- Projection of finitely many RV variables keeps the same parameter base. -/
+theorem project_rv_block {n : ℕ} {D : Set (∀ s, AddRVBlock Var n s → X s)}
+    (hD : SortedDefinableOver M A D) :
+    SortedDefinableOver M A {x | ∃ y : Fin n → X .rv, appendRVAssignment x y ∈ D} := by
+  induction n with
+  | zero =>
+    let forget : ∀ s, AddRVBlock Var 0 s → Var s
+      | .vf => id
+      | .rv => Sum.elim id Fin.elim0
+    convert hD.pullback_relabel forget using 1
+    ext x
+    change (∃ y : Fin 0 → X .rv, appendRVAssignment x y ∈ D) ↔ (fun s => x s ∘ forget s) ∈ D
+    have eq (y : Fin 0 → X .rv) : (fun s => x s ∘ forget s) = appendRVAssignment x y := by
+      funext s i
+      cases s with
+      | vf => rfl
+      | rv =>
+        rcases i with i | i
+        · rfl
+        · exact i.elim0
+    exact ⟨fun ⟨y, hy⟩ => (eq y).symm ▸ hy, fun h => ⟨Fin.elim0, (eq Fin.elim0) ▸ h⟩⟩
+  | succ n ih =>
+    let rename : ∀ s, AddRVBlock Var (n + 1) s → AddSortedVar (AddRVBlock Var n) .rv s
+      | .vf => Sum.inl
+      | .rv => Sum.elim (fun i => .inl (.inl i))
+          (Fin.lastCases (.inr ⟨rfl⟩) (fun j => .inl (.inr j)))
+    have hproj := SortedDefinableOver.project_one .rv (hD.pullback_relabel rename)
+    convert ih hproj using 1
+    ext x
+    have eq (y : Fin n → X .rv) (v : X .rv) :
+        (fun s => extendSortedAssignment (appendRVAssignment x y) v s ∘ rename s) =
+          appendRVAssignment x (Fin.snoc y v) := by
+      funext s i
+      cases s with
+      | vf => rfl
+      | rv =>
+        rcases i with i | j
+        · rfl
+        · refine Fin.lastCases ?_ (fun k => ?_) j
+          · simp [rename, extendSortedAssignment]
+          · simp [rename, extendSortedAssignment]
+    change (∃ z : Fin (n + 1) → X .rv, appendRVAssignment x z ∈ D) ↔
+      ∃ y : Fin n → X .rv, ∃ v : X .rv,
+        (fun s => extendSortedAssignment (appendRVAssignment x y) v s ∘ rename s) ∈ D
+    constructor
+    · rintro ⟨z, hz⟩
+      refine ⟨Fin.init z, z (Fin.last n), ?_⟩
+      rwa [eq, Fin.snoc_init_self]
+    · rintro ⟨y, v, hy⟩
+      exact ⟨Fin.snoc y v, eq y v ▸ hy⟩
+
+theorem project_rv_coordinates {I : Type a} [Finite I]
+    {D : Set (∀ s, AddRVCoordinates Var I s → X s)} (hD : SortedDefinableOver M A D) :
+    SortedDefinableOver M A {x | ∃ y : I → X .rv, appendRVCoordinates x y ∈ D} := by
+  classical
+  let := Fintype.ofFinite I
+  let e := Fintype.equivFin I
+  let rename : ∀ s, AddRVCoordinates Var I s → AddRVBlock Var (Fintype.card I) s
+    | .vf => id
+    | .rv => Sum.map id e
+  have h := SortedDefinableOver.project_rv_block (hD.pullback_relabel rename)
+  convert h using 1
+  ext x
+  change (∃ y : I → X .rv, appendRVCoordinates x y ∈ D) ↔
+    ∃ z : Fin (Fintype.card I) → X .rv, (fun s => appendRVAssignment x z s ∘ rename s) ∈ D
+  have eq (z : Fin (Fintype.card I) → X .rv) :
+      (fun s => appendRVAssignment x z s ∘ rename s) = appendRVCoordinates x (z ∘ e) := by
+    funext s i
+    cases s with
+    | vf => rfl
+    | rv => cases i <;> rfl
+  constructor
+  · rintro ⟨y, hy⟩
+    refine ⟨y ∘ e.symm, ?_⟩
+    rw [eq, show (y ∘ e.symm) ∘ e = y from funext fun i => congrArg y (e.symm_apply_apply i)]
+    exact hy
+  · rintro ⟨z, hz⟩
+    exact ⟨z ∘ e, eq z ▸ hz⟩
 
 end SortedDefinableOver
 

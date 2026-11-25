@@ -113,6 +113,37 @@ theorem eq_convexValuationRing_of_no_cut (hO : IsOrderConvex O) (hP : IsOrderCon
     exact hn |x| ⟨fun y hy hyO => hcut.1 y hy ((hA y hy).mp hyO),
       fun y hy hyO => hcut.2 y hy (hyO ∘ (hA y hy).mpr)⟩
 
+/-- If the rings induce the same old ring and agree on the realizations
+of its cut, comparability forces the rings to coincide. -/
+theorem eq_convexValuationRing_of_agree_on_cut (hO : IsOrderConvex O) (hP : IsOrderConvex P)
+    {A : Set K} (hA : ∀ y ∈ A, y ∈ O ↔ y ∈ P)
+    (hcut : ∀ x, RealizesValuationRingCut O A x → (x ∈ O ↔ x ∈ P)) : O = P := by
+  rcases convexValuationRing_comparable O P hO hP with hOP | hPO
+  · refine le_antisymm hOP ?_
+    intro x hxP
+    by_contra hxO
+    have hc := realizes_cut_of_mem_difference O P hO hP hA hxP hxO
+    have hm : |x| ∈ P := mem_of_abs_le_mem P hP hxP (by rw [abs_abs])
+    exact hxO (mem_of_abs_le_mem O hO ((hcut _ hc).mpr hm) (by rw [abs_abs]))
+  · refine le_antisymm ?_ hPO
+    intro x hxO
+    by_contra hxP
+    have hc := realizes_cut_of_mem_difference P O hP hO (fun y hy => (hA y hy).symm) hxO hxP
+    have hc' : RealizesValuationRingCut O A |x| :=
+      ⟨fun y hy h => hc.1 y hy ((hA y hy).mp h), fun y hy h => hc.2 y hy (h ∘ (hA y hy).mpr)⟩
+    have hm : |x| ∈ O := mem_of_abs_le_mem O hO hxO (by rw [abs_abs])
+    exact hxP (mem_of_abs_le_mem P hP ((hcut _ hc').mp hm) (by rw [abs_abs]))
+
+/-- The two classifications of the old cut agree once the rings make the
+same choice on a single realization that decides membership on the cut. -/
+theorem eq_convexValuationRing_of_cut_membership (hO : IsOrderConvex O) (hP : IsOrderConvex P)
+    {A : Set K} (hA : ∀ y ∈ A, y ∈ O ↔ y ∈ P) (a : K)
+    (hOcut : ∀ x, RealizesValuationRingCut O A x → (x ∈ O ↔ a ∈ O))
+    (hPcut : ∀ x, RealizesValuationRingCut O A x → (x ∈ P ↔ a ∈ P))
+    (ha : a ∈ O ↔ a ∈ P) : O = P :=
+  eq_convexValuationRing_of_agree_on_cut O P hO hP hA
+    (fun x hx => (hOcut x hx).trans (ha.trans (hPcut x hx).symm))
+
 omit [LinearOrder K] [IsStrictOrderedRing K] in
 /-- If the value-group map of a coarsening is injective, the two valuation
 rings coincide. -/

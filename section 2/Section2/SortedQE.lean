@@ -332,6 +332,21 @@ theorem exists_qf_equivalent_of_generated_extension (T : SortedTheory L E)
   exact ⟨R, y, hR, fun ψ hψ => same_qf_type_of_generatedEmbedding P.model
     (extendSortedAssignment P.point x) (extendSortedAssignment R.point y) j hj ψ hψ⟩
 
+/-- Partial elementarity of the generated embeddings is also enough
+for the Shoenfield test. -/
+theorem exists_qf_equivalent_of_generated_partial_elementarity (T : SortedTheory L E)
+    (h : ∀ {Var : TCsort → Type a} (P Q : T.PointedModel Var)
+      (e : SortedEmbedding (P.model.termGenerated P.point).structureOn Q.model),
+      (∀ s i, e.toEmbedding s (P.model.termGeneratedAssignment P.point s i) = Q.point s i) →
+      ∀ φ : SortedFormula L E Var, P.realizes φ ↔ Q.realizes φ)
+    (φ : SortedFormula L E Var) :
+    ∃ ψ : SortedFormula L E Var, ψ.IsQF ∧
+      ∀ P : T.PointedModel Var, P.realizes φ ↔ P.realizes ψ := by
+  apply T.exists_qf_equivalent φ
+  intro P Q hPQ
+  obtain ⟨e, he⟩ := exists_embedding_of_same_qf_type P.model P.point Q.point hPQ
+  exact h P Q e he φ
+
 end SortedTheory
 
 end GeneralizedEuler.Section2

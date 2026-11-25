@@ -1,6 +1,6 @@
 module
 
-public import Section2.SortedDefinability
+public import Section2.RVReduct
 public import Section2.ResidueFiber
 public import Mathlib.Algebra.BigOperators.Group.List.Basic
 
@@ -42,6 +42,12 @@ def rvPowerTerm (e : E) (x : SortedTerm L E Var .rv) : SortedTerm L E Var .rv :=
 def rvSameUnsignedValueFormula (x y : SortedTerm L E Var .rv) : SortedFormula L E Var :=
   ((SortedFormula.equal x rvZeroTerm).conjunction (.equal y rvZeroTerm)).disjunction
     (.rel .residueNonzero (unaryRVArgs (rvDivTerm x y)))
+
+theorem rvSameUnsignedValueFormula_isQF (x y : SortedTerm L E Var .rv) :
+    (rvSameUnsignedValueFormula x y).IsQF := by
+  exact .imp (SortedFormula.neg_isQF (SortedFormula.neg_isQF
+    (.imp (.equal x rvZeroTerm) (SortedFormula.neg_isQF (.equal y rvZeroTerm)))))
+    (.rel .residueNonzero _)
 
 variable {K : Type z} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
   [L.Structure K] (O : ValuationSubring K) [L.Structure (Residue O)]
@@ -140,5 +146,47 @@ theorem definable_rv_division_coordinate {A : ∀ s, Set (CanonicalSort O s)}
   simpa only [List.map_nil, List.prod_nil, mul_one (u.val : RV0 O)] using
     (definable_affine_division_coordinate (L := L) O hO P ([] : List Empty)
       Empty.elim Empty.elim u input output)
+
+section Embeddings
+
+variable {F : Type*} [Field F] [LinearOrder F] [IsStrictOrderedRing F] [L.Structure F]
+  (Q : ValuationSubring F) [L.Structure (Residue Q)] (hQ : IsOrderConvex Q) (PQ : E → RV0 Q → RV0 Q)
+  (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
+  (e : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
+
+/-- A sorted embedding preserves equality of unsigned values on its
+named RV elements. -/
+theorem unsignedValue_eq_iff_of_sortedEmbedding (s t : S.carrier .rv) :
+    unsignedValue O s.val = unsignedValue O t.val ↔
+      unsignedValue Q (e.toEmbedding .rv s) = unsignedValue Q (e.toEmbedding .rv t) := by
+  let v : ∀ b, RVVariables (Fin 2) b → S.carrier b
+    | .vf => PEmpty.elim
+    | .rv => Fin.cases s (fun _ => t)
+  let φ : SortedFormula L E (RVVariables (Fin 2)) := rvSameUnsignedValueFormula (.var 0) (.var 1)
+  have hφ : φ.IsQF := rvSameUnsignedValueFormula_isQF _ _
+  have h := (S.inclusion.realize_qf hφ v).trans (e.realize_qf hφ v).symm
+  simp only [φ, realize_rvSameUnsignedValueFormula, SortedTerm.realize,
+    SortedEmbedding.mapAssignment_apply, SortedSubstructure.inclusion_apply] at h
+  exact h
+
+/-- The new-value test in Theorem 2.16 is preserved by the sorted map,
+with the target old field taken to be the image of the same base. -/
+theorem has_old_value_iff_of_sortedEmbedding (t : S.carrier .rv) :
+    (∃ x : S.carrier .vf, unsignedValue O t.val = O.valuation x.val) ↔
+      ∃ x : S.carrier .vf, unsignedValue Q (e.toEmbedding .rv t) = Q.valuation (e.toEmbedding .vf x) := by
+  refine exists_congr fun x => ?_
+  let s := S.structureOn.rvMap x
+  have hLeft : s.val = rv O x.val := by
+    have h := S.inclusion.map_rv x
+    rw [canonicalStructure_rvMap, SortedSubstructure.inclusion_apply,
+      SortedSubstructure.inclusion_apply] at h
+    exact h
+  have hRight : e.toEmbedding .rv s = rv Q (e.toEmbedding .vf x) := by
+    have h := e.map_rv x
+    rwa [canonicalStructure_rvMap] at h
+  have h := unsignedValue_eq_iff_of_sortedEmbedding O hO P Q hQ PQ S e t s
+  rwa [hLeft, hRight, unsignedValue_rv, unsignedValue_rv] at h
+
+end Embeddings
 
 end GeneralizedEuler.Section2

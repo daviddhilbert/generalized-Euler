@@ -55,6 +55,7 @@ theorem SortedEmbedding.map_rv {M : SortedStructure L E X} (e : SortedEmbedding 
 
 /-- A substructure is VF-generated if every RV element has a field
 representative in that substructure. -/
+@[expose]
 def SortedStructure.IsVFGenerated : Prop :=
   Function.Surjective M.rvMap
 

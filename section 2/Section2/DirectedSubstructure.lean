@@ -2,7 +2,7 @@ module
 
 public import Mathlib.Data.Set.Finite.Lattice
 public import Mathlib.Order.Zorn
-public import Section2.SortedModelTheory
+public import Section2.GeneratedSubstructure
 
 /-! Directed unions in the iteration of the one-generator lift. -/
 
@@ -109,7 +109,7 @@ namespace GeneralizedEuler.Section2
 
 open FirstOrder
 
-universe u v w z z'
+universe u v w z z' a
 
 variable {L : Language.{u, v}} {E : Type w} {X : TCsort → Type z} {Y : TCsort → Type z'}
   (M : SortedStructure L E X) (N : SortedStructure L E Y) (R : Set (X .rv))
@@ -252,6 +252,46 @@ theorem exists_cover_by_representatives (A : FixedRVLift M N R)
   by_contra htB
   obtain ⟨C, hBC, x, hx, rfl⟩ := hstep B hAB t ht htB
   exact htB ⟨x, ((le_iff_extends C B).mp (hmax hBC)).choose .vf hx, rfl⟩
+
+/-- Adding representatives of all the named RV elements gives the
+VF-generated enlargement used in Theorem 2.16. -/
+theorem exists_vfGenerated_extension (A : FixedRVLift M N R)
+    (hstep : ∀ B : FixedRVLift M N R, A ≤ B → ∀ t ∈ R,
+      t ∉ M.rvMap '' B.source.carrier .vf →
+      ∃ C : FixedRVLift M N R, B ≤ C ∧ t ∈ M.rvMap '' C.source.carrier .vf) :
+    ∃ B : FixedRVLift M N R, A ≤ B ∧ B.source.structureOn.IsVFGenerated := by
+  obtain ⟨B, hAB, hcover⟩ := exists_cover_by_representatives A M.rvMap R hstep
+  refine ⟨B, hAB, ?_⟩
+  intro t
+  have hs : B.source.carrier .rv ⊆ R := le_of_eq B.rv_eq
+  have ht : t.val ∈ R := hs t.property
+  obtain ⟨x, hx, hrv⟩ := hcover ht
+  let p : B.source.carrier .vf := ⟨x, hx⟩
+  refine ⟨p, Subtype.ext ?_⟩
+  have h := B.source.inclusion.map_rv p
+  rw [SortedSubstructure.inclusion_apply, SortedSubstructure.inclusion_apply] at h
+  exact h.trans hrv
+
+/-- It suffices to test partial elementarity after adding field
+representatives of the old RV sort. -/
+theorem realize_iff_of_vfGenerated_extension (A : FixedRVLift M N R)
+    (hstep : ∀ B : FixedRVLift M N R, A ≤ B → ∀ t ∈ R,
+      t ∉ M.rvMap '' B.source.carrier .vf →
+      ∃ C : FixedRVLift M N R, B ≤ C ∧ t ∈ M.rvMap '' C.source.carrier .vf)
+    (hgen : ∀ B : FixedRVLift M N R, A ≤ B → B.source.structureOn.IsVFGenerated →
+      ∀ {Var : TCsort → Type a} (ψ : SortedFormula L E Var) (x : ∀ s, Var s → B.source.carrier s),
+        ψ.realize M (fun s i => (x s i).val) ↔
+          ψ.realize N (fun s i => B.embedding.toEmbedding s (x s i)))
+    {Var : TCsort → Type a} (φ : SortedFormula L E Var) (x : ∀ s, Var s → A.source.carrier s) :
+    φ.realize M (fun s i => (x s i).val) ↔ φ.realize N (fun s i => A.embedding.toEmbedding s (x s i)) := by
+  obtain ⟨B, hAB, hB⟩ := exists_vfGenerated_extension A hstep
+  obtain ⟨hm, he⟩ := (le_iff_extends A B).mp hAB
+  let xs (s : TCsort) (i : Var s) : B.source.carrier s := ⟨(x s i).val, hm s (x s i).property⟩
+  have ht : (fun s i => B.embedding.toEmbedding s (xs s i)) =
+      fun s i => A.embedding.toEmbedding s (x s i) := funext fun s => funext fun i => (he s (x s i)).symm
+  have h := hgen B hAB hB φ xs
+  rw [ht] at h
+  exact h
 
 end FixedRVLift
 

@@ -1,6 +1,7 @@
 module
 
 public import Section2.ConvexLanguage
+public import Section2.QuotientInterpretation
 public import Section2.VFLiftSubstructure
 
 /-! Restricting a sorted embedding to the language of valued fields. -/
@@ -148,5 +149,68 @@ def valuedFieldEmbeddingOfSorted (minusOne : S.carrier .vf)
       exact (convexStructure_mem Q _).trans
         ((mem_valuationRing_iff_of_sortedEmbedding O hO P Q hQ PQ S e minusOne (x 0)
           hminus hminus').trans ((convexStructure_mem O _).symm.trans hB))
+
+universe a
+
+set_option linter.style.haveILetI false in
+/-- Once every named RV element has a field representative in the base,
+the sorted embedding is already partial elementary. This is the
+VF-generated case of the argument in Theorem 2.16. -/
+theorem realize_iff_of_vfGeneratedEmbedding (hgen : S.structureOn.IsVFGenerated)
+    (minusOne : S.carrier .vf) (hminus : minusOne.val = -1) (hminus' : e.toEmbedding .vf minusOne = -1)
+    {T : (convexLanguage L).Theory} (hQE : EliminatesQuantifiers T)
+    (I : QuotientInterpretation (convexLanguage L) L E)
+    {Var : TCsort → Type a} (φ : SortedFormula L E Var) (x : ∀ s, Var s → S.carrier s) :
+    letI := convexStructure O L
+    letI := convexStructure Q L
+    ∀ (_ : K ⊨ T) (_ : F ⊨ T)
+      (RK : RealizesQuotientInterpretation I (A := K) (canonicalStructure O hO P))
+      (RF : RealizesQuotientInterpretation I (A := F) (canonicalStructure Q hQ PQ)),
+      (∀ a, RK.rep .vf a = a) → (∀ a, RK.rep .rv a = rv O a) →
+      (∀ a, RF.rep .vf a = a) → (∀ a, RF.rep .rv a = rv Q a) →
+      (φ.realize (canonicalStructure O hO P) (fun s i => (x s i).val) ↔
+        φ.realize (canonicalStructure Q hQ PQ) (fun s i => e.toEmbedding s (x s i))) := by
+  letI := convexStructure O L
+  letI := convexStructure Q L
+  intro hTK hTF RK RF hKVF hKRV hFVF hFRV
+  letI := hTK
+  letI := hTF
+  let B := convexReductOfSortedSubstructure O hO P S
+  let p := B.subtype
+  let q : B ↪[convexLanguage L] F :=
+    valuedFieldEmbeddingOfSorted O Q hO hQ P PQ S e minusOne hminus hminus'
+  have hq (b : B) : q b = e.toEmbedding .vf b := by rfl
+  let r (i : Var .rv) : S.carrier .vf := (hgen (x .rv i)).choose
+  have hr (i : Var .rv) : S.structureOn.rvMap (r i) = x .rv i := (hgen (x .rv i)).choose_spec
+  let names : TaggedVar Var → B
+    | ⟨.vf, i⟩ => x .vf i
+    | ⟨.rv, i⟩ => r i
+  have hLeft : RK.assignment (p ∘ names) = fun s i => (x s i).val := by
+    funext s i
+    rw [RealizesQuotientInterpretation.assignment_apply]
+    cases s with
+    | vf => exact hKVF _
+    | rv =>
+      have h := S.inclusion.map_rv (r i)
+      rw [hr, canonicalStructure_rvMap, SortedSubstructure.inclusion_apply,
+        SortedSubstructure.inclusion_apply] at h
+      change RK.rep .rv (r i).val = (x .rv i).val
+      rw [hKRV, h]
+  have hRight : RF.assignment (q ∘ names) = fun s i => e.toEmbedding s (x s i) := by
+    funext s i
+    rw [RealizesQuotientInterpretation.assignment_apply]
+    cases s with
+    | vf =>
+      change RF.rep .vf (q (x .vf i)) = e.toEmbedding .vf (x .vf i)
+      rw [hFVF]
+      exact hq (x .vf i)
+    | rv =>
+      have h := e.map_rv (r i)
+      rw [hr, canonicalStructure_rvMap] at h
+      change RF.rep .rv (q (r i)) = e.toEmbedding .rv (x .rv i)
+      rw [hFRV]
+      exact (congrArg (rv Q) (hq (r i))).trans h.symm
+  have h := sortedFormula_iff_of_common_field_representatives I hQE RK RF p q names φ
+  rwa [hLeft, hRight] at h
 
 end GeneralizedEuler.Section2

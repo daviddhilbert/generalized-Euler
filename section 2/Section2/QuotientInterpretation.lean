@@ -2,6 +2,7 @@ module
 
 public import Section2.TaggedTheory
 public import Section2.SortedModelTheory
+public import Section2.ConvexLanguage
 public import Mathlib.ModelTheory.Definability
 
 /-! First-order interpretation of the two sorts by field representatives,
@@ -62,6 +63,9 @@ variable {A : Type b} [J.Structure A] {X : TCsort → Type z}
 
 def assignment {Var : TCsort → Type a} (v : TaggedVar Var → A) : ∀ s, Var s → X s :=
   fun s x => R.rep s (v ⟨s, x⟩)
+
+theorem assignment_apply {Var : TCsort → Type a} (v : TaggedVar Var → A) (s : TCsort) (x : Var s) :
+    R.assignment v s x = R.rep s (v ⟨s, x⟩) := by rfl
 
 private theorem appGraphAssignment {α β : Type*} (v : α → A) (u : Unit → A)
     (z : β → A) (i : β) :
@@ -287,5 +291,21 @@ theorem sortedSentence_iff_of_complete_interpreted_presentations
     φ.realize M' ↔ φ.realize N' :=
   (i.realize_sentence φ).symm.trans
     ((sortedSentence_iff_of_complete_interpreted_theory I hT RM RN φ).trans (j.realize_sentence φ))
+
+/-- When all named elements have common field representatives, QE in
+the valued-field reduct transfers their full sorted type. -/
+theorem sortedFormula_iff_of_common_field_representatives
+    {T : J.Theory} (hT : EliminatesQuantifiers T)
+    {A B C : Type*} [J.Structure A] [J.Structure B] [Nonempty B] [B ⊨ T]
+      [J.Structure C] [Nonempty C] [C ⊨ T]
+    {X Y : TCsort → Type*} {M : SortedStructure L E X} {N : SortedStructure L E Y}
+    (RM : RealizesQuotientInterpretation I (A := B) M)
+    (RN : RealizesQuotientInterpretation I (A := C) N)
+    (p : A ↪[J] B) (q : A ↪[J] C) {Var : TCsort → Type a}
+    (representatives : TaggedVar Var → A) (φ : SortedFormula L E Var) :
+    φ.realize M (RM.assignment (p ∘ representatives)) ↔
+      φ.realize N (RN.assignment (q ∘ representatives)) := by
+  rw [← RM.realize_translate, ← RN.realize_translate]
+  exact partialElementaryOfQE_anyVar hT p q (I.translate φ) representatives
 
 end GeneralizedEuler.Section2

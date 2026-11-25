@@ -58,3 +58,6 @@ public import Section2.DimensionLower
 public import Section2.DefinableResidueCharts
 public import Section2.PresentedExpansion
 public import Section2.FieldReduct
+public import Section2.RVDefinableEquivalence
+public import Section2.ResidueClassification
+public import Section2.DefinableHolly
