@@ -104,6 +104,40 @@ theorem SortedEmbedding.realize_qf (ι : SortedEmbedding M N) {Var : TCsort → 
     simp only [SortedFormula.realize, ← ι.realize_term assign, ι.map_rel]
   | imp _ _ hx hy => simp only [SortedFormula.realize, hx, hy]
 
+/-- A sorted isomorphism preserves formulas with quantifiers as well as
+the quantifier-free formulas preserved by an embedding. -/
+theorem SortedIsomorphism.realize_iff (e : SortedIsomorphism M N) {Var : TCsort → Type a}
+    (φ : SortedFormula L E Var) : ∀ x : (∀ s, Var s → X s),
+    φ.realize N (e.toSortedEmbedding.mapAssignment x) ↔ φ.realize M x := by
+  induction φ with
+  | falsum => intro x; exact e.toSortedEmbedding.realize_qf .falsum x
+  | equal t u => intro x; exact e.toSortedEmbedding.realize_qf (.equal t u) x
+  | rel r ts => intro x; exact e.toSortedEmbedding.realize_qf (.rel r ts) x
+  | imp φ ψ ihφ ihψ =>
+    intro x
+    simp only [SortedFormula.realize, ihφ x, ihψ x]
+  | all s ψ ih =>
+    intro x
+    have mapped (y : X s) :
+        e.toSortedEmbedding.mapAssignment (extendSortedAssignment x y) =
+          extendSortedAssignment (e.toSortedEmbedding.mapAssignment x) (e.toEmbedding s y) := by
+      funext t i
+      rcases i with i | ⟨h⟩
+      · rfl
+      · have ht : s = t := h.down
+        subst t
+        rfl
+    simp only [SortedFormula.realize]
+    constructor
+    · intro h y
+      apply (ih (extendSortedAssignment x y)).mp
+      rw [mapped]
+      exact h (e.toEmbedding s y)
+    · intro h y
+      obtain ⟨z, rfl⟩ := e.surjective s y
+      rw [← mapped]
+      exact (ih (extendSortedAssignment x z)).mpr (h z)
+
 def SortedTerm.relabel {Var : TCsort → Type a} {Var' : TCsort → Type b}
     (r : ∀ s, Var s → Var' s) :
     {s : TCsort} → SortedTerm L E Var s → SortedTerm L E Var' s

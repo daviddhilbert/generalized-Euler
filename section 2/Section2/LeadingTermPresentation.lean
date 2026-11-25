@@ -1,6 +1,7 @@
 module
 
 public import Section2.LeadingTermOrder
+public import Section2.Residue
 
 /-! Uniqueness of the leading-term quotient in Proposition 2.13. -/
 
@@ -21,6 +22,48 @@ structure LeadingTermPresentation where
     projection x = projection y ↔ (x - y) / y ∈ O.nonunits
 
 namespace LeadingTermPresentation
+
+/-- The residue compatibility and unit test in Ax. 4–6 force the kernel
+of the augmented leading-term map to be the corresponding principal units. -/
+def ofResidueEmbedding (projection : K →*₀ R) (hsurj : Function.Surjective projection)
+    (ι : Residue O ↪ R) (hOne : ι 1 = 1)
+    (hunit : ∀ x : K, O.valuation x = 1 ↔ ∃ r : Residue O, r ≠ 0 ∧ ι r = projection x)
+    (hred : ∀ x : O, IsLocalRing.residue O x ≠ 0 →
+      ι (IsLocalRing.residue O x) = projection x.val) : LeadingTermPresentation (R := R) O where
+  projection := projection
+  surjective := hsurj
+  eq_iff := by
+    intro x y hy
+    have unitEq (z : K) : projection z = 1 ↔ rv O z = 1 := by
+      have matchUnit (hz : O.valuation z = 1) : projection z = 1 ↔ rv O z = 1 := by
+        let u : O := ⟨z, (O.valuation_le_one_iff z).mp hz.le⟩
+        let r := IsLocalRing.residue O u
+        have hr : r ≠ 0 := (IsLocalRing.residue_ne_zero_iff_isUnit u).mpr
+          ((O.valuation_eq_one_iff u).mpr hz)
+        have hu : ι r = projection z := hred u hr
+        have hurv : residueRV O r = rv O z := residueRV_residue_of_ne_zero O u hr
+        calc
+          projection z = 1 ↔ ι r = ι 1 := by rw [hu, hOne]
+          _ ↔ r = 1 := ι.injective.eq_iff
+          _ ↔ residueRV O r = residueRV O 1 := (residueRV_injective O).eq_iff.symm
+          _ ↔ rv O z = 1 := by rw [hurv, residueRV_one]
+      constructor
+      · intro h
+        have hz := (hunit z).mpr ⟨1, one_ne_zero, hOne.trans h.symm⟩
+        exact (matchUnit hz).mp h
+      · intro h
+        have hz := congrArg (unsignedValue O) h
+        rw [unsignedValue_rv, map_one] at hz
+        exact (matchUnit hz).mpr h
+    have hyP : projection y ≠ 0 := (map_ne_zero projection).mpr hy
+    have hyO : rv O y ≠ 0 := (rv_eq_zero_iff O).not.mpr hy
+    calc
+      projection x = projection y ↔ projection (x / y) = 1 := by
+        rw [map_div₀ projection, div_eq_one_iff_eq hyP]
+      _ ↔ rv O (x / y) = 1 := unitEq _
+      _ ↔ rv O x = rv O y := by
+        rw [map_div₀ (G₀' := RV0 O) (rv O), div_eq_one_iff_eq hyO]
+      _ ↔ (x - y) / y ∈ O.nonunits := rv_eq_rv_iff O hy
 
 variable (p : LeadingTermPresentation (R := R) O)
 

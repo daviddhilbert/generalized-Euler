@@ -88,6 +88,15 @@ def SortedSentence.realize {X : TCsort → Type b} (M : SortedStructure L E X)
     (φ : SortedSentence L E) : Prop :=
   SortedFormula.realize M φ (fun _ => Empty.elim)
 
+theorem SortedIsomorphism.realize_sentence {X Y : TCsort → Type*}
+    {M : SortedStructure L E X} {N : SortedStructure L E Y} (e : SortedIsomorphism M N)
+    (φ : SortedSentence L E) : φ.realize M ↔ φ.realize N := by
+  have h := e.realize_iff φ (fun _ => Empty.elim)
+  have hEmpty : e.toSortedEmbedding.mapAssignment (fun _ => Empty.elim) =
+      (fun _ => Empty.elim) := funext fun _ => funext fun x => x.elim
+  rw [hEmpty] at h
+  exact h.symm
+
 def SortedSentence.toTagged (φ : SortedSentence L E) : (taggedLanguage L E).Sentence :=
   (SortedFormula.toTagged φ).relabel (fun a => a.2)
 

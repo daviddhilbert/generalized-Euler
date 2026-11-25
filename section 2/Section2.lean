@@ -56,3 +56,5 @@ public import Section2.DefinableCharts
 public import Section2.RVMonomials
 public import Section2.DimensionLower
 public import Section2.DefinableResidueCharts
+public import Section2.PresentedExpansion
+public import Section2.FieldReduct

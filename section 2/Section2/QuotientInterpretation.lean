@@ -272,4 +272,20 @@ theorem sortedSentence_iff_of_complete_interpreted_theory
   exact (hT.realize_sentence_iff (I.sentence φ) A).trans
     (hT.realize_sentence_iff (I.sentence φ) B).symm
 
+/-- Completeness transfers to all presentations isomorphic to the
+uniformly interpreted expansions. -/
+theorem sortedSentence_iff_of_complete_interpreted_presentations
+    {T : J.Theory} (hT : T.IsComplete)
+    {A B : Type*} [J.Structure A] [Nonempty A] [A ⊨ T]
+      [J.Structure B] [Nonempty B] [B ⊨ T]
+    {X Y U V : TCsort → Type*}
+    {M : SortedStructure L E X} {N : SortedStructure L E Y}
+      {M' : SortedStructure L E U} {N' : SortedStructure L E V}
+    (RM : RealizesQuotientInterpretation I (A := A) M)
+    (RN : RealizesQuotientInterpretation I (A := B) N)
+    (i : SortedIsomorphism M M') (j : SortedIsomorphism N N') (φ : SortedSentence L E) :
+    φ.realize M' ↔ φ.realize N' :=
+  (i.realize_sentence φ).symm.trans
+    ((sortedSentence_iff_of_complete_interpreted_theory I hT RM RN φ).trans (j.realize_sentence φ))
+
 end GeneralizedEuler.Section2
