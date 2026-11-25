@@ -42,6 +42,15 @@ def rv : K →*₀ RV0 O := by
   · rintro rfl
     exact map_zero _
 
+@[simp] theorem rv_inv (x : K) : rv O x⁻¹ = (rv O x)⁻¹ :=
+  map_inv₀ (rv O) x
+
+theorem rv_mul_left_cancel {x y z : RV0 O} (hx : x ≠ 0) (h : x * y = x * z) :
+    y = z := by
+  have cancel (t : RV0 O) : x⁻¹ * (x * t) = t :=
+    inv_mul_cancel_left₀ (G₀ := RV0 O) hx t
+  exact (cancel y).symm.trans ((congrArg (fun t : RV0 O => x⁻¹ * t) h).trans (cancel z))
+
 theorem rv_surjective : Function.Surjective (rv O) := by
   intro t
   cases t using WithZero.recZeroCoe with
@@ -119,5 +128,11 @@ theorem mem_valuationRing_iff (x : K) : x ∈ O ↔ unsignedValue O (rv O x) ≤
 theorem mem_maximalIdeal_iff (x : K) :
     x ∈ O.nonunits ↔ unsignedValue O (rv O x) < 1 := by
   rw [unsignedValue_rv, O.mem_nonunits_iff]
+
+/-- The named witness used in §2.3 excludes the trivial valuation. -/
+theorem exists_nonzero_maximalIdeal_iff :
+    (∃ x : K, x ≠ 0 ∧ x ∈ O.nonunits) ↔ O.valuation.IsNontrivial := by
+  simp only [O.mem_nonunits_iff]
+  exact (Valuation.isNontrivial_iff_exists_lt_one O.valuation).symm
 
 end GeneralizedEuler.Section2

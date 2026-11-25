@@ -21,7 +21,7 @@ def clampForPower (x : K) : PositiveField K :=
 
 /-- The compatibility required from Ax. 8 for the clamped power. The map
 on the residue field is the interpretation of the same clamped function. -/
-def ResidueCompatible (f : K → K)
+abbrev ResidueCompatible (f : K → K)
     (residueF : IsLocalRing.ResidueField O → IsLocalRing.ResidueField O) : Prop :=
   ∀ x : O, ∃ h : f x ∈ O,
     IsLocalRing.residue O ⟨f x, h⟩ = residueF (IsLocalRing.residue O x)
@@ -61,7 +61,7 @@ theorem power_preserves_principalUnits (hO : IsOrderConvex O)
 
 /-- The positive branch of RV consists of the leading terms represented by
 positive field elements. -/
-def IsPositiveRV (t : RV0 O) : Prop :=
+abbrev IsPositiveRV (t : RV0 O) : Prop :=
   ∃ x : PositiveField K, rv O x = t
 
 @[simp] theorem isPositiveRV_rv_iff (hO : IsOrderConvex O) {x : K} :
@@ -69,7 +69,7 @@ def IsPositiveRV (t : RV0 O) : Prop :=
   ⟨fun ⟨y, hy⟩ => pos_of_rv_eq_rv O hO y.property hy.symm, fun h => ⟨⟨x, h⟩, rfl⟩⟩
 
 /-- An RV operation agrees with a positive field power on representatives. -/
-def AgreesWithFieldPower (g : PositiveField K →* PositiveField K)
+abbrev AgreesWithFieldPower (g : PositiveField K →* PositiveField K)
     (P : RV0 O → RV0 O) : Prop :=
   ∀ x : PositiveField K, P (rv O x) = rv O (g x : K)
 
