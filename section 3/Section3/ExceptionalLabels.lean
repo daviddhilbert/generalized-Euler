@@ -106,4 +106,30 @@ theorem zero_arity_contractible {K R Y V : Type*} (p : (Fin 0 → K) → R) (q :
     (f : (Fin 0 → K) → Y) : Contractible p q f :=
   fun x y _ => congrArg (q ∘ f) (Subsingleton.elim x y)
 
+
+/-- Lemma 3.28 in every arity with the manuscript's dimension convention.
+The splitting tests in positive arity are those supplied by 3.14 and
+compactness; the one boundary estimate is Lemma 3.26 for their union. -/
+theorem almost_contractible_all_arities [Zero R] [T1Space R]
+    {K Y V : Type*} (p : (Fin n → K) → Fin n → R) (q : Y → V) (f : (Fin n → K) → Y)
+    (hnz : Dense ({0}ᶜ : Set R)) (bad : Set (Fin n → R))
+    (test : (Fin n → R) → Set (Fin n → K))
+    (hs : ∀ u ∈ bad, (∃ x ∈ test u, p x = u) ∧ (∃ x ∉ test u, p x = u))
+    (hdet : ∀ x y, p x = p y → (∀ i, p x i ≠ 0) → q (f x) ≠ q (f y) → p x ∈ bad)
+    (hboundary : interior (rvBoundary p {x | p x ∈ bad ∧ x ∈ test (p x)}) = ∅) :
+    ∃ U : Set (Fin n → R), projectionDimensionWithBot U < (n : WithBot ℕ) ∧
+      (∀ u, (∃ i, u i = 0) → u ∈ U) ∧
+      Contractible (fun x : {x // p x ∉ U} => p x) q (fun x => f x) := by
+  cases n with
+  | zero =>
+    refine ⟨∅,by simp [projectionDimensionWithBot],fun _ ⟨i,_⟩ => i.elim0,?_⟩
+    exact fun x y _ => congrArg (q ∘ f) (Subsingleton.elim x.val y.val)
+  | succ n =>
+    obtain ⟨U,hU,hzero,hcon⟩ := almost_contractible p q f (Nat.zero_lt_succ _) hnz
+      bad test hs hdet hboundary
+    refine ⟨U,?_,hzero,hcon⟩
+    rcases U.eq_empty_or_nonempty with rfl | hne
+    · simp [projectionDimensionWithBot]
+    · exact (dimensionWithBot_of_nonempty hne _).trans_lt (WithBot.coe_lt_coe.mpr hU)
+
 end GeneralizedEuler.Section3

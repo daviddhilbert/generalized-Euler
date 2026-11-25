@@ -155,6 +155,50 @@ theorem field_point_over_disc_parameters {μ : Cardinal.{u}} (hμ : ℵ₀ ≤ �
   exact vf_range_subset_fieldClosure_of_small_immediate_movers O hO powers hμ hL move
     _ hsize (hx.withRepresentatives O hO powers rep) (mem_range_self j)
 
+/-- The second assertion of 3.15 at the level of types. A formula over
+the named discs can use the input tuple itself as its choice of centers.
+An immediate automorphism need only move that tuple and fix the RV sort.
+The RV part of the parameter base may be the entire RV sort. -/
+theorem polydisc_uniform_over_its_codes {n : ℕ} (P : ∀ s, Set (CanonicalSort O s))
+    (D : Fin n → DiscCode O) (c : Fin n → K) (t : Fin n → RV0 O)
+    (hrep : representsDiscTuple O (fun _ => false) D c t)
+    {V : TCsort → Type*} (coords : V .vf ≃ Fin n) [IsEmpty (V .rv)]
+    {A : Set (∀ s, V s → CanonicalSort O s)}
+    (hA : definableWithDiscParameters (L := L) O hO powers P (fun _ => false) D A)
+    (move : ∀ x y : Fin n → K, (∀ i, x i ∈ (D i).points O) → (∀ i, y i ∈ (D i).points O) →
+      ∃ e : SortedIsomorphism M M, (∀ i, e.toEmbedding .vf (x i) = y i) ∧
+        (∀ a ∈ P .vf, e.toEmbedding .vf a = a) ∧ ∀ u, e.toEmbedding .rv u = u)
+    (x y : ∀ s, V s → CanonicalSort O s)
+    (hx : ∀ i, x .vf (coords.symm i) ∈ (D i).points O)
+    (hy : ∀ i, y .vf (coords.symm i) ∈ (D i).points O) : x ∈ A ↔ y ∈ A := by
+  obtain ⟨φ,hφ⟩ := hA
+  let centers (z : ∀ s, V s → CanonicalSort O s) (i : Fin n) := z .vf (coords.symm i)
+  have rep (z : ∀ s, V s → CanonicalSort O s) (hz : ∀ i, centers z i ∈ (D i).points O) :
+      representsDiscTuple O (fun _ => false) D (centers z) t := by
+    intro i
+    have hi := hz i
+    rw [hrep i] at hi ⊢
+    exact (openDisc_change_center O hi).symm
+  obtain ⟨e,hxy,hfix,hRV⟩ := move (centers x) (centers y) hx hy
+  let vals (z : ∀ s, V s → CanonicalSort O s) (s : TCsort) :=
+    Sum.elim (Subtype.val (p := (· ∈ P s))) (Sum.elim (discAssignment O (centers z) t s) (z s))
+  have hmap : e.toSortedEmbedding.mapAssignment (vals x) = vals y := by
+    funext s i
+    rw [SortedEmbedding.mapAssignment_apply]
+    rcases i with a | i | j
+    · cases s with
+      | vf => exact hfix _ a.property
+      | rv => exact hRV _
+    · cases s with
+      | vf => exact hxy i
+      | rv => exact hRV _
+    · cases s with
+      | vf => simpa [centers,vals] using hxy (coords j)
+      | rv => exact isEmptyElim j
+  have he := e.realize_iff φ (vals x)
+  rw [hmap] at he
+  exact (hφ _ _ (rep x hx) x).trans (he.symm.trans (hφ _ _ (rep y hy) y).symm)
+
 end
 
 end GeneralizedEuler.Section3

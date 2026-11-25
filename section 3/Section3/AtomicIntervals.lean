@@ -91,6 +91,109 @@ theorem atomic_is_valuativeInterval [Field K] (O : ValuationSubring K)
   exact hUeq ▸ hH.1 C hC
 
 
+/-- Open and closed descriptions of a disc sharing a chosen center.
+A closed description at value zero is a singleton. -/
+def taggedDisc {K : Type*} [Field K] (O : ValuationSubring K) (closed : Bool)
+    (a : K) (r : O.ValueGroup) := (if closed then closedDisc else openDisc) O a r
+
+private theorem taggedDisc_bounds {K : Type*} [Field K] (O : ValuationSubring K) (b : Bool)
+    (a : K) (r : O.ValueGroup) :
+    openDisc O a r ⊆ taggedDisc O b a r ∧ taggedDisc O b a r ⊆ closedDisc O a r := by
+  cases b <;> simp only [taggedDisc,Bool.false_eq_true,ite_false,ite_true,Subset.rfl, true_and,
+    and_true] <;> exact openDisc_subset_closedDisc O
+
+private theorem taggedDisc_ssubset_of_lt {K : Type*} [Field K] (O : ValuationSubring K)
+    [DenselyOrdered O.ValueGroup] (b d : Bool) (a : K) {r s : O.ValueGroup} (hrs : r < s) :
+    taggedDisc O b a r ⊂ taggedDisc O d a s := by
+  have hsub : taggedDisc O b a r ⊆ taggedDisc O d a s := fun x hx =>
+    (taggedDisc_bounds O d a s).1 (((taggedDisc_bounds O b a r).2 hx : O.valuation (x-a) ≤ r).trans_lt hrs)
+  refine ⟨hsub,fun hrev => ?_⟩
+  obtain ⟨u,hru,hus⟩ := exists_between hrs
+  obtain ⟨w,hw⟩ := O.valuation_surjective u
+  have hd : O.valuation (w+a-a) = u := by rw [add_sub_cancel_right,hw]
+  have hm : w+a ∈ taggedDisc O d a s := (taggedDisc_bounds O d a s).1 (hd.trans_lt hus)
+  have he : O.valuation (w+a-a) ≤ r := (taggedDisc_bounds O b a r).2 (hrev hm)
+  exact hru.not_ge (hd ▸ he)
+
+/-- At equal radius the only strict inclusion is open into closed.
+At distinct radii an intermediate open disc exists regardless of either
+endpoint flag, including when the inner end is a singleton. -/
+theorem nested_disc_eq_child_or_intermediate {K : Type*} [Field K] (O : ValuationSubring K)
+    [DenselyOrdered O.ValueGroup] (b d : Bool) (a : K) {r s : O.ValueGroup}
+    (h : taggedDisc O b a r ⊂ taggedDisc O d a s) :
+    (r = s ∧ b = false ∧ d = true) ∨
+    ∃ t, r < t ∧ t < s ∧ taggedDisc O b a r ⊂ openDisc O a t ∧
+      openDisc O a t ⊂ taggedDisc O d a s := by
+  rcases lt_trichotomy r s with hrs | he | hsr
+  · obtain ⟨t,hrt,hts⟩ := exists_between hrs
+    exact Or.inr ⟨t,hrt,hts,taggedDisc_ssubset_of_lt O b false a hrt,
+      taggedDisc_ssubset_of_lt O false d a hts⟩
+  · subst s
+    cases b <;> cases d
+    · exact (h.ne rfl).elim
+    · exact Or.inl ⟨rfl,rfl,rfl⟩
+    · exact (h.2 (openDisc_subset_closedDisc O)).elim
+    · exact (h.ne rfl).elim
+  · exact (h.2 (taggedDisc_ssubset_of_lt O d b a hsr).subset).elim
+
+/-- If the inner end is included, its definable disc lies in the interval.
+Any one of its points forces an atomic interval to equal that disc. -/
+theorem atomic_included_nested_end {D : Set (Set K)} {L R : Set K}
+    (nested : L ⊆ R ∨ R ⊆ L) (hL : L.Nonempty) (hR : R.Nonempty)
+    (defL : L ∈ D) (defR : R ∈ D)
+    (ha : GeneratesType D (valuativeInterval (some ⟨L,true⟩) (some ⟨R,true⟩))) :
+    valuativeInterval (some ⟨L,true⟩) (some ⟨R,true⟩) = L ∨
+    valuativeInterval (some ⟨L,true⟩) (some ⟨R,true⟩) = R := by
+  let I := valuativeInterval (some ⟨L,true⟩) (some ⟨R,true⟩)
+  have inside {z : K} (hz : z ∈ L) (hz' : z ∈ R) : z ∈ I :=
+    ⟨⟨z,hz,le_rfl⟩,z,hz',le_rfl⟩
+  rcases nested with h | h
+  · obtain ⟨x,hx⟩ := hL
+    have sub : L ⊆ I := fun _ hz => inside hz (h hz)
+    exact Or.inl (Subset.antisymm (fun y hy => (ha.uniform L defL x (sub hx) y hy).mp hx) sub)
+  · obtain ⟨x,hx⟩ := hR
+    have sub : R ⊆ I := fun _ hz => inside (h hz) hz
+    exact Or.inr (Subset.antisymm (fun y hy => (ha.uniform R defR x (sub hx) y hy).mp hx) sub)
+
+private theorem positive_shell_point [Field K] [IsStrictOrderedRing K] {U V : Set K} {a : K}
+    (ha : a ∈ U) (hu : U.OrdConnected) (sub : U ⊂ V)
+    (symU : ∀ x, x ∈ U ↔ 2*a-x ∈ U) (symV : ∀ x, x ∈ V ↔ 2*a-x ∈ V) :
+    ∃ x ∈ V, ∀ y ∈ U, y < x := by
+  obtain ⟨z,hzV,hzU⟩ := Set.exists_of_ssubset sub
+  have pick {x : K} (hV : x ∈ V) (hU : x ∉ U) (hax : a ≤ x) :
+      ∃ x ∈ V, ∀ y ∈ U, y < x :=
+    ⟨x,hV,fun y hy => lt_of_not_ge (fun hxy => hU (hu.out ha hy ⟨hax,hxy⟩))⟩
+  rcases le_total a z with h | h
+  · exact pick hzV hzU h
+  · exact pick ((symV z).mp hzV) (fun hz => hzU ((symU z).mpr hz)) (by linarith)
+
+/-- An intermediate concentric disc splits both sides of the annulus,
+whether its outer disc is open or closed. No maximal child is required. -/
+theorem intermediate_disc_splits_sides [Field K] [IsStrictOrderedRing K]
+    {L M R : Set K} {a : K} (ha : a ∈ L) (hL : L.OrdConnected) (hM : M.OrdConnected)
+    (hl : L ⊂ M) (hr : M ⊂ R)
+    (sl : ∀ x, x ∈ L ↔ 2*a-x ∈ L) (sm : ∀ x, x ∈ M ↔ 2*a-x ∈ M)
+    (sr : ∀ x, x ∈ R ↔ 2*a-x ∈ R) :
+    let upper := valuativeInterval (some ⟨L,false⟩) (some ⟨R,true⟩)
+    let lower := valuativeInterval (some ⟨R,true⟩) (some ⟨L,false⟩)
+    (upper ∩ M).Nonempty ∧ (upper \ M).Nonempty ∧
+      (lower ∩ M).Nonempty ∧ (lower \ M).Nonempty := by
+  obtain ⟨x,hx,hxl⟩ := positive_shell_point ha hL hl sl sm
+  obtain ⟨y,hy,hym⟩ := positive_shell_point (hl.subset ha) hM hr sm sr
+  have out : y ∉ M := fun h => (hym y h).false
+  have up {z : K} (hz : z ∈ R) (h : ∀ w ∈ L, w < z) :
+      z ∈ valuativeInterval (some ⟨L,false⟩) (some ⟨R,true⟩) :=
+    ⟨h,z,hz,le_rfl⟩
+  have down {z : K} (hz : z ∈ R) (h : ∀ w ∈ L, w < z) :
+      2*a-z ∈ valuativeInterval (some ⟨R,true⟩) (some ⟨L,false⟩) := by
+    refine ⟨⟨_,(sr z).mp hz,le_rfl⟩,?_⟩
+    intro w hw
+    have := h _ ((sl w).mp hw)
+    linarith
+  have hyl (z) (hz : z ∈ L) := hym z (hl.subset hz)
+  exact ⟨⟨x,up (hr.subset hx) hxl,hx⟩,⟨y,up hy hyl,out⟩,
+    ⟨_,down (hr.subset hx) hxl,(sm x).mp hx⟩,⟨_,down hy hyl,fun h => out ((sm y).mpr h)⟩⟩
+
 section
 variable [Field K] [IsStrictOrderedRing K] (O : ValuationSubring K) (hO : IsOrderConvex O)
 

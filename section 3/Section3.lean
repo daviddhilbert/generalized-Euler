@@ -8,6 +8,7 @@ public import Section3.Atomicity
 public import Section3.AtomicIntervals
 public import Section3.ResidueDerivatives
 public import Section3.TopTerms
+public import Section3.FieldBranches
 public import Section3.DefinableFunctions
 public import Section3.DefinablePoints
 public import Section3.DiscParameters
@@ -26,6 +27,7 @@ public import Section3.ImmediateDiscs
 public import Section3.PolydiscTypes
 public import Section3.CutDiscPoints
 public import Section3.PartialDerivatives
+public import Section3.GoodLabels
 public import Section3.Monotonicity
 public import Section3.CofinalValues
 public import Section3.ValueGerms
