@@ -58,21 +58,44 @@ theorem eq_of_injective_valueCoarsening (h : O ≤ P)
     rw [ValuationSubring.mapOfLE_valuation_apply, map_one, heq]
   exact hv.ne' (hinj hm)
 
-/-- Linear maps out of a one-dimensional exponent space are injective
-when they retain its nonzero generator. -/
-theorem injective_valueMap_of_span_singleton
+/-- A coarsening is injective on a value group spanned by the old values
+and one new value if it is injective on the base and the new value
+stays outside the base image. -/
+theorem injective_valueMap_of_base_and_generator
     {E V W : Type*} [Field E] [AddCommGroup V] [Module E V] [AddCommGroup W] [Module E W]
-    (f : V →ₗ[E] W) {a : V} (hspan : Submodule.span E {a} = ⊤) (ha : f a ≠ 0) :
+    (f : V →ₗ[E] W) (U : Submodule E V) {a : V}
+    (hspan : U ⊔ Submodule.span E {a} = ⊤)
+    (hU : Set.InjOn f U) (ha : f a ∉ U.map f) :
     Function.Injective f := by
   apply LinearMap.ker_eq_bot.mp
   refine eq_bot_iff.mpr ?_
   intro x hx
-  have hm : x ∈ Submodule.span E {a} := hspan ▸ Submodule.mem_top
-  obtain ⟨r, hr⟩ := Submodule.mem_span_singleton.mp hm
+  have hm : x ∈ U ⊔ Submodule.span E {a} := hspan ▸ Submodule.mem_top
+  obtain ⟨b, hb, c, hc, rfl⟩ := Submodule.mem_sup.mp hm
+  obtain ⟨r, rfl⟩ := Submodule.mem_span_singleton.mp hc
   have hzero := LinearMap.mem_ker.mp hx
-  rw [← hr, map_smul] at hzero
-  have hr0 : r = 0 := (smul_eq_zero.mp hzero).resolve_right ha
-  rw [← hr, hr0, zero_smul]
+  rw [map_add, map_smul] at hzero
+  have hr0 : r = 0 := by
+    by_contra hr
+    have hs : r • f a ∈ U.map f := by
+      have heq : r • f a = -f b := eq_neg_of_add_eq_zero_right hzero
+      rw [heq]
+      exact (U.map f).neg_mem (Submodule.mem_map_of_mem hb)
+    have hv := (U.map f).smul_mem r⁻¹ hs
+    exact ha (by simpa only [smul_smul, inv_mul_cancel₀ hr, one_smul] using hv)
+  rw [hr0, zero_smul, add_zero] at hzero ⊢
+  have hb0 : b = 0 := hU hb U.zero_mem (hzero.trans (map_zero f).symm)
+  rw [hb0]
   exact Submodule.zero_mem _
+
+/-- The trivial-base case of the one-generator coarsening criterion. -/
+theorem injective_valueMap_of_span_singleton
+    {E V W : Type*} [Field E] [AddCommGroup V] [Module E V] [AddCommGroup W] [Module E W]
+    (f : V →ₗ[E] W) {a : V} (hspan : Submodule.span E {a} = ⊤) (ha : f a ≠ 0) :
+    Function.Injective f := by
+  apply injective_valueMap_of_base_and_generator f ⊥ (a := a) (by rwa [bot_sup_eq])
+  · intro b hb c hc _
+    exact ((Submodule.mem_bot E).mp hb).trans ((Submodule.mem_bot E).mp hc).symm
+  · simpa only [Submodule.map_bot, Submodule.mem_bot] using ha
 
 end GeneralizedEuler.Section2

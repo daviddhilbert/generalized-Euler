@@ -1,6 +1,8 @@
 module
 
 public import Section2.ResidueOrder
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Ring
 
 /-! Valuative discs and the quotient of a closed disc by its open children.
 The radius is in Mathlib's multiplicative order, dual to additive values. -/
@@ -13,8 +15,10 @@ namespace GeneralizedEuler.Section2
 
 variable {K : Type*} [Field K] (O : ValuationSubring K)
 
+@[expose]
 def openDisc (c : K) (r : O.ValueGroup) : Set K := {x | O.valuation (x - c) < r}
 
+@[expose]
 def closedDisc (c : K) (r : O.ValueGroup) : Set K := {x | O.valuation (x - c) ≤ r}
 
 theorem mem_openDisc_center {r : O.ValueGroup} (hr : r ≠ 0) (c : K) :
@@ -93,6 +97,25 @@ theorem openChild_maximal_proper {c y : K} {r : O.ValueGroup}
   refine ⟨mem_openDisc_center O hr y, ?_⟩
   rw [← closedDisc_change_center O hy]
   exact openDisc_ssubset_closedDisc O
+
+/-- With dense values, the smallest closed disc containing an open disc
+is the closed disc of the same radius. -/
+theorem closedDisc_minimal_parent [DenselyOrdered O.ValueGroup] {c b : K}
+    {r s : O.ValueGroup} (hr : r ≠ 0) (h : openDisc O c r ⊆ closedDisc O b s) :
+    closedDisc O c r ⊆ closedDisc O b s := by
+  have hc : c ∈ closedDisc O b s := h (mem_openDisc_center O hr c)
+  rw [← closedDisc_change_center O hc] at h ⊢
+  have hrs : r ≤ s := by
+    by_contra! hsr
+    obtain ⟨t, hst, htr⟩ := exists_between hsr
+    obtain ⟨d, hd⟩ := O.valuation_surjective t
+    have hvalue : O.valuation (c + d - c) = t := by rw [add_sub_cancel_left, hd]
+    have hd' : c + d ∈ openDisc O c r := hvalue.trans_lt htr
+    have hs : O.valuation (c + d - c) ≤ s := h hd'
+    exact hst.not_ge (hvalue ▸ hs)
+  intro x hx
+  change O.valuation (x - c) ≤ s
+  exact le_trans (show O.valuation (x - c) ≤ r from hx) hrs
 
 theorem rv_fiber_eq_openDisc {c : K} (hc : c ≠ 0) :
     rv O ⁻¹' {rv O c} = openDisc O c (O.valuation c) := by
@@ -183,5 +206,76 @@ theorem discChildrenChart_eq_zero_iff (c d : K) {r : O.ValueGroup} (hr : r ≠ 0
   have h := normalizedResidue_eq_iff O c d hr hd x y
   rw [hy, map_zero] at h
   exact h
+
+/-- Transport a child of a closed disc to the presentation with a new center. -/
+def discChildrenRecenter {c b : K} {r : O.ValueGroup} (hr : r ≠ 0)
+    (hb : b ∈ closedDisc O c r) : DiscChildren O c r hr → DiscChildren O b r hr :=
+  Quotient.map' (fun x => ⟨x.val, (closedDisc_change_center O hb).symm ▸ x.property⟩)
+    (fun _ _ h => h)
+
+/-- The ratio of two chart representatives with the same value is a
+unit and therefore has nonzero residue. -/
+def discChartScale (d d' : K) {r : O.ValueGroup} (hr : r ≠ 0)
+    (hd : O.valuation d = r) (hd' : O.valuation d' = r) : O :=
+  ⟨d / d', by
+    rw [← O.valuation_le_one_iff, map_div₀, hd, hd',
+      div_self (by exact hr : r ≠ 0)]⟩
+
+theorem discChartScale_residue_ne_zero (d d' : K) {r : O.ValueGroup} (hr : r ≠ 0)
+    (hd : O.valuation d = r) (hd' : O.valuation d' = r) :
+    IsLocalRing.residue O (discChartScale O d d' hr hd hd') ≠ 0 := by
+  apply (IsLocalRing.residue_ne_zero_iff_isUnit _).mpr
+  apply (O.valuation_eq_one_iff _).mpr
+  change O.valuation (d / d') = 1
+  rw [map_div₀, hd, hd', div_self hr]
+
+/-- Recentring and rescaling a residue chart gives the expected affine
+change of coordinates from Remark 2.35. -/
+theorem discChildrenChart_recenter (c b d d' : K) {r : O.ValueGroup} (hr : r ≠ 0)
+    (hb : b ∈ closedDisc O c r) (hd : O.valuation d = r) (hd' : O.valuation d' = r)
+    (x : DiscChildren O c r hr) :
+    discChildrenChart O b d' hr hd' (discChildrenRecenter O hr hb x) =
+      IsLocalRing.residue O (discChartScale O d d' hr hd hd') * discChildrenChart O c d hr hd x +
+      discChildrenChart O b d' hr hd'
+        (discChildrenRecenter O hr hb ⟦⟨c, mem_closedDisc_center O r c⟩⟧) := by
+  obtain ⟨x⟩ := x
+  let c' : closedDisc O b r :=
+    ⟨c, (closedDisc_change_center O hb).symm ▸ mem_closedDisc_center O r c⟩
+  let x' : closedDisc O b r := ⟨x.val, (closedDisc_change_center O hb).symm ▸ x.property⟩
+  change IsLocalRing.residue O (normalizedPoint O b d' hr hd' x') =
+    IsLocalRing.residue O (discChartScale O d d' hr hd hd') *
+      IsLocalRing.residue O (normalizedPoint O c d hr hd x) +
+      IsLocalRing.residue O (normalizedPoint O b d' hr hd' c')
+  rw [← map_mul, ← map_add]
+  congr 1
+  apply Subtype.ext
+  change ((x : K) - b) / d' = (d / d') * (((x : K) - c) / d) + (c - b) / d'
+  have h₁ : d ≠ 0 := fun h => hr (by simpa only [h, map_zero] using hd.symm)
+  have h₂ : d' ≠ 0 := fun h => hr (by simpa only [h, map_zero] using hd'.symm)
+  field_simp
+  ring
+
+section Order
+
+variable [LinearOrder K] [IsStrictOrderedRing K]
+
+set_option linter.style.haveILetI false in
+/-- For a positive chart scale, the order of distinct open children
+agrees with the order inherited from the field. -/
+theorem discChildrenChart_lt_iff (hO : IsOrderConvex O) (c d : K)
+    {r : O.ValueGroup} (hr : r ≠ 0) (hd : O.valuation d = r) (hdpos : 0 < d)
+    (x y : closedDisc O c r) :
+    letI := residueLinearOrder O hO
+    discChildrenChart O c d hr hd ⟦x⟧ < discChildrenChart O c d hr hd ⟦y⟧ ↔
+      (x : K) < (y : K) ∧ (x : K) ∉ openDisc O (y : K) r := by
+  letI := residueLinearOrder O hO
+  change IsLocalRing.residue O (normalizedPoint O c d hr hd x) <
+    IsLocalRing.residue O (normalizedPoint O c d hr hd y) ↔ _
+  rw [residue_lt_residue_iff O hO, ne_eq, normalizedResidue_eq_iff]
+  change (((x : K) - c) / d < ((y : K) - c) / d) ∧ _ ↔ _
+  rw [div_lt_div_iff_of_pos_right hdpos, sub_lt_sub_iff_right]
+  rfl
+
+end Order
 
 end GeneralizedEuler.Section2

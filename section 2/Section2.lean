@@ -35,3 +35,8 @@ public import Section2.ConvexRingComparison
 public import Section2.TorsorDerivative
 public import Section2.VFLiftSubstructure
 public import Section2.SeparatedSets
+public import Section2.TaggedTheory
+public import Section2.SortedTypes
+public import Section2.SortedQE
+public import Section2.HigherLeadingTerm
+public import Section2.ResidueFiber

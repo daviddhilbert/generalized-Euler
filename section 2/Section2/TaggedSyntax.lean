@@ -15,45 +15,48 @@ namespace GeneralizedEuler.Section2
 
 open FirstOrder FirstOrder.Language
 
-universe u v w z a
+universe u v w z a b
 
 variable {L : Language.{u, v}} {E : Type w}
 
 abbrev TaggedVar (Var : TCsort → Type a) := (s : TCsort) × Var s
 
-def taggedAssignment {X : TCsort → Type z} {Var : TCsort → Type a}
-    (v : ∀ s, Var s → X s) : TaggedVar Var → TaggedCarrier X :=
-  fun a => tag a.1 (v a.1 a.2)
+section Translation
+
+variable {X : TCsort → Type z} {A : Type b} [(taggedLanguage L E).Structure A]
+  {M : SortedStructure L E X}
+
+@[expose]
+def GuardedPresentation.assignment (P : GuardedPresentation M A)
+    {Var : TCsort → Type a} (v : ∀ s, Var s → X s) : TaggedVar Var → A :=
+  fun a => P.sortEmbedding a.1 (v a.1 a.2)
 
 def SortedTerm.toTagged {Var : TCsort → Type a} :
     {s : TCsort} → SortedTerm L E Var s → (taggedLanguage L E).Term (TaggedVar Var)
   | _, .var x => .var ⟨_, x⟩
   | _, .app f ts => .func ⟨_, rfl, _, f⟩ (fun i => (ts i).toTagged)
 
-set_option linter.style.haveILetI false in
-theorem SortedTerm.realize_toTagged {X : TCsort → Type z} {Var : TCsort → Type a}
-    (M : SortedStructure L E X) (d : ∀ s, X s) (v : ∀ s, Var s → X s)
+theorem SortedTerm.realize_toGuarded (P : GuardedPresentation M A)
+    {Var : TCsort → Type a} (v : ∀ s, Var s → X s)
     {s : TCsort} (t : SortedTerm L E Var s) :
-    letI := taggedStructure M d
-    t.toTagged.realize (taggedAssignment v) = tag s (t.realize M v) := by
-  letI := taggedStructure M d
+    t.toTagged.realize (P.assignment v) = P.sortEmbedding s (t.realize M v) := by
   induction t with
   | var => rfl
   | app f ts ih =>
     rw [SortedTerm.toTagged, Term.realize_func]
     simp only [ih, SortedTerm.realize]
-    exact tagged_funMap_on_tags M d f _
+    exact P.map_fun f _
 
 private def splitAddedVar {Var : TCsort → Type a} (s : TCsort) :
     TaggedVar (AddSortedVar Var s) → TaggedVar Var ⊕ Unit
   | ⟨t, .inl x⟩ => .inl ⟨t, x⟩
   | ⟨_, .inr _⟩ => .inr ()
 
-private theorem splitAddedVar_eval {X : TCsort → Type z} {Var : TCsort → Type a}
-    (v : ∀ t, Var t → X t) {s : TCsort} (x : X s) (u : Unit → TaggedCarrier X)
-    (hu : u () = tag s x) :
-    Sum.elim (taggedAssignment v) u ∘ splitAddedVar s =
-      taggedAssignment (extendSortedAssignment v x) := by
+private theorem splitAddedVar_eval (P : GuardedPresentation M A) {Var : TCsort → Type a}
+    (v : ∀ t, Var t → X t) {s : TCsort} (x : X s) (u : Unit → A)
+    (hu : u () = P.sortEmbedding s x) :
+    Sum.elim (P.assignment v) u ∘ splitAddedVar s =
+      P.assignment (extendSortedAssignment v x) := by
   funext t
   obtain ⟨t, a⟩ := t
   cases a with
@@ -63,20 +66,21 @@ private theorem splitAddedVar_eval {X : TCsort → Type z} {Var : TCsort → Typ
     subst t
     exact hu
 
+end Translation
+
 /-- The guard for a term of the specified sort. -/
+@[expose]
 def sortGuardFormula {α : Type a} (s : TCsort) (t : (taggedLanguage L E).Term α) :
     (taggedLanguage L E).Formula α :=
   Relations.formula (L := taggedLanguage L E) (.sortGuard s) (fun _ => t)
 
-set_option linter.style.haveILetI false in
-theorem sortGuardFormula_realize {X : TCsort → Type z} {α : Type a}
-    (M : SortedStructure L E X) (d : ∀ s, X s) (v : α → TaggedCarrier X)
+theorem sortGuardFormula_realize {X : TCsort → Type z} {A : Type b}
+    [(taggedLanguage L E).Structure A] {M : SortedStructure L E X}
+    (P : GuardedPresentation M A) {α : Type a} (v : α → A)
     (s : TCsort) (t : (taggedLanguage L E).Term α) :
-    letI := taggedStructure M d
-    (sortGuardFormula s t).Realize v ↔ ∃ x : X s, tag s x = t.realize v := by
-  letI := taggedStructure M d
+    (sortGuardFormula s t).Realize v ↔ ∃ x : X s, P.sortEmbedding s x = t.realize v := by
   rw [sortGuardFormula, Formula.realize_rel]
-  exact tagged_guard_iff M d s (t.realize v)
+  exact P.guard s (t.realize v)
 
 def SortedFormula.toTagged : {Var : TCsort → Type a} →
     SortedFormula L E Var → (taggedLanguage L E).Formula (TaggedVar Var)
@@ -87,28 +91,26 @@ def SortedFormula.toTagged : {Var : TCsort → Type a} →
   | _, .all s φ => Formula.iAlls Unit
       ((sortGuardFormula s (.var (.inr ()))).imp (φ.toTagged.relabel (splitAddedVar s)))
 
-set_option linter.style.haveILetI false in
-theorem SortedFormula.realize_toTagged {X : TCsort → Type z}
-    (M : SortedStructure L E X) (d : ∀ s, X s)
+theorem SortedFormula.realize_toGuarded {X : TCsort → Type z} {A : Type b}
+    [(taggedLanguage L E).Structure A] {M : SortedStructure L E X}
+    (P : GuardedPresentation M A)
     {Var : TCsort → Type a} (φ : SortedFormula L E Var) :
     ∀ v : ∀ s, Var s → X s,
-      letI := taggedStructure M d
-      φ.toTagged.Realize (taggedAssignment v) ↔ φ.realize M v := by
-  letI := taggedStructure M d
+      φ.toTagged.Realize (P.assignment v) ↔ φ.realize M v := by
   induction φ with
   | falsum =>
     intro v
     exact Formula.realize_bot
   | equal t t' =>
     intro v
-    rw [SortedFormula.toTagged, Formula.realize_equal, t.realize_toTagged M d,
-      t'.realize_toTagged M d]
-    exact (tag_injective _).eq_iff
+    rw [SortedFormula.toTagged, Formula.realize_equal, t.realize_toGuarded P,
+      t'.realize_toGuarded P]
+    exact (P.sortEmbedding _).injective.eq_iff
   | rel r ts =>
     intro v
     rw [SortedFormula.toTagged, Formula.realize_rel]
-    simp only [SortedTerm.realize_toTagged]
-    exact tagged_relMap_on_tags M d r _
+    simp only [SortedTerm.realize_toGuarded]
+    exact P.map_rel r _
   | imp φ ψ ihφ ihψ =>
     intro v
     rw [SortedFormula.toTagged, Formula.realize_imp, ihφ, ihψ]
@@ -116,20 +118,29 @@ theorem SortedFormula.realize_toTagged {X : TCsort → Type z}
   | all s φ ih =>
     intro v
     rw [SortedFormula.toTagged, Formula.realize_iAlls]
-    change (∀ u : Unit → TaggedCarrier X, _) ↔ ∀ x : X s,
+    change (∀ u : Unit → A, _) ↔ ∀ x : X s,
       φ.realize M (extendSortedAssignment v x)
     constructor
     · intro h x
-      specialize h (fun _ => tag s x)
-      rw [Formula.realize_imp, sortGuardFormula_realize M d, Formula.realize_relabel] at h
+      specialize h (fun _ => P.sortEmbedding s x)
+      rw [Formula.realize_imp, sortGuardFormula_realize P, Formula.realize_relabel] at h
       have hx := h ⟨x, rfl⟩
-      rw [splitAddedVar_eval v x _ rfl] at hx
+      rw [splitAddedVar_eval P v x _ rfl] at hx
       exact (ih _).mp hx
     · intro h u
-      rw [Formula.realize_imp, sortGuardFormula_realize M d, Formula.realize_relabel]
+      rw [Formula.realize_imp, sortGuardFormula_realize P, Formula.realize_relabel]
       rintro ⟨x, hx⟩
-      rw [splitAddedVar_eval v x u hx.symm]
+      rw [splitAddedVar_eval P v x u hx.symm]
       exact (ih _).mpr (h x)
+
+set_option linter.style.haveILetI false in
+theorem SortedFormula.realize_toTagged {X : TCsort → Type z}
+    (M : SortedStructure L E X) (d : ∀ s, X s)
+    {Var : TCsort → Type a} (φ : SortedFormula L E Var) (v : ∀ s, Var s → X s) :
+    letI := taggedStructure M d
+    φ.toTagged.Realize ((taggedPresentation M d).assignment v) ↔ φ.realize M v := by
+  letI := taggedStructure M d
+  exact φ.realize_toGuarded (taggedPresentation M d) v
 
 theorem SortedFormula.toTagged_isQF {Var : TCsort → Type a}
     {φ : SortedFormula L E Var} (h : φ.IsQF) : φ.toTagged.IsQF := by

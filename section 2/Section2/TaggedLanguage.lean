@@ -126,4 +126,64 @@ theorem tagged_guard_iff {L : Language.{u, v}} {E : Type w} {X : TCsort → Type
       ∃ y : X s, tag s y = x :=
   hasTag_iff s x
 
+universe b
+
+/-- A sorted structure presented inside a single-sorted structure. The guard
+has exactly the range of the embedding for its sort. -/
+structure GuardedPresentation {L : Language.{u, v}} {E : Type w} {X : TCsort → Type z}
+    (M : SortedStructure L E X) (A : Type b) [(taggedLanguage L E).Structure A] where
+  sortEmbedding : ∀ s, X s ↪ A
+  guard : ∀ s x, Language.Structure.RelMap (L := taggedLanguage L E)
+    (.sortGuard s) (fun _ => x) ↔ ∃ y, sortEmbedding s y = x
+  map_fun : ∀ {ss s} (f : FunctionSymbol L E ss s) (xs : SortedArgs X ss),
+    Language.Structure.funMap (L := taggedLanguage L E) ⟨ss, rfl, s, f⟩
+      (fun i => sortEmbedding _ (xs i)) = sortEmbedding s (M.funMap f xs)
+  map_rel : ∀ {ss} (r : RelationSymbol L ss) (xs : SortedArgs X ss),
+    Language.Structure.RelMap (L := taggedLanguage L E) (.symbol ss rfl r)
+      (fun i => sortEmbedding _ (xs i)) ↔ M.relMap r xs
+
+/-- The disjoint-sum encoding presents the original sorted structure. -/
+def taggedPresentation {L : Language.{u, v}} {E : Type w} {X : TCsort → Type z}
+    (M : SortedStructure L E X) (d : ∀ s, X s) :
+    @GuardedPresentation L E X M (TaggedCarrier X) (taggedStructure M d) := by
+  letI := taggedStructure M d
+  exact { sortEmbedding := fun s => ⟨tag s, tag_injective s⟩
+          guard := tagged_guard_iff M d
+          map_fun := tagged_funMap_on_tags M d
+          map_rel := tagged_relMap_on_tags M d }
+
+section Extraction
+
+variable {L : Language.{u, v}} {E : Type w}
+  (A : Type b) [(taggedLanguage L E).Structure A]
+
+/-- The inhabitants of a guarded sort in a single-sorted model. -/
+abbrev guardedSort (s : TCsort) :=
+  {x : A // Language.Structure.RelMap (L := taggedLanguage L E) (.sortGuard s) (fun _ => x)}
+
+@[expose]
+def GuardedFunctionsClosed : Prop :=
+  ∀ {ss s} (f : FunctionSymbol L E ss s) (xs : SortedArgs (guardedSort (L := L) (E := E) A) ss),
+    Language.Structure.RelMap (L := taggedLanguage L E) (.sortGuard s)
+      (fun _ => Language.Structure.funMap (L := taggedLanguage L E) ⟨ss, rfl, s, f⟩
+        (fun i => (xs i).val))
+
+def extractedStructure (h : GuardedFunctionsClosed (L := L) (E := E) A) :
+    SortedStructure L E (guardedSort (L := L) (E := E) A) where
+  funMap f xs := ⟨Language.Structure.funMap (L := taggedLanguage L E) ⟨_, rfl, _, f⟩
+    (fun i => (xs i).val), h f xs⟩
+  relMap r xs := Language.Structure.RelMap (L := taggedLanguage L E) (.symbol _ rfl r)
+    (fun i => (xs i).val)
+
+/-- Closure under the operations suffices to extract the sorted structure.
+Quantifiers in the translated syntax already restrict to the right guard. -/
+def extractedPresentation (h : GuardedFunctionsClosed (L := L) (E := E) A) :
+    GuardedPresentation (extractedStructure A h) A where
+  sortEmbedding _ := Function.Embedding.subtype _
+  guard _ x := ⟨fun hx => ⟨⟨x, hx⟩, rfl⟩, fun ⟨⟨_, hy⟩, hxy⟩ => hxy ▸ hy⟩
+  map_fun _ _ := rfl
+  map_rel _ _ := Iff.rfl
+
+end Extraction
+
 end GeneralizedEuler.Section2

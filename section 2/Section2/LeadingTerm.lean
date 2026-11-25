@@ -14,6 +14,38 @@ namespace GeneralizedEuler.Section2
 
 variable {K : Type*} [Field K] (O : ValuationSubring K)
 
+/-- Quotient the nonzero field elements by a subgroup and adjoin zero. -/
+def unitQuotientWithZero (H : Subgroup Kˣ) : K →*₀ WithZero (Kˣ ⧸ H) := by
+  classical
+  exact (WithZero.map' (QuotientGroup.mk' H)).comp
+    (WithZero.withZeroUnitsEquiv (G := K)).symm.toMonoidWithZeroHom
+
+@[simp]
+theorem unitQuotientWithZero_coe_unit (H : Subgroup Kˣ) (x : Kˣ) :
+    unitQuotientWithZero H (x : K) = (QuotientGroup.mk' H x : WithZero (Kˣ ⧸ H)) := by
+  simp [unitQuotientWithZero]
+
+theorem unitQuotientWithZero_eq_zero_iff (H : Subgroup Kˣ) {x : K} :
+    unitQuotientWithZero H x = 0 ↔ x = 0 := by
+  constructor
+  · contrapose!
+    intro hx
+    let u := Units.mk0 x hx
+    change unitQuotientWithZero H (u : K) ≠ 0
+    rw [unitQuotientWithZero_coe_unit]
+    exact WithZero.coe_ne_zero
+  · rintro rfl
+    exact map_zero _
+
+theorem unitQuotientWithZero_surjective (H : Subgroup Kˣ) :
+    Function.Surjective (unitQuotientWithZero H) := by
+  intro t
+  cases t using WithZero.recZeroCoe with
+  | zero => exact ⟨0, map_zero _⟩
+  | coe t =>
+    obtain ⟨x, rfl⟩ := QuotientGroup.mk'_surjective H t
+    exact ⟨x, unitQuotientWithZero_coe_unit H x⟩
+
 /-- The nonzero leading terms are the units modulo the principal units. -/
 abbrev RV := Kˣ ⧸ O.principalUnitGroup
 
@@ -24,23 +56,13 @@ abbrev RV0 := WithZero (RV O)
 abbrev rvUnit : Kˣ →* RV O := QuotientGroup.mk' O.principalUnitGroup
 
 /-- The canonical leading-term map on the whole field. -/
-def rv : K →*₀ RV0 O := by
-  classical
-  exact (WithZero.map' (rvUnit O)).comp (WithZero.withZeroUnitsEquiv (G := K)).symm.toMonoidWithZeroHom
+def rv : K →*₀ RV0 O := unitQuotientWithZero O.principalUnitGroup
 
-@[simp] theorem rv_coe_unit (x : Kˣ) : rv O (x : K) = (rvUnit O x : RV0 O) := by
-  simp [rv]
+@[simp] theorem rv_coe_unit (x : Kˣ) : rv O (x : K) = (rvUnit O x : RV0 O) :=
+  unitQuotientWithZero_coe_unit O.principalUnitGroup x
 
-@[simp] theorem rv_eq_zero_iff {x : K} : rv O x = 0 ↔ x = 0 := by
-  constructor
-  · contrapose!
-    intro hx
-    let u := Units.mk0 x hx
-    change rv O (u : K) ≠ 0
-    rw [rv_coe_unit]
-    exact WithZero.coe_ne_zero
-  · rintro rfl
-    exact map_zero _
+@[simp] theorem rv_eq_zero_iff {x : K} : rv O x = 0 ↔ x = 0 :=
+  unitQuotientWithZero_eq_zero_iff O.principalUnitGroup
 
 @[simp] theorem rv_inv (x : K) : rv O x⁻¹ = (rv O x)⁻¹ :=
   map_inv₀ (rv O) x
@@ -51,13 +73,8 @@ theorem rv_mul_left_cancel {x y z : RV0 O} (hx : x ≠ 0) (h : x * y = x * z) :
     inv_mul_cancel_left₀ (G₀ := RV0 O) hx t
   exact (cancel y).symm.trans ((congrArg (fun t : RV0 O => x⁻¹ * t) h).trans (cancel z))
 
-theorem rv_surjective : Function.Surjective (rv O) := by
-  intro t
-  cases t using WithZero.recZeroCoe with
-  | zero => exact ⟨0, map_zero _⟩
-  | coe t =>
-    obtain ⟨x, rfl⟩ := QuotientGroup.mk'_surjective O.principalUnitGroup t
-    exact ⟨x, rv_coe_unit O x⟩
+theorem rv_surjective : Function.Surjective (rv O) :=
+  unitQuotientWithZero_surjective O.principalUnitGroup
 
 /-- Equality of leading terms is expressible in the valued-field language
 by a single maximal-ideal test when the reference term is nonzero. -/
