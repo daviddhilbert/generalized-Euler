@@ -53,7 +53,7 @@ variable {K : Type z} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
   [L.Structure K] (O : ValuationSubring K) [L.Structure (Residue O)]
   (hO : IsOrderConvex O) (P : E → RV0 O → RV0 O)
 
-private theorem realize_rvMulTerm (x y : SortedTerm L E Var .rv)
+theorem realize_rvMulTerm (x y : SortedTerm L E Var .rv)
     (a : ∀ s, Var s → CanonicalSort O s) :
     (rvMulTerm x y).realize (canonicalStructure O hO P) a =
       x.realize (canonicalStructure O hO P) a * y.realize (canonicalStructure O hO P) a := by

@@ -81,3 +81,6 @@ public import Section2.DefinableAffineCharts
 public import Section2.PositiveRVMonomials
 public import Section2.AffineRVEquivalence
 public import Section2.DefinableAffinePartitions
+public import Section2.AffineValueSelection
+public import Section2.RVSignCharts
+public import Section2.ValueResidueOrthogonality

@@ -107,6 +107,22 @@ theorem finite_snd_of_functional (hD : SeparatedSets left right D)
     · have hV : V.Subsingleton := fun b hb b' hb' => hfun (Or.inl ⟨ha, hb⟩) (Or.inl ⟨ha, hb'⟩)
       exact hV.finite.subset (by rintro _ ⟨⟨_, _⟩, h, rfl⟩; exact h.2)
 
+/-- The same finite-image argument for a function in the opposite direction. -/
+theorem finite_fst_of_functional (hD : SeparatedSets left right D)
+    (hfun : ∀ ⦃a a' b⦄, (a, b) ∈ D → (a', b) ∈ D → a = a') : (Prod.fst '' D).Finite := by
+  induction hD with
+  | empty => rw [Set.image_empty]; exact Set.finite_empty
+  | @insert U V D _ _ _ ih =>
+    rw [Set.image_union]
+    apply Set.Finite.union _ (ih (by
+      intro a a' b h h'
+      exact hfun (Or.inr h) (Or.inr h')))
+    rcases V.eq_empty_or_nonempty with rfl | ⟨b, hb⟩
+    · rw [Set.prod_empty, Set.image_empty]
+      exact Set.finite_empty
+    · have hU : U.Subsingleton := fun a ha a' ha' => hfun (Or.inl ⟨ha, hb⟩) (Or.inl ⟨ha', hb⟩)
+      exact hU.finite.subset (by rintro _ ⟨⟨_, _⟩, h, rfl⟩; exact h.1)
+
 /-- Evaluating the second coordinates at a fixed tuple retains only the
 first reduct's conditions. This is used with the tuple of residue units. -/
 theorem slice (hEmpty : left ∅) (hUnion : ∀ {U U'}, left U → left U' → left (U ∪ U'))
