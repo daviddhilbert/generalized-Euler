@@ -16,9 +16,10 @@ projects. Import `Section2` for the public declarations.
 | §2.2 | `Language`, `LeadingTerm`, `LeadingTermOrder`, `Residue`, `ResidueOrder`, `SortedStructure` | The two sorts and typed symbols, the canonical RV quotient and signed order, the unsigned valuation, and the residue field with its operations extended by zero. |
 | §2.2, Ax. 8–10 | `LeadingTermPower`, `PowerOrder` | The clamping proof of descent and uniqueness. Algebraic and ordered laws on the positive branch, and reduction of a compatible positive power on a positive unit. |
 | Theorem 2.11 and Proposition 2.13 | `ConvexLanguage`, `LeadingTermMap`, `LeadingTermPresentation`, `ResidueMap`, `CanonicalEmbedding` | The valued-field reduct and the cited QE input, elementarity of embeddings under QE, transport along valued-field embeddings, uniqueness of the ordered multiplicative RV quotient, and embeddings between canonical expansions with compatible residue operations and powers. |
-| §2.3, Theorem 2.16 and Lemmas 2.20–2.22 | `SortedSyntax`, `SortedModelTheory`, `LeadingTerm`, `PrescribedLift`, `TrivialBaseLift`, `ImmediateExtension`, `GeneratedSubstructure` | Quantifier-free invariance and the semantic back-and-forth criterion. The valued-field test for RV equality, the cut comparison for a prescribed leading term, the prescribed-lift calculation over a trivial base, and the argument from old leading terms to weak immediacy and then equality of RV images. The new-value assertion of Proposition 2.21 follows from the cited monomial formula and compatibility of powers with values. |
-| §2.4, Remark 2.27 and Lemma 2.28 | `WeakOminimal`, `Dimension`, `ValueFiberTopology` | Descent of finite convex decomposition along RV, projection dimensions, openness of nonzero signed value fibers, and preservation of dimension on a fiber using a maximal-dimensional chart. |
-| §2.4, Lemma 2.29 and Notation 2.34 | `ValueSplitting`, `AffinePullback`, `ValuativeDisc`, `ValuativeInterval` | A base-compatible linear section and the affine equivalence on each given piece. The closed-disc quotient by open children and its residue chart, including the entire central class. Valuative intervals and the statement of a Holly decomposition. |
+| §2.3, Theorem 2.16 and Lemmas 2.20–2.22 | `SortedSyntax`, `SortedModelTheory`, `TaggedLanguage`, `TaggedSyntax`, `PrescribedLift`, `TrivialBaseLift`, `ImmediateExtension`, `VFLiftSubstructure`, `ConvexRingComparison` | Quantifier-free invariance, the semantic back-and-forth criterion, and a guarded translation into Mathlib's ordinary first-order syntax. The prescribed-lift calculation over a trivial base, comparison of convex rings, enlargement of VF with a compatible embedding and unchanged RV, and the transfer from old leading terms to equality of RV images. |
+| §2.4, Definition 2.25, Remark 2.27 and Lemma 2.28 | `WeakOminimal`, `Dimension`, `ValueFiberTopology` | Descent of finite convex decomposition along RV, projection dimension and the maximal fiber-rank calculation, openness of nonzero signed value fibers, and preservation of dimension on a fiber using a maximal-dimensional chart. |
+| §2.4, Lemma 2.29 | `ValueSplitting`, `SeparatedSets`, `AffinePullback` | A base-compatible linear section, closure of finite unions of rectangles under Boolean operations and coordinate projections, and the affine equivalence on each given piece. |
+| §2.4, Definitions 2.32 and 2.36 and Notation 2.34 | `ValuativeDisc`, `TorsorDerivative`, `ValuativeInterval` | Maximality of the open children and the residue chart on their quotient, including the entire central class. Uniqueness of derivatives and invariance of the normalized derivative under affine changes of charts. Valuative intervals and the statement of a Holly decomposition. |
 
 The unsigned value uses Mathlib's multiplicative valuation convention, with
 values below one on the maximal ideal. Its order is dual to the manuscript's
@@ -30,7 +31,10 @@ The Lean declarations take cited mathematical inputs as explicit hypotheses.
 `ConvexTheoryFacts` records van den Dries–Lewenberg (1995), Theorem 3.10 and
 Corollary 3.13. `WeakImmediacyTransfer` and `LeadingTermMonomialTransfer`
 record the uses of Freni's thesis, Proposition 3.3.11 (Tyne) and Corollary
-3.3.13, for the specified one-generator extension. The maximal-dimensional chart in the proof of Lemma 2.28 is the input from Macpherson, Marker, and Steinhorn (2000), §4.11, together with the projection-dimension properties in §4.
+3.3.13, for the specified one-generator extension.
+`vfDimension_eq_max_fiber_rank` and `signedValue_fiber_dimension` use the
+projection-versus-rank comparison and maximal-dimensional charts from
+Macpherson, Marker, and Steinhorn (2000), Theorems 4.12 and 4.11, respectively.
 
 The remaining work includes the full expansion of Proposition 2.13,
 completeness and the extension steps for two-sorted QE, and the definability

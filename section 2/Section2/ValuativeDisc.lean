@@ -55,6 +55,45 @@ theorem closedDisc_change_center {b c : K} {r : O.ValueGroup}
     rw [← sub_sub_sub_cancel_right x b c]
     exact (O.valuation.map_sub _ _).trans (max_le hx hb)
 
+theorem openDisc_subset_closedDisc {c : K} {r : O.ValueGroup} :
+    openDisc O c r ⊆ closedDisc O c r := by
+  intro x hx
+  change O.valuation (x - c) ≤ r
+  exact le_of_lt (show O.valuation (x - c) < r from hx)
+
+theorem openDisc_ssubset_closedDisc {c : K} {r : O.ValueGroup} :
+    openDisc O c r ⊂ closedDisc O c r := by
+  obtain ⟨d, hd⟩ := O.valuation_surjective r
+  refine ⟨openDisc_subset_closedDisc O, ?_⟩
+  intro h
+  have hvalue : O.valuation (c + d - c) = r := by
+    rw [add_sub_cancel_left, hd]
+  have hc : c + d ∈ closedDisc O c r := hvalue.le
+  exact (ne_of_lt (h hc)) hvalue
+
+/-- The open disc of the parent's radius through a point is the largest
+proper open subdisc of the parent through that point. -/
+theorem openDisc_maximal_proper {c y b : K} {r s : O.ValueGroup}
+    (hy : y ∈ openDisc O b s) (h : openDisc O b s ⊂ closedDisc O c r) :
+    openDisc O b s ⊆ openDisc O y r := by
+  have hyc := h.1 hy
+  rw [← openDisc_change_center O hy] at h ⊢
+  have hrs : s ≤ r := by
+    by_contra! hlt
+    apply h.2
+    rw [← closedDisc_change_center O hyc]
+    intro x hx
+    exact lt_of_le_of_lt hx hlt
+  intro x hx
+  exact lt_of_lt_of_le hx hrs
+
+theorem openChild_maximal_proper {c y : K} {r : O.ValueGroup}
+    (hr : r ≠ 0) (hy : y ∈ closedDisc O c r) :
+    y ∈ openDisc O y r ∧ openDisc O y r ⊂ closedDisc O c r := by
+  refine ⟨mem_openDisc_center O hr y, ?_⟩
+  rw [← closedDisc_change_center O hy]
+  exact openDisc_ssubset_closedDisc O
+
 theorem rv_fiber_eq_openDisc {c : K} (hc : c ≠ 0) :
     rv O ⁻¹' {rv O c} = openDisc O c (O.valuation c) := by
   ext x

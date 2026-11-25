@@ -18,6 +18,7 @@ variable {L : Language.{u, v}} {E : Type w}
 abbrev AddSortedVar (Var : TCsort → Type a) (s : TCsort) (t : TCsort) :=
   Var t ⊕ PLift (s = t)
 
+@[expose]
 def extendSortedAssignment {Var : TCsort → Type a} {X : TCsort → Type z} {s : TCsort}
     (assign : ∀ t, Var t → X t) (x : X s) (t : TCsort) : AddSortedVar Var s t → X t
   | .inl v => assign t v

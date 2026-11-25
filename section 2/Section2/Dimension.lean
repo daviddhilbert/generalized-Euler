@@ -64,6 +64,53 @@ theorem projectionDimension_fiber_le_vfDimension {Y : Type*}
   obtain ⟨hk, hf⟩ := Finset.mem_filter.mp hk
   exact Finset.le_sup (f := id) (Finset.mem_filter.mpr ⟨hk, y, hf⟩)
 
+theorem hasInteriorProjection_zero {D : Set (Fin n → X)} (hD : D.Nonempty) :
+    HasInteriorProjection (k := 0) D := by
+  let e : Fin 0 ↪ Fin n := ⟨Fin.elim0, fun i => i.elim0⟩
+  obtain ⟨x, hx⟩ := hD
+  refine ⟨e, ?_⟩
+  have h : coordinateProjection e '' D = Set.univ :=
+    Set.eq_univ_of_forall fun z => ⟨x, hx, Subsingleton.elim _ z⟩
+  rw [h, interior_univ]
+  exact ⟨Fin.elim0, Set.mem_univ _⟩
+
+theorem hasInteriorProjection_projectionDimension {D : Set (Fin n → X)}
+    (hD : D.Nonempty) : HasInteriorProjection (k := projectionDimension D) D := by
+  classical
+  let s := (Finset.range (n + 1)).filter (fun k => HasInteriorProjection (k := k) D)
+  have h0 : 0 ∈ s := Finset.mem_filter.mpr ⟨by simp, hasInteriorProjection_zero hD⟩
+  obtain ⟨k, hk, hsup⟩ := Finset.exists_mem_eq_sup s ⟨0, h0⟩ id
+  change projectionDimension D = k at hsup
+  rw [hsup]
+  exact (Finset.mem_filter.mp hk).2
+
+/-- The largest projection dimension in Definition 2.25 is attained by
+a single RV fiber of a nonempty set. -/
+theorem exists_fiber_projectionDimension_eq_vfDimension {Y : Type*}
+    {D : Set ((Fin n → X) × Y)} (hD : D.Nonempty) :
+    ∃ y, projectionDimension (sortedFiber D y) = vfDimension D := by
+  classical
+  let s := (Finset.range (n + 1)).filter
+    (fun k => ∃ y, HasInteriorProjection (k := k) (sortedFiber D y))
+  obtain ⟨⟨x, y⟩, hxy⟩ := hD
+  have h0 : 0 ∈ s := Finset.mem_filter.mpr
+    ⟨by simp, y, hasInteriorProjection_zero ⟨x, hxy⟩⟩
+  obtain ⟨k, hk, hsup⟩ := Finset.exists_mem_eq_sup s ⟨0, h0⟩ id
+  change vfDimension D = k at hsup
+  obtain ⟨y, hy⟩ := (Finset.mem_filter.mp hk).2
+  exact ⟨y, le_antisymm (projectionDimension_fiber_le_vfDimension D y)
+    (hsup.symm ▸ le_projectionDimension hy)⟩
+
+/-- Apply the approved weakly o-minimal projection-equals-rank result
+fiberwise to obtain the algebraic description of VF dimension. -/
+theorem vfDimension_eq_max_fiber_rank {Y : Type*}
+    {D : Set ((Fin n → X) × Y)} (hD : D.Nonempty) (rank : Y → ℕ)
+    (hrank : ∀ y, projectionDimension (sortedFiber D y) = rank y) :
+    (∀ y, rank y ≤ vfDimension D) ∧ ∃ y, rank y = vfDimension D := by
+  exact ⟨fun y => hrank y ▸ projectionDimension_fiber_le_vfDimension D y,
+    Exists.imp (fun y hy => hrank y ▸ hy)
+      (exists_fiber_projectionDimension_eq_vfDimension hD)⟩
+
 /-- A continuous parametrization of a coordinate chart meets a single
 open value fiber on a nonempty open part of its parameter domain.
 This is the topological step in the proof of Lemma 2.28. -/

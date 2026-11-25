@@ -29,3 +29,9 @@ public import Section2.CanonicalEmbedding
 public import Section2.GeneratedSubstructure
 public import Section2.WeakOminimal
 public import Section2.ValuativeInterval
+public import Section2.TaggedLanguage
+public import Section2.TaggedSyntax
+public import Section2.ConvexRingComparison
+public import Section2.TorsorDerivative
+public import Section2.VFLiftSubstructure
+public import Section2.SeparatedSets

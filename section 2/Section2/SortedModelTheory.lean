@@ -34,6 +34,7 @@ namespace SortedSubstructure
 
 variable {M}
 
+@[expose]
 def structureOn (A : SortedSubstructure M) :
     SortedStructure L E (fun s => A.carrier s) where
   funMap f xs := ⟨M.funMap f (fun i => xs i), A.closed f _ (fun i => (xs i).property)⟩
