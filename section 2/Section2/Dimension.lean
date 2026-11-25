@@ -27,6 +27,7 @@ def projectionDimension (D : Set (Fin n → X)) : ℕ := by
   classical
   exact ((Finset.range (n + 1)).filter (fun k => HasInteriorProjection (k := k) D)).sup id
 
+@[expose]
 def sortedFiber {Y : Type*} (D : Set ((Fin n → X) × Y)) (y : Y) : Set (Fin n → X) :=
   {x | (x, y) ∈ D}
 
@@ -86,9 +87,9 @@ theorem hasInteriorProjection_projectionDimension {D : Set (Fin n → X)}
 
 /-- The largest projection dimension in Definition 2.25 is attained by
 a single RV fiber of a nonempty set. -/
-theorem exists_fiber_projectionDimension_eq_vfDimension {Y : Type*}
+theorem exists_nonempty_fiber_projectionDimension_eq_vfDimension {Y : Type*}
     {D : Set ((Fin n → X) × Y)} (hD : D.Nonempty) :
-    ∃ y, projectionDimension (sortedFiber D y) = vfDimension D := by
+    ∃ y, (sortedFiber D y).Nonempty ∧ projectionDimension (sortedFiber D y) = vfDimension D := by
   classical
   let s := (Finset.range (n + 1)).filter
     (fun k => ∃ y, HasInteriorProjection (k := k) (sortedFiber D y))
@@ -98,8 +99,17 @@ theorem exists_fiber_projectionDimension_eq_vfDimension {Y : Type*}
   obtain ⟨k, hk, hsup⟩ := Finset.exists_mem_eq_sup s ⟨0, h0⟩ id
   change vfDimension D = k at hsup
   obtain ⟨y, hy⟩ := (Finset.mem_filter.mp hk).2
-  exact ⟨y, le_antisymm (projectionDimension_fiber_le_vfDimension D y)
+  refine ⟨y, ?_, le_antisymm (projectionDimension_fiber_le_vfDimension D y)
     (hsup.symm ▸ le_projectionDimension hy)⟩
+  obtain ⟨e, z, hz⟩ := hy
+  obtain ⟨x, hx, _⟩ := interior_subset hz
+  exact ⟨x, hx⟩
+
+theorem exists_fiber_projectionDimension_eq_vfDimension {Y : Type*}
+    {D : Set ((Fin n → X) × Y)} (hD : D.Nonempty) :
+    ∃ y, projectionDimension (sortedFiber D y) = vfDimension D := by
+  obtain ⟨y, _, hy⟩ := exists_nonempty_fiber_projectionDimension_eq_vfDimension hD
+  exact ⟨y, hy⟩
 
 /-- Apply the approved weakly o-minimal projection-equals-rank result
 fiberwise to obtain the algebraic description of VF dimension. -/

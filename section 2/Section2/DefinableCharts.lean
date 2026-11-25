@@ -21,6 +21,7 @@ abbrev MixedVariables (n : ℕ) (R : Type) : TCsort → Type
 abbrev MixedTuple (X : TCsort → Type z) (n : ℕ) (R : Type) :=
   (Fin n → X .vf) × (R → X .rv)
 
+@[expose]
 def mixedTuple {X : TCsort → Type z} {n : ℕ} {R : Type}
     (a : ∀ s, MixedVariables n R s → X s) : MixedTuple X n R :=
   ⟨a .vf, a .rv⟩

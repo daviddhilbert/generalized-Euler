@@ -307,4 +307,57 @@ noncomputable def realizesCanonicalInterpretationOfResidueDefinitions
     (fun i : Fin n => rv O (v (some (Fin.cast List.length_replicate.symm i))))) ↔ _
   rw [hargs]
 
+universe u' v'
+
+private theorem languageStructure_eq {J : Language.{u', v'}} {A : Type*}
+    (M N : J.Structure A)
+    (functions : ∀ {n} (f : J.Functions n) (x : Fin n → A), M.funMap f x = N.funMap f x)
+    (relations : ∀ {n} (r : J.Relations n) (x : Fin n → A), M.RelMap r x ↔ N.RelMap r x) :
+    M = N := by
+  cases M
+  cases N
+  congr 1
+  · funext n f x
+    exact functions f x
+  · funext n r x
+    exact propext (relations r x)
+
+omit [(OrderedFunctionalLanguage G).Structure (Residue O)] in
+/-- Surjectivity of reduction fixes the interpretations of all continuous
+primitive functions, and the quotient order fixes the relation. -/
+theorem continuousResidueStructure_unique [LinearOrder K] [IsStrictOrderedRing K]
+    (hO : IsOrderConvex O) (M N : (OrderedFunctionalLanguage G).Structure (Residue O))
+    (term : ∀ {m}, G m → (convexLanguage L).Term (Fin m))
+    (hM : @ResidueTermPresentation L G K _ _ O M term)
+    (hN : @ResidueTermPresentation L G K _ _ O N term)
+    (hMOrder : letI := residueLinearOrder O hO
+      ∀ x : Fin 2 → Residue O, M.RelMap FunctionalOrder.le x ↔ x 0 ≤ x 1)
+    (hNOrder : letI := residueLinearOrder O hO
+      ∀ x : Fin 2 → Residue O, N.RelMap FunctionalOrder.le x ↔ x 0 ≤ x 1) : M = N := by
+  apply languageStructure_eq M N
+  · intro n f x
+    have hsurj (i : Fin n) : ∃ y : O, IsLocalRing.residue O y = x i :=
+      IsLocalRing.residue_surjective (x i)
+    choose y hy using hsurj
+    have hxy : IsLocalRing.residue O ∘ y = x := funext hy
+    obtain ⟨hm, hmf⟩ := hM f y
+    obtain ⟨hn, hnf⟩ := hN f y
+    rw [hxy] at hmf hnf
+    exact hmf.symm.trans hnf
+  · intro n r x
+    cases r
+    exact (hMOrder x).trans (hNOrder x).symm
+
+omit [L.Structure K] in
+/-- The graphs in a common continuous residue reduct fix the interpretations
+of the additional function symbols of the full language. -/
+theorem residueStructure_eq_of_reduct_definitions
+    (M N : L.Structure (Residue O))
+    (definition : ∀ {n}, L.Functions n → (OrderedFunctionalLanguage G).Formula (Option (Fin n)))
+    (hM : ∀ {n} (f : L.Functions n), DefinesTotalFunction (definition f) (M.funMap f))
+    (hN : ∀ {n} (f : L.Functions n), DefinesTotalFunction (definition f) (N.funMap f))
+    (hrel : ∀ {n} (r : L.Relations n) (x : Fin n → Residue O), M.RelMap r x ↔ N.RelMap r x) :
+    M = N :=
+  languageStructure_eq M N (fun f x => congrFun ((hM f).unique (hN f)) x) hrel
+
 end GeneralizedEuler.Section2

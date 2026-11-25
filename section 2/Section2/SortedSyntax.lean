@@ -69,6 +69,11 @@ structure SortedEmbedding {X : TCsort → Type z} {Y : TCsort → Type z'}
   map_rel : ∀ {ss} (r : RelationSymbol L ss) (xs : SortedArgs X ss),
     N.relMap r (fun i => toEmbedding _ (xs i)) ↔ M.relMap r xs
 
+/-- A sorted isomorphism is an embedding that is onto in each sort. -/
+structure SortedIsomorphism {X : TCsort → Type z} {Y : TCsort → Type z'}
+    (M : SortedStructure L E X) (N : SortedStructure L E Y) extends SortedEmbedding M N where
+  surjective : ∀ s, Function.Surjective (toEmbedding s)
+
 variable {X : TCsort → Type z} {Y : TCsort → Type z'}
   {M : SortedStructure L E X} {N : SortedStructure L E Y}
 

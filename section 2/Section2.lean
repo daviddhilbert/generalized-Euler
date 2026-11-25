@@ -53,3 +53,6 @@ public import Section2.FieldTypeLift
 public import Section2.DirectedSubstructure
 public import Section2.ResidueInterpretation
 public import Section2.DefinableCharts
+public import Section2.RVMonomials
+public import Section2.DimensionLower
+public import Section2.DefinableResidueCharts

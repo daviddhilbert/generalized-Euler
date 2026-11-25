@@ -1,0 +1,144 @@
+module
+
+public import Section2.SortedDefinability
+public import Section2.ResidueFiber
+public import Mathlib.Algebra.BigOperators.Group.List.Basic
+
+/-! Definability of the monomial maps used for the fixed-base affine
+trivialization in Lemma 2.29. -/
+
+public section
+
+namespace GeneralizedEuler.Section2
+
+open FirstOrder
+
+universe u v w a z
+
+variable {L : Language.{u, v}} {E : Type w} {Var : TCsort → Type a}
+
+def rvOneTerm : SortedTerm L E Var .rv :=
+  .app .rvOne (fun i => i.elim0)
+
+def rvZeroTerm : SortedTerm L E Var .rv :=
+  .app .rvZero (fun i => i.elim0)
+
+private def unaryRVArgs {X : TCsort → Type*} (x : X .rv) : SortedArgs X [.rv] :=
+  fun i => by
+    have h : i = 0 := Fin.fin_one_eq_zero (i : Fin 1)
+    subst i
+    exact x
+
+def rvMulTerm (x y : SortedTerm L E Var .rv) : SortedTerm L E Var .rv :=
+  .app .rvMul (Fin.cases x (fun i => unaryRVArgs y i))
+
+def rvDivTerm (x y : SortedTerm L E Var .rv) : SortedTerm L E Var .rv :=
+  rvMulTerm x (.app .rvInv (unaryRVArgs y))
+
+def rvPowerTerm (e : E) (x : SortedTerm L E Var .rv) : SortedTerm L E Var .rv :=
+  .app (.power e) (unaryRVArgs x)
+
+/-- Equality of the unsigned values is a quantifier-free test in RV. -/
+def rvSameUnsignedValueFormula (x y : SortedTerm L E Var .rv) : SortedFormula L E Var :=
+  ((SortedFormula.equal x rvZeroTerm).conjunction (.equal y rvZeroTerm)).disjunction
+    (.rel .residueNonzero (unaryRVArgs (rvDivTerm x y)))
+
+variable {K : Type z} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
+  [L.Structure K] (O : ValuationSubring K) [L.Structure (Residue O)]
+  (hO : IsOrderConvex O) (P : E → RV0 O → RV0 O)
+
+private theorem realize_rvMulTerm (x y : SortedTerm L E Var .rv)
+    (a : ∀ s, Var s → CanonicalSort O s) :
+    (rvMulTerm x y).realize (canonicalStructure O hO P) a =
+      x.realize (canonicalStructure O hO P) a * y.realize (canonicalStructure O hO P) a := by
+  rfl
+
+theorem realize_rvDivTerm (x y : SortedTerm L E Var .rv)
+    (a : ∀ s, Var s → CanonicalSort O s) :
+    (rvDivTerm x y).realize (canonicalStructure O hO P) a =
+      x.realize (canonicalStructure O hO P) a / y.realize (canonicalStructure O hO P) a := by
+  exact (div_eq_mul_inv (x.realize (canonicalStructure O hO P) a : RV0 O)
+    (y.realize (canonicalStructure O hO P) a)).symm
+
+theorem realize_rvSameUnsignedValueFormula (x y : SortedTerm L E Var .rv)
+    (a : ∀ s, Var s → CanonicalSort O s) :
+    let M := canonicalStructure (L := L) O hO P
+    (rvSameUnsignedValueFormula x y).realize M a ↔
+      unsignedValue O (x.realize M a) = unsignedValue O (y.realize M a) := by
+  let M := canonicalStructure (L := L) O hO P
+  change (rvSameUnsignedValueFormula x y).realize M a ↔ _
+  rw [rvSameUnsignedValueFormula, SortedFormula.realize_disjunction, SortedFormula.realize_conjunction]
+  change ((x.realize M a = 0 ∧ y.realize M a = 0) ∨
+      unsignedValue O ((rvDivTerm x y).realize M a) = 1) ↔ _
+  rw [realize_rvDivTerm]
+  exact (unsignedValue_eq_iff_div_residue O _ _).symm
+
+/-- A tuple's unsigned value fiber is definable over any base containing
+one representative of each coordinate value. -/
+theorem definable_unsigned_value_fiber {A : ∀ s, Set (CanonicalSort O s)} {n : ℕ}
+    (coordinates : Fin n → Var .rv) (reference : Fin n → A .rv) :
+    SortedDefinableOver (canonicalStructure (L := L) O hO P) A
+      {a | ∀ i, unsignedValue O (a .rv (coordinates i)) = unsignedValue O (reference i).val} := by
+  let V (i : Fin n) : Set (∀ s, Var s → CanonicalSort O s) :=
+    {a | unsignedValue O (a .rv (coordinates i)) = unsignedValue O (reference i).val}
+  have hV (i : Fin n) : SortedDefinableOver (canonicalStructure (L := L) O hO P) A (V i) := by
+    let φ : SortedFormula L E (fun s => (A s : Type z) ⊕ Var s) :=
+      rvSameUnsignedValueFormula (.var (.inr (coordinates i))) (.var (.inl (reference i)))
+    refine ⟨φ, fun a => ?_⟩
+    exact (realize_rvSameUnsignedValueFormula (L := L) (Var := fun s => (A s : Type z) ⊕ Var s) O hO P
+      (.var (.inr (coordinates i))) (.var (.inl (reference i)))
+      (fun s => Sum.elim Subtype.val (a s))).symm
+  convert SortedDefinableOver.iInter hV using 1
+  ext a
+  simp only [V, Set.mem_iInter, Set.mem_ofPred_eq]
+
+/-- The term representing an intercept times a finite monomial in RV. -/
+def rvMonomialTerm {I : Type*} (u : SortedTerm L E Var .rv)
+    (coeff : I → E) (x : I → SortedTerm L E Var .rv) (indices : List I) :
+    SortedTerm L E Var .rv :=
+  rvMulTerm u (indices.foldr (fun i t => rvMulTerm (rvPowerTerm (coeff i) (x i)) t) rvOneTerm)
+
+theorem realize_rvMonomialTerm {I : Type*} (u : SortedTerm L E Var .rv)
+    (coeff : I → E) (x : I → SortedTerm L E Var .rv) (indices : List I)
+    (a : ∀ s, Var s → CanonicalSort O s) :
+    let M := canonicalStructure O hO P
+    (rvMonomialTerm u coeff x indices).realize M a =
+      u.realize M a * (indices.map (fun i => P (coeff i) ((x i).realize M a))).prod := by
+  let M := canonicalStructure (L := L) O hO P
+  change (rvMonomialTerm u coeff x indices).realize M a =
+    u.realize M a * (indices.map (fun i => P (coeff i) ((x i).realize M a))).prod
+  rw [rvMonomialTerm, realize_rvMulTerm]
+  congr 1
+  induction indices with
+  | nil => rfl
+  | cons i r ih =>
+    rw [List.foldr_cons, List.map_cons, List.prod_cons, realize_rvMulTerm, ih]
+    rfl
+
+/-- The omitted coordinates of the affine lift divide by these monomials.
+Their graphs use only the intercept representatives from the given base. -/
+theorem definable_affine_division_coordinate {A : ∀ s, Set (CanonicalSort O s)}
+    {I : Type*} (indices : List I) (coeff : I → E) (x : I → Var .rv)
+    (u : A .rv) (input output : Var .rv) :
+    SortedDefinableOver (canonicalStructure (L := L) O hO P) A
+      {a | a .rv output = a .rv input /
+        (u.val * (indices.map (fun i => P (coeff i) (a .rv (x i)))).prod)} := by
+  let U : SortedTerm L E (fun s => (A s : Type z) ⊕ Var s) .rv := .var (.inl u)
+  let mono := rvMonomialTerm U coeff (fun i => .var (.inr (x i))) indices
+  let t := rvDivTerm (.var (.inr input)) mono
+  have h := SortedDefinableOver.coordinate_eq_term
+    (M := canonicalStructure (L := L) O hO P) (A := A) .rv output t
+  convert h using 1
+  ext a
+  simp only [t, mono, U, Set.mem_ofPred_eq, realize_rvDivTerm, realize_rvMonomialTerm,
+    SortedTerm.realize, Sum.elim_inl, Sum.elim_inr]
+
+theorem definable_rv_division_coordinate {A : ∀ s, Set (CanonicalSort O s)}
+    (u : A .rv) (input output : Var .rv) :
+    SortedDefinableOver (canonicalStructure (L := L) O hO P) A
+      {a | a .rv output = a .rv input / u.val} := by
+  simpa only [List.map_nil, List.prod_nil, mul_one (u.val : RV0 O)] using
+    (definable_affine_division_coordinate (L := L) O hO P ([] : List Empty)
+      Empty.elim Empty.elim u input output)
+
+end GeneralizedEuler.Section2

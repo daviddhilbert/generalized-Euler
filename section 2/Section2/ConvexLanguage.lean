@@ -72,6 +72,13 @@ theorem DefinesTotalFunction.of_realize {L : Language.{u, v}} {K : Type*} [L.Str
     {n : ℕ} {φ : L.Formula (Option (Fin n))} {f : (Fin n → K) → K}
     (h : ∀ a, φ.Realize a ↔ f (a ∘ some) = a none) : DefinesTotalFunction φ f := h
 
+theorem DefinesTotalFunction.unique {L : Language.{u, v}} {K : Type*} [L.Structure K]
+    {n : ℕ} {φ : L.Formula (Option (Fin n))} {f g : (Fin n → K) → K}
+    (hf : DefinesTotalFunction φ f) (hg : DefinesTotalFunction φ g) : f = g := by
+  funext x
+  let v : Option (Fin n) → K := fun i => i.elim (g x) x
+  exact (hf v).mp ((hg v).mpr rfl)
+
 /-- Ax. 7 with order convexity included in the definition of a T-convex
 valuation ring. The topology on the field is its order topology. -/
 def IsTConvex {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
@@ -111,10 +118,7 @@ theorem MatchesContinuousFunctions.reduces {K : Type*} [Field K] [TopologicalSpa
     IsLocalRing.residue O ⟨f (fun i => (a i : K)), h⟩ =
       g (IsLocalRing.residue O ∘ a) := by
   obtain ⟨g', hg', _, h⟩ := H n φ f hf hc
-  have heq : g = g' := by
-    funext x
-    let v : Option (Fin n) → Residue O := fun i => i.elim (g' x) x
-    exact (hg v).mp ((hg' v).mpr rfl)
+  have heq : g = g' := hg.unique hg'
   exact heq.symm ▸ h a
 
 /-- Quantifier elimination, stated with Mathlib formulas and semantic

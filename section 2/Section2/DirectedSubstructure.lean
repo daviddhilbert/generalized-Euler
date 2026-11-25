@@ -183,6 +183,62 @@ theorem exists_fullVF (A : FixedRVLift M N R)
   obtain ⟨C, hBC, hx⟩ := hstep B hAB x
   exact ((le_iff_extends C B).mp (hmax hBC)).choose .vf hx
 
+/-- With both extension properties, the same maximal lift contains every
+source field point and reaches every target field point. -/
+theorem exists_fullVF_and_surjectiveVF (A : FixedRVLift M N R)
+    (hforth : ∀ B : FixedRVLift M N R, A ≤ B → ∀ x : X .vf,
+      ∃ C : FixedRVLift M N R, B ≤ C ∧ x ∈ C.source.carrier .vf)
+    (hback : ∀ B : FixedRVLift M N R, A ≤ B → ∀ y : Y .vf,
+      ∃ C : FixedRVLift M N R, B ≤ C ∧ ∃ x, C.embedding.toEmbedding .vf x = y) :
+    ∃ B : FixedRVLift M N R, A ≤ B ∧ B.source.carrier .vf = Set.univ ∧
+      Function.Surjective (B.embedding.toEmbedding .vf) := by
+  obtain ⟨B, hAB, hmax⟩ := exists_maximal_extension A
+  refine ⟨B, hAB, Set.eq_univ_of_forall ?_, ?_⟩
+  · intro x
+    obtain ⟨C, hBC, hx⟩ := hforth B hAB x
+    exact ((le_iff_extends C B).mp (hmax hBC)).choose .vf hx
+  · intro y
+    obtain ⟨C, hBC, x, hx⟩ := hback B hAB y
+    obtain ⟨hm, he⟩ := (le_iff_extends C B).mp (hmax hBC)
+    exact ⟨⟨x.val, hm .vf x.property⟩, (he .vf x).symm.trans hx⟩
+
+/-- The back-and-forth part of Lemma 2.20. Once the initial map is the
+identity on all RV and the two field extension properties hold, it extends
+to a sorted automorphism that still fixes RV pointwise. -/
+theorem exists_immediate_automorphism {A : FixedRVLift M M Set.univ}
+    (hidentity : ∀ t : A.source.carrier .rv, A.embedding.toEmbedding .rv t = t.val)
+    (hforth : ∀ B : FixedRVLift M M Set.univ, A ≤ B → ∀ x : X .vf,
+      ∃ C : FixedRVLift M M Set.univ, B ≤ C ∧ x ∈ C.source.carrier .vf)
+    (hback : ∀ B : FixedRVLift M M Set.univ, A ≤ B → ∀ y : X .vf,
+      ∃ C : FixedRVLift M M Set.univ, B ≤ C ∧ ∃ x, C.embedding.toEmbedding .vf x = y) :
+    ∃ e : SortedIsomorphism M M,
+      (∀ s (x : A.source.carrier s), e.toEmbedding s x.val = A.embedding.toEmbedding s x) ∧
+      ∀ t : X .rv, e.toEmbedding .rv t = t := by
+  obtain ⟨B, hAB, hvf, hsVF⟩ := exists_fullVF_and_surjectiveVF A hforth hback
+  obtain ⟨hmem, hagree⟩ := (le_iff_extends A B).mp hAB
+  have hfull (s : TCsort) (x : X s) : x ∈ B.source.carrier s := by
+    cases s with
+    | vf => rw [hvf]; exact Set.mem_univ x
+    | rv => rw [B.rv_eq]; exact Set.mem_univ x
+  let lift (s : TCsort) (x : X s) : B.source.carrier s := ⟨x, hfull s x⟩
+  have hfix (t : X .rv) : B.embedding.toEmbedding .rv (lift .rv t) = t := by
+    let x : A.source.carrier .rv := ⟨t, by rw [A.rv_eq]; exact Set.mem_univ t⟩
+    exact (hagree .rv x).symm.trans (hidentity x)
+  let e : SortedIsomorphism M M :=
+    { toEmbedding := fun s => ⟨fun x => B.embedding.toEmbedding s (lift s x),
+        fun x y h => congrArg (fun b : B.source.carrier s => b.val)
+          ((B.embedding.toEmbedding s).injective h)⟩
+      map_fun := fun f xs => B.embedding.map_fun f (fun i => lift _ (xs i))
+      map_rel := fun r xs => B.embedding.map_rel r (fun i => lift _ (xs i))
+      surjective := by
+        intro s y
+        cases s with
+        | vf =>
+          obtain ⟨x, hx⟩ := hsVF y
+          exact ⟨x.val, hx⟩
+        | rv => exact ⟨y, hfix y⟩ }
+  exact ⟨e, fun s x => (hagree s x).symm, hfix⟩
+
 /-- Iteration of the common-lift step supplies all the required field
 representatives in Lemma 2.20 while keeping the RV map fixed. -/
 theorem exists_cover_by_representatives (A : FixedRVLift M N R)

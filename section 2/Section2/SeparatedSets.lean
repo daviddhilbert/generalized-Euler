@@ -1,6 +1,7 @@
 module
 
 public import Mathlib.Data.Set.Prod
+public import Mathlib.Data.Set.Finite.Basic
 
 /-! Boolean combinations and projections of residue and value conditions
 in the proof of Lemma 2.29. -/
@@ -77,6 +78,34 @@ theorem image {A' B' : Type*} {left' : Set A' → Prop} {right' : Set B' → Pro
   | insert hU hV _ ih =>
     rw [Set.image_union, Set.prodMap_image_prod]
     exact insert (hf hU) (hg hV) ih
+
+theorem preimage {A' B' : Type*} {left' : Set A' → Prop} {right' : Set B' → Prop}
+    (f : A' → A) (g : B' → B)
+    (hf : ∀ {U}, left U → left' (f ⁻¹' U)) (hg : ∀ {V}, right V → right' (g ⁻¹' V))
+    (hD : SeparatedSets left right D) : SeparatedSets left' right' (Prod.map f g ⁻¹' D) := by
+  induction hD with
+  | empty => simpa only [Set.preimage_empty] using (empty (left := left') (right := right'))
+  | @insert U V D hU hV _ ih =>
+    rw [Set.preimage_union]
+    change SeparatedSets left' right' (((f ⁻¹' U) ×ˢ (g ⁻¹' V)) ∪ Prod.map f g ⁻¹' D)
+    exact insert (hf hU) (hg hV) ih
+
+/-- A functional relation that is a finite union of rectangles has finite
+image. Each nonempty rectangle contributes at most one value. -/
+theorem finite_snd_of_functional (hD : SeparatedSets left right D)
+    (hfun : ∀ ⦃a b b'⦄, (a, b) ∈ D → (a, b') ∈ D → b = b') : (Prod.snd '' D).Finite := by
+  induction hD with
+  | empty => rw [Set.image_empty]; exact Set.finite_empty
+  | @insert U V D _ _ _ ih =>
+    rw [Set.image_union]
+    apply Set.Finite.union _ (ih (by
+      intro a b b' h h'
+      exact hfun (Or.inr h) (Or.inr h')))
+    rcases U.eq_empty_or_nonempty with rfl | ⟨a, ha⟩
+    · rw [Set.empty_prod, Set.image_empty]
+      exact Set.finite_empty
+    · have hV : V.Subsingleton := fun b hb b' hb' => hfun (Or.inl ⟨ha, hb⟩) (Or.inl ⟨ha, hb'⟩)
+      exact hV.finite.subset (by rintro _ ⟨⟨_, _⟩, h, rfl⟩; exact h.2)
 
 /-- Evaluating the second coordinates at a fixed tuple retains only the
 first reduct's conditions. This is used with the tuple of residue units. -/

@@ -95,6 +95,46 @@ theorem coordinate_eq_parameter (s : TCsort) (i : Var s) (c : A s) :
     SortedDefinableOver M A {x | x s i = c.val} :=
   ⟨.equal (.var (.inr i)) (.var (.inl c)), fun _ => Iff.rfl⟩
 
+theorem coordinate_eq_term (s : TCsort) (i : Var s)
+    (t : SortedTerm L E (fun t => (A t : Type z) ⊕ Var t) s) :
+    SortedDefinableOver M A {x | x s i = t.realize M (fun s => Sum.elim Subtype.val (x s))} :=
+  ⟨.equal (.var (.inr i)) t, fun _ => Iff.rfl⟩
+
+/-- Fixing the second tuple gives a set definable over the old base and the
+coordinates of that tuple. -/
+theorem fix_right {W : TCsort → Type b}
+    {G : Set (∀ s, (Var s ⊕ W s) → X s)} (hG : SortedDefinableOver M A G)
+    (y : ∀ s, W s → X s) :
+    SortedDefinableOver M (fun s => A s ∪ Set.range (y s))
+      {x | (fun s => Sum.elim (x s) (y s)) ∈ G} := by
+  obtain ⟨φ, hφ⟩ := hG
+  let rename (s : TCsort) : (A s : Type z) ⊕ (Var s ⊕ W s) →
+      ((A s ∪ Set.range (y s) : Set (X s)) : Type z) ⊕ Var s := fun
+    | .inl c => .inl ⟨c.val, Or.inl c.property⟩
+    | .inr (.inl i) => .inr i
+    | .inr (.inr i) => .inl ⟨y s i, Or.inr ⟨i, rfl⟩⟩
+  refine ⟨φ.relabel rename, fun x => (hφ _).trans ?_⟩
+  rw [φ.realize_relabel]
+  have hr : (fun s => Sum.elim Subtype.val (x s) ∘ rename s) =
+      (fun s => Sum.elim Subtype.val (Sum.elim (x s) (y s))) := by
+    funext s i
+    rcases i with c | (i | i) <;> rfl
+  rw [hr]
+
+/-- An injective definable graph isolates each input tuple over the old
+base and its image tuple. -/
+theorem singleton_of_embedding_graph {W : TCsort → Type b}
+    (f : D ↪ (∀ s, W s → X s))
+    (hf : SortedDefinableOver M A {a : ∀ s, (Var s ⊕ W s) → X s |
+      ∃ x : D, x.val = (fun s => a s ∘ Sum.inl) ∧ f x = (fun s => a s ∘ Sum.inr)})
+    (x : D) : SortedDefinableOver M (fun s => A s ∪ Set.range (f x s)) {x.val} := by
+  have h := hf.fix_right (f x)
+  convert h using 1
+  ext y
+  change y = x.val ↔ ∃ z : D, z.val = y ∧ f z = f x
+  exact ⟨fun hy => ⟨x, hy.symm, rfl⟩,
+    fun ⟨z, hzy, hzx⟩ => hzy.symm.trans (congrArg Subtype.val (f.injective hzx))⟩
+
 /-- Existential projection of one variable keeps the same parameter sets. -/
 theorem project_one (s : TCsort) {D : Set (∀ t, AddSortedVar Var s t → X t)}
     (hD : SortedDefinableOver M A D) :
