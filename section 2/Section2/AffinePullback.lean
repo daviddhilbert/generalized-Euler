@@ -17,6 +17,7 @@ variable {E G V : Type*} [Field E] [AddCommGroup G] [Module E G]
   [AddCommGroup V] [Module E V] {m n : ℕ}
 
 /-- Apply a matrix over the exponent field and add a translation. -/
+@[expose]
 def affineCoordinates {A : Type*} [AddCommGroup A] [Module E A]
     (M : Fin n → Fin m → E) (b : Fin n → A) (x : Fin m → A) (i : Fin n) : A :=
   b i + ∑ j, M i j • x j

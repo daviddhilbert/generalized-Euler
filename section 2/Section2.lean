@@ -77,3 +77,7 @@ public import Section2.RVSplitCoordinates
 public import Section2.SplitDefinability
 public import Section2.RVFormulaSeparation
 public import Section2.RVCoordinatePrimitives
+public import Section2.DefinableAffineCharts
+public import Section2.PositiveRVMonomials
+public import Section2.AffineRVEquivalence
+public import Section2.DefinableAffinePartitions
