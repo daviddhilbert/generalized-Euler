@@ -111,6 +111,47 @@ theorem vfDimension_eq_max_fiber_rank {Y : Type*}
     Exists.imp (fun y hy => hrank y ▸ hy)
       (exists_fiber_projectionDimension_eq_vfDimension hD)⟩
 
+omit [TopologicalSpace X] in
+/-- Coordinate projections that are injective on the fibers of a finite
+chart cover give a single injection after tagging the pieces in RV.
+Smaller charts are padded with the same named field element. -/
+theorem exists_embedding_of_piecewise_projection {Y R : Type*} {k l : ℕ}
+    (D : Set ((Fin n → X) × Y)) (pieces : Fin l → Set D)
+    (hcover : ∀ x : D, ∃ i, x ∈ pieces i) (m : Fin l → ℕ)
+    (hm : ∀ i, m i ≤ k) (projection : ∀ i, Fin (m i) ↪ Fin n)
+    (hinjective : ∀ i, Set.InjOn
+      (fun x : D => (coordinateProjection (projection i) x.val.1, x.val.2)) (pieces i))
+    (padding : X) (tag : Fin l ↪ R) :
+    Nonempty (D ↪ (Fin k → X) × (Y × R)) := by
+  classical
+  let indices (x : D) : Finset (Fin l) := Finset.univ.filter (fun i => x ∈ pieces i)
+  have hne (x : D) : (indices x).Nonempty := by
+    obtain ⟨i, hi⟩ := hcover x
+    exact ⟨i, Finset.mem_filter.mpr ⟨Finset.mem_univ _, hi⟩⟩
+  let piece (x : D) : Fin l := (indices x).min' (hne x)
+  have hp (x : D) : x ∈ pieces (piece x) := by
+    have h : piece x ∈ indices x := Finset.min'_mem (indices x) (hne x)
+    exact (Finset.mem_filter.mp h).2
+  let coordinates (i : Fin l) (x : D) (j : Fin k) : X :=
+    if h : j.val < m i then x.val.1 (projection i ⟨j.val, h⟩) else padding
+  let f (x : D) : (Fin k → X) × (Y × R) :=
+    ⟨coordinates (piece x) x, x.val.2, tag (piece x)⟩
+  refine ⟨⟨f, ?_⟩⟩
+  intro x y hxy
+  have hlabel : piece x = piece y := tag.injective (congrArg (fun z => z.2.2) hxy)
+  apply hinjective (piece x) (hp x) (hlabel.symm ▸ hp y)
+  apply Prod.ext
+  · funext j
+    let j' : Fin k := Fin.castLE (hm (piece x)) j
+    have hcoord := congrFun (congrArg Prod.fst hxy) j'
+    change coordinates (piece x) x j' = coordinates (piece y) y j' at hcoord
+    rw [← hlabel] at hcoord
+    have hj : j'.val < m (piece x) := j.isLt
+    have hj' : (⟨j'.val, hj⟩ : Fin (m (piece x))) = j := Fin.ext rfl
+    simpa only [coordinates, dite_eq_left hj, hj', coordinateProjection, Function.comp_apply]
+      using hcoord
+  · exact congrArg (fun z => z.2.1) hxy
+
 /-- A continuous parametrization of a coordinate chart meets a single
 open value fiber on a nonempty open part of its parameter domain.
 This is the topological step in the proof of Lemma 2.28. -/

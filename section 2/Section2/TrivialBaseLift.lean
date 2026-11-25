@@ -142,4 +142,71 @@ theorem trivialBase_leadingTerm [Ring E]
   · obtain ⟨d, hd, e, he⟩ := hnew x hxB hx0 hx1
     exact ⟨d, hd, e, by rw [hP]; exact he⟩
 
+/-- The monomial description also applies when the prescribed positive
+representative has value above one. Inverting it changes the exponent
+sign and leaves the generated field unchanged. -/
+theorem trivialBase_leadingTerm_of_value_ne_one [Ring E]
+    {g : E → PositiveField K →* PositiveField K} {P : E → RV0 O → RV0 O}
+    {A B : Subfield K} (hO : IsOrderConvex O) (a : PositiveField K)
+    (haB : (a : K) ∈ B) (ha : O.valuation (a : K) ≠ 1)
+    (htriv : ∀ x ∈ A, x ≠ 0 → O.valuation x = 1)
+    (hbase : ∀ e (x : PositiveField K), (x : K) ∈ A → (g e x : K) ∈ A)
+    (hP : ∀ e, AgreesWithFieldPower O (g e) (P e))
+    (hzero : ∀ x, g 0 x = 1) (hone : ∀ x, g 1 x = x)
+    (hadd : ∀ e d x, g (e + d) x = g e x * g d x)
+    (hFreni : LeadingTermMonomialTransfer O g A B a)
+    (hFreniInv : LeadingTermMonomialTransfer O g A B ((a⁻¹ : PositiveField K) : K))
+    {x : K} (hxB : x ∈ B) (hx0 : x ≠ 0) :
+    ∃ d ∈ A, ∃ e : E, rv O x = rv O d * P e (rv O a) := by
+  rcases lt_or_gt_of_ne ha with h | h
+  · exact trivialBase_leadingTerm O hO a haB h htriv hbase hP (hone a)
+      (fun e d => hadd e d a) hFreni hxB hx0
+  · have hB : ((a⁻¹ : PositiveField K) : K) ∈ B := by
+      rw [Positive.coe_inv]
+      exact B.inv_mem haB
+    have hl : O.valuation ((a⁻¹ : PositiveField K) : K) < 1 := by
+      rw [Positive.coe_inv, map_inv₀]
+      exact inv_lt_one_of_one_lt₀ h
+    obtain ⟨d, hd, e, he⟩ := trivialBase_leadingTerm O hO a⁻¹ hB hl htriv hbase hP
+      (hone a⁻¹) (fun e d => hadd e d a⁻¹) hFreniInv hxB hx0
+    have hneg : g (-e) a = (g e a)⁻¹ := by
+      calc
+        g (-e) a = (g (-e) a * g e a) * (g e a)⁻¹ := by
+          rw [mul_assoc, mul_inv_cancel, mul_one]
+        _ = (g e a)⁻¹ := by rw [← hadd, neg_add_cancel, hzero, one_mul]
+    have hpow : P e (rv O ((a⁻¹ : PositiveField K) : K)) = P (-e) (rv O a) := by
+      rw [hP e a⁻¹, hP (-e) a, map_inv, hneg]
+    exact ⟨d, hd, -e, hpow ▸ he⟩
+
+omit [IsStrictOrderedRing K] in
+/-- A new residue over a trivially valued base leaves the generated
+field trivially valued, by the valuation property of Proposition 2.21. -/
+theorem trivialBase_values_eq_of_new_residue {A B : Subfield K} {a : K}
+    (ha : O.valuation a = 1) (hnew : rv O a ∉ fieldRV O A)
+    (htriv : ∀ x ∈ A, x ≠ 0 → O.valuation x = 1)
+    (hValProp : ∀ y ∈ B, O.valuation y ∉ O.valuation '' (A : Set K) →
+      ∃ c ∈ A, O.valuation (a - c) ∉ O.valuation '' (A : Set K)) :
+    ∀ y ∈ B, y ≠ 0 → O.valuation y = 1 := by
+  have translates (c : K) (hc : c ∈ A) : O.valuation (a - c) = 1 := by
+    by_cases hc0 : c = 0
+    · simpa only [hc0, sub_zero] using ha
+    have hc1 := htriv c hc hc0
+    have hle := O.valuation.map_sub a c
+    rw [ha, hc1, max_self] at hle
+    refine le_antisymm hle (not_lt.mp ?_)
+    intro hlt
+    have hr : rv O a = rv O c :=
+      (rv_eq_rv_iff_valuation O hc0).mpr (hc1.symm ▸ hlt)
+    exact hnew ⟨c, hc, hr.symm⟩
+  intro y hy hny
+  by_contra h
+  have hyNew : O.valuation y ∉ O.valuation '' (A : Set K) := by
+    rintro ⟨c, hc, hcval⟩
+    by_cases hc0 : c = 0
+    · rw [hc0, map_zero] at hcval
+      exact ((map_ne_zero O.valuation).mpr hny) hcval.symm
+    · exact h (hcval.symm.trans (htriv c hc hc0))
+  obtain ⟨c, hc, hcut⟩ := hValProp y hy hyNew
+  exact hcut ⟨1, A.one_mem, (map_one O.valuation).trans (translates c hc).symm⟩
+
 end GeneralizedEuler.Section2

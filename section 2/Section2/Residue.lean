@@ -155,6 +155,16 @@ theorem rvResidue_eq_zero_of_not_mem_range {t : RV0 O}
   rw [dite_eq_left h]
   exact residueRV_injective O (Classical.choose_spec h)
 
+theorem residueRV_rvResidue_of_mem_range {t : RV0 O} (ht : t ∈ Set.range (residueRV O)) :
+    residueRV O (rvResidue O t) = t := by
+  obtain ⟨r, rfl⟩ := ht
+  rw [rvResidue_residueRV]
+
+theorem totalResidue_of_mem {x : K} (hx : x ∈ O) :
+    totalResidue O x = IsLocalRing.residue O ⟨x, hx⟩ := by
+  classical
+  exact dite_eq_left hx
+
 theorem rvResidue_rv (x : K) : rvResidue O (rv O x) = totalResidue O x := by
   classical
   by_cases hx : O.valuation x = 1
@@ -175,5 +185,29 @@ theorem rvResidue_rv (x : K) : rvResidue O (rv O x) = totalResidue O x := by
         rw [range_residueRV]
         exact fun h => h.elim (fun hzero => hx0 ((rv_eq_zero_iff O).mp hzero)) hv
       exact dite_eq_right hout
+
+/-- An output representative for a named residue is zero or a unit,
+and it reduces to that residue. -/
+theorem rv_eq_residueRV_residue_iff (x : K) (y : O) :
+    rv O x = residueRV O (IsLocalRing.residue O y) ↔
+      (x = 0 ∨ O.valuation x = 1) ∧ x - (y : K) ∈ O.nonunits := by
+  have hmem : rv O x ∈ Set.range (residueRV O) ↔ x = 0 ∨ O.valuation x = 1 := by
+    rw [range_residueRV]
+    simp only [Set.mem_ofPred_eq, rv_eq_zero_iff, unsignedValue_rv]
+  have integral (h : x = 0 ∨ O.valuation x = 1) : x ∈ O := by
+    rcases h with rfl | h
+    · exact O.zero_mem
+    · exact (O.valuation_le_one_iff x).mp h.le
+  constructor
+  · intro h
+    have hx := hmem.mp ⟨_, h.symm⟩
+    have hr := congrArg (rvResidue O) h
+    rw [rvResidue_rv, totalResidue_of_mem O (integral hx), rvResidue_residueRV] at hr
+    exact ⟨hx, O.mem_nonunits_iff.mpr ((residue_eq_iff_valuation_sub_lt_one O _ _).mp hr)⟩
+  · rintro ⟨hx, hxy⟩
+    have hr : IsLocalRing.residue O (⟨x, integral hx⟩ : O) = IsLocalRing.residue O y :=
+      (residue_eq_iff_valuation_sub_lt_one O _ _).mpr (O.mem_nonunits_iff.mp hxy)
+    rw [← residueRV_rvResidue_of_mem_range O (hmem.mpr hx), rvResidue_rv,
+      totalResidue_of_mem O (integral hx), hr]
 
 end GeneralizedEuler.Section2

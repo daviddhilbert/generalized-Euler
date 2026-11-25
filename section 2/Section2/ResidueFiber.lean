@@ -75,4 +75,59 @@ theorem rv_factor_residue_of_same_value {x y : K} (hy : y ≠ 0)
   change residueRV O (r : Residue O) * rv O y = rv O x at h
   exact ⟨r, r.property, h.symm.trans (mul_comm (residueRV O r) (rv O y))⟩
 
+/-- A value label and residue coordinates identify the points of a set
+of nonzero leading-term tuples. The chart takes its representative for
+each label from the corresponding fiber of the set. -/
+def valueTupleResidueEmbedding {n : ℕ} (D : Set (Fin n → RV0 O))
+    (hD : ∀ x ∈ D, ∀ i, x i ≠ 0) :
+    D ↪ Set.range (fun x : D => unsignedValue O ∘ x.val) ×
+      (Fin n → {r : Residue O // r ≠ 0}) := by
+  let Labels := Set.range (fun x : D => unsignedValue O ∘ x.val)
+  let label (x : D) : Labels := ⟨unsignedValue O ∘ x.val, ⟨x, rfl⟩⟩
+  let representative (a : Labels) : D := a.property.choose
+  have hrep (a : Labels) : unsignedValue O ∘ (representative a).val = a.val :=
+    a.property.choose_spec
+  let Norm := Fin n → {r : Residue O // r ≠ 0}
+  let chart (a : Labels) : {x : D // label x = a} ↪ Norm := by
+    let r := representative a
+    let e := valueTupleFiberResidueEquiv O r.val (hD r.val r.property)
+    let lift (x : {x : D // label x = a}) :
+        {s : Fin n → RV0 O // ∀ i, unsignedValue O (s i) = unsignedValue O (r.val i)} :=
+      ⟨x.val.val, fun i => congrFun
+        ((congrArg Subtype.val x.property).trans (hrep a).symm) i⟩
+    refine ⟨e ∘ lift, ?_⟩
+    intro x y h
+    have hl : lift x = lift y := e.injective h
+    have hv : (lift x).val = (lift y).val :=
+      congrArg (fun z : {s : Fin n → RV0 O //
+        ∀ i, unsignedValue O (s i) = unsignedValue O (r.val i)} => z.val) hl
+    exact Subtype.ext (Subtype.ext (show x.val.val = y.val.val from hv))
+  exact (Equiv.sigmaFiberEquiv label).symm.toEmbedding.trans
+    ((Function.Embedding.sigmaMap (Function.Embedding.refl Labels) chart).trans
+      (Equiv.sigmaEquivProd Labels Norm).toEmbedding)
+
+section Order
+
+variable [LinearOrder K] [IsStrictOrderedRing K]
+
+set_option linter.style.haveILetI false in
+/-- A positive representative makes the residue chart an order
+isomorphism on its unsigned value fiber. -/
+def residueOrderIsoValueFiber (hO : IsOrderConvex O) (t : RV0 O)
+    (ht : letI := rvLinearOrder O hO; 0 < t) :
+    letI := rvLinearOrder O hO
+    letI := residueLinearOrder O hO
+    {r : Residue O // r ≠ 0} ≃o {s : RV0 O // unsignedValue O s = unsignedValue O t} := by
+  letI := rvLinearOrder O hO
+  letI := residueLinearOrder O hO
+  refine { toEquiv := (valueFiberResidueEquiv O t ht.ne').symm
+           map_rel_iff' := ?_ }
+  intro r s
+  change residueRV O (r : Residue O) * t ≤ residueRV O (s : Residue O) * t ↔
+    (r : Residue O) ≤ (s : Residue O)
+  rw [mul_comm (residueRV O (r : Residue O)) t, mul_comm (residueRV O (s : Residue O)) t]
+  exact ((rv_mul_left_strictMono O hO ht).comp (residueRV_strictMono O hO)).le_iff_le
+
+end Order
+
 end GeneralizedEuler.Section2

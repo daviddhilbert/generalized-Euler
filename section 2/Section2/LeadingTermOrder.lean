@@ -138,6 +138,43 @@ theorem rv_lt_iff_all_representatives (hO : IsOrderConvex O) {s t : RV0 O} :
   rw [← map_zero (rv O), rv_lt_rv_iff O hO, map_zero, ne_eq, eq_comm, rv_eq_zero_iff]
   exact ⟨And.left, fun h => ⟨h, h.ne'⟩⟩
 
+set_option linter.style.haveILetI false in
+/-- Multiplicative translation by positive RV preserves the signed order. -/
+theorem rv_mul_left_strictMono (hO : IsOrderConvex O) {t : RV0 O}
+    (ht : letI := rvLinearOrder O hO; 0 < t) :
+    letI := rvLinearOrder O hO
+    StrictMono (fun s : RV0 O => t * s) := by
+  letI := rvLinearOrder O hO
+  obtain ⟨z, rfl⟩ := rv_surjective O t
+  have hz := (zero_lt_rv_iff O hO).mp ht
+  intro s t h
+  obtain ⟨x, rfl⟩ := rv_surjective O s
+  obtain ⟨y, rfl⟩ := rv_surjective O t
+  change rv O z * rv O x < rv O z * rv O y
+  rw [← map_mul (rv O) z x, ← map_mul (rv O) z y, rv_lt_rv_iff O hO]
+  refine ⟨mul_lt_mul_of_pos_left ((rv_lt_rv_iff O hO).mp h).1 hz, ?_⟩
+  rw [map_mul (rv O), map_mul (rv O)]
+  exact fun hEq => h.ne (rv_mul_left_cancel O ht.ne' hEq)
+
+set_option linter.style.haveILetI false in
+/-- Unequal values determine the order on the positive branch. Equal
+values are compared within the corresponding residue chart. -/
+theorem rv_lt_of_value_lt_positive (hO : IsOrderConvex O) {s t : RV0 O}
+    (ht : letI := rvLinearOrder O hO; 0 < t)
+    (hval : unsignedValue O s < unsignedValue O t) :
+    letI := rvLinearOrder O hO
+    s < t := by
+  letI := rvLinearOrder O hO
+  obtain ⟨x, rfl⟩ := rv_surjective O s
+  obtain ⟨y, rfl⟩ := rv_surjective O t
+  have hy : 0 < y := (zero_lt_rv_iff O hO).mp ht
+  have hf : x < y := by
+    by_contra! h
+    exact hval.not_ge (by
+      rw [unsignedValue_rv, unsignedValue_rv]
+      exact valuation_le_of_nonneg_le O hO hy.le h)
+  exact (rv_lt_rv_iff O hO).mpr ⟨hf, fun h => hval.ne (congrArg (unsignedValue O) h)⟩
+
 /-- Absolute value in the signed leading-term sort. -/
 def rvAbs (hO : IsOrderConvex O) (t : RV0 O) : RV0 O :=
   letI := rvLinearOrder O hO

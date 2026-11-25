@@ -46,3 +46,7 @@ public import Section2.SortedDefinability
 public import Section2.RVReduct
 public import Section2.RVVectorSpace
 public import Section2.CanonicalModel
+public import Section2.QuotientInterpretation
+public import Section2.ValuedFieldFormulas
+public import Section2.FieldGeneratedEmbedding
+public import Section2.FieldTypeLift

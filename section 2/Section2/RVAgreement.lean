@@ -95,4 +95,27 @@ theorem RVMapsAgree.of_monomials (p : E → H → H) (W : Set H) (t : H)
   · obtain ⟨w, hw, e, rfl⟩ := hnormal x hx
     exact (hW w hw).mul (ht.power p e (hsource e) (htarget e))
 
+/-- Agreement on the intermediate leading terms gives the sorted lift
+with the specified VF embedding and exactly the old RV map. -/
+theorem exists_vfLift_of_RV_agreement
+    (B : L.Substructure K) (field : B ↪[L] F) (rep : B → H)
+    (hs : ∀ x, source (rep x) = rv O x.val) (ht : ∀ x, target (rep x) = rv Q (field x))
+    (ha : ∀ x, RVMapsAgree old source target (rep x)) :
+    ∃ (hB : ∀ x ∈ B, rv O x ∈ S.carrier .rv)
+      (j : SortedEmbedding (enlargeVF O hO P S B hB).structureOn
+        (canonicalStructure (L := L) Q hQ PQ)),
+      (∀ x : B, (j.toEmbedding .vf).toFun x = field x) ∧
+      (∀ t : S.carrier .rv, (j.toEmbedding .rv).toFun t = old.toEmbedding .rv t) := by
+  have hB (x : K) (hx : x ∈ B) : rv O x ∈ S.carrier .rv := by
+    obtain ⟨h, _⟩ := ha ⟨x, hx⟩
+    exact hs ⟨x, hx⟩ ▸ h
+  have hcomm (x : B) : old.toEmbedding .rv ⟨rv O x.val, hB x x.property⟩ = rv Q (field x) := by
+    obtain ⟨hm, he⟩ := ha x
+    have hx : (⟨rv O x.val, hB x x.property⟩ : S.carrier .rv) =
+        ⟨source (rep x), hm⟩ := Subtype.ext (hs x).symm
+    rw [hx, he, ht]
+  let j := liftVFEmbedding O hO P Q hQ PQ S B hB old field hcomm
+  exact ⟨hB, j, liftVFEmbedding_vf_apply O hO P Q hQ PQ S B hB old field hcomm,
+    liftVFEmbedding_rv_apply O hO P Q hQ PQ S B hB old field hcomm⟩
+
 end GeneralizedEuler.Section2

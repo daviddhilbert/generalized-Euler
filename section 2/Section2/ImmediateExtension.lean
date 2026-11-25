@@ -12,6 +12,7 @@ namespace GeneralizedEuler.Section2
 variable {K : Type*} [Field K] (O : ValuationSubring K)
 
 /-- The set of leading terms represented in a field substructure. -/
+@[expose]
 def fieldRV (A : Subfield K) : Set (RV0 O) := rv O '' (A : Set K)
 
 /-- Weak immediacy in the multiplicative value convention. Every

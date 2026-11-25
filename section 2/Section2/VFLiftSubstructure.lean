@@ -200,6 +200,28 @@ def liftVFEmbedding
         (rvLinearOrder O hO).le (a 0).val (a 1).val at h
       exact h
 
+@[simp]
+theorem liftVFEmbedding_rv_apply
+    (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
+    (B : L.Substructure K) (hB : ∀ x ∈ B, rv O x ∈ S.carrier .rv)
+    (old : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
+    (field : B ↪[L] F)
+    (hRV : ∀ x : B, old.toEmbedding .rv ⟨rv O x.val, hB x x.property⟩ = rv Q (field x))
+    (t : S.carrier .rv) :
+    ((liftVFEmbedding O hO P Q hQ PQ S B hB old field hRV).toEmbedding .rv).toFun t =
+      old.toEmbedding .rv t := by rfl
+
+@[simp]
+theorem liftVFEmbedding_vf_apply
+    (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
+    (B : L.Substructure K) (hB : ∀ x ∈ B, rv O x ∈ S.carrier .rv)
+    (old : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
+    (field : B ↪[L] F)
+    (hRV : ∀ x : B, old.toEmbedding .rv ⟨rv O x.val, hB x x.property⟩ = rv Q (field x))
+    (x : B) :
+    ((liftVFEmbedding O hO P Q hQ PQ S B hB old field hRV).toEmbedding .vf).toFun x =
+      field x := by rfl
+
 theorem canonicalSubstructure_rvMap (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
     (x : S.carrier .vf) : (S.structureOn.rvMap x).val = rv O x := by
   have h := S.inclusion.map_rv x

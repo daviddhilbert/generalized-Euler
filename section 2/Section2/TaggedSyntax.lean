@@ -47,7 +47,8 @@ theorem SortedTerm.realize_toGuarded (P : GuardedPresentation M A)
     simp only [ih, SortedTerm.realize]
     exact P.map_fun f _
 
-private def splitAddedVar {Var : TCsort → Type a} (s : TCsort) :
+@[expose]
+def splitAddedVar {Var : TCsort → Type a} (s : TCsort) :
     TaggedVar (AddSortedVar Var s) → TaggedVar Var ⊕ Unit
   | ⟨t, .inl x⟩ => .inl ⟨t, x⟩
   | ⟨_, .inr _⟩ => .inr ()

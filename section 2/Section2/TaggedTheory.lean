@@ -83,6 +83,7 @@ abbrev SortedSentence (L : Language.{u, v}) (E : Type w) :=
 
 abbrev SortedTheory (L : Language.{u, v}) (E : Type w) := Set (SortedSentence L E)
 
+@[expose]
 def SortedSentence.realize {X : TCsort → Type b} (M : SortedStructure L E X)
     (φ : SortedSentence L E) : Prop :=
   SortedFormula.realize M φ (fun _ => Empty.elim)

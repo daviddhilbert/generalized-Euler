@@ -2,6 +2,8 @@ module
 
 public import Section2.LeadingTermOrder
 public import Section2.ValueSplitting
+public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+public import Mathlib.LinearAlgebra.Quotient.Basic
 
 /-! Comparison of convex valuation rings in the prescribed-lift proof. -/
 
@@ -92,6 +94,31 @@ theorem eq_of_injective_valueCoarsening (h : O ≤ P)
   exact hv.ne' (hinj hm)
 
 omit [LinearOrder K] [IsStrictOrderedRing K] in
+/-- The coarsening homomorphism on nonzero unsigned values. -/
+noncomputable def valueCoarseningUnits (h : O ≤ P) : O.ValueGroupˣ →* P.ValueGroupˣ :=
+  Units.map (ValuationSubring.mapOfLE O P h).toMonoidHom
+
+omit [LinearOrder K] [IsStrictOrderedRing K] in
+theorem eq_of_injective_valueCoarseningUnits (h : O ≤ P)
+    (hinj : Function.Injective (valueCoarseningUnits O P h)) : O = P := by
+  apply eq_of_injective_valueCoarsening O P h
+  intro x y hxy
+  by_cases hx : x = 0
+  · subst x
+    rw [map_zero, eq_comm, map_eq_zero] at hxy
+    exact hxy.symm
+  · have hy : y ≠ 0 := by
+      intro hy
+      subst y
+      rw [map_zero, map_eq_zero] at hxy
+      exact hx hxy
+    let xu := Units.mk0 x hx
+    let yu := Units.mk0 y hy
+    have hu : valueCoarseningUnits O P h xu = valueCoarseningUnits O P h yu :=
+      Units.ext hxy
+    exact congrArg Units.val (hinj hu)
+
+omit [LinearOrder K] [IsStrictOrderedRing K] in
 /-- A coarsening of the ambient rings is injective on the values from
 any base subfield on which the two rings induce the same valuation ring. -/
 theorem coarsening_injOn_base_values (A : Subfield K) (h : O ≤ P)
@@ -113,6 +140,22 @@ theorem coarsening_injOn_base_values (A : Subfield K) (h : O ≤ P)
     ⟨hne, (hA _ hz).mpr hmem, (hA _ (A.inv_mem hz)).mpr hinv⟩
   rw [map_div₀] at h₁
   exact (div_eq_one_iff_eq hvO).mp h₁
+
+/-- In the unchanged-value case both convex rings are uniquely determined
+by the old valuation ring. -/
+theorem eq_convexValuationRing_of_all_values_old (hO : IsOrderConvex O) (hP : IsOrderConvex P)
+    (A : Subfield K) (hA : ∀ x ∈ A, x ∈ O ↔ x ∈ P)
+    (hOldO : ∀ u, u ∈ O.valuation '' (A : Set K))
+    (hOldP : ∀ u, u ∈ P.valuation '' (A : Set K)) : O = P := by
+  rcases convexValuationRing_comparable O P hO hP with h | h
+  · apply eq_of_injective_valueCoarsening O P h
+    intro x y hxy
+    exact coarsening_injOn_base_values O P A h hA (hOldO x) (hOldO y) hxy
+  · symm
+    apply eq_of_injective_valueCoarsening P O h
+    intro x y hxy
+    exact coarsening_injOn_base_values P O A h (fun z hz => (hA z hz).symm)
+      (hOldP x) (hOldP y) hxy
 
 /-- A coarsening is injective on a value group spanned by the old values
 and one new value if it is injective on the base and the new value
@@ -153,5 +196,27 @@ theorem injective_valueMap_of_span_singleton
   · intro b hb c hc _
     exact ((Submodule.mem_bot E).mp hb).trans ((Submodule.mem_bot E).mp hc).symm
   · simpa only [Submodule.map_bot, Submodule.mem_bot] using ha
+
+/-- The relative value-rank bound supplied by the Wilkie inequality
+makes any new value a generator modulo the old value space. -/
+theorem span_base_and_new_value_of_relative_finrank_le_one
+    {E V : Type*} [Field E] [AddCommGroup V] [Module E V]
+    (U : Submodule E V) [FiniteDimensional E (V ⧸ U)]
+    (hdim : Module.finrank E (V ⧸ U) ≤ 1) {a : V} (ha : a ∉ U) :
+    U ⊔ Submodule.span E {a} = ⊤ := by
+  have hq : U.mkQ a ≠ 0 := fun h => ha ((Submodule.Quotient.mk_eq_zero U).mp h)
+  have hn : Module.finrank E (V ⧸ U) ≠ 0 := fun h =>
+    hq ((finrank_zero_iff_forall_zero.mp h) (U.mkQ a))
+  have hd : Module.finrank E (V ⧸ U) = 1 := by omega
+  have hg := (finrank_eq_one_iff_of_nonzero' (U.mkQ a) hq).mp hd
+  apply eq_top_iff.mpr
+  intro x _
+  obtain ⟨e, he⟩ := hg (U.mkQ x)
+  have hb : x - e • a ∈ U := by
+    apply (Submodule.Quotient.mk_eq_zero U).mp
+    change U.mkQ (x - e • a) = 0
+    rw [map_sub, map_smul, he, sub_self]
+  exact Submodule.mem_sup.mpr ⟨x - e • a, hb, e • a,
+    Submodule.mem_span_singleton.mpr ⟨e, rfl⟩, sub_add_cancel _ _⟩
 
 end GeneralizedEuler.Section2

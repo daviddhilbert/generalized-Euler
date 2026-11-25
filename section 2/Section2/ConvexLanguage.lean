@@ -40,6 +40,13 @@ def convexStructure {K : Type*} [Field K] (O : ValuationSubring K)
   letI := valuationRingPredicate O
   inferInstance
 
+set_option linter.style.haveILetI false in
+theorem convexStructure_mem {K : Type*} [Field K] {L : Language.{u, v}} [L.Structure K]
+    (O : ValuationSubring K) (x : Fin 1 → K) :
+    letI := convexStructure O L
+    Language.Structure.RelMap (L := convexLanguage L) (.inr RingPredicate.mem) x ↔ x 0 ∈ O := by
+  rfl
+
 /-- The graph of a parameter-free function, as a formula with one extra
 free variable for the output. The same formula can be evaluated in VF and k. -/
 def DefinesTotalFunction {L : Language.{u, v}} {K : Type*} [L.Structure K]
@@ -116,6 +123,28 @@ theorem partialElementaryOfQE {L : Language.{u, v}} {T : L.Theory}
   rw [Subsingleton.elim (j ∘ (default : Fin 0 → A)) (default : Fin 0 → F)] at qj
   exact (realizes_iff_of_entails h (i ∘ x)).trans
     (qi.trans (qj.symm.trans (realizes_iff_of_entails h (j ∘ x)).symm))
+
+/-- The partial-elementarity consequence extends to formulas whose
+variables are indexed by any set of names. Each formula uses finitely
+many of those names. -/
+theorem partialElementaryOfQE_anyVar {L : Language.{u, v}} {T : L.Theory}
+    {A K F : Type*} [L.Structure A] [L.Structure K] [L.Structure F]
+    [K ⊨ T] [F ⊨ T] [Nonempty K] [Nonempty F] (hT : EliminatesQuantifiers T)
+    (i : A ↪[L] K) (j : A ↪[L] F) {Var : Type*} (φ : L.Formula Var) (x : Var → A) :
+    φ.Realize (i ∘ x) ↔ φ.Realize (j ∘ x) := by
+  classical
+  let e := Fintype.equivFin (↥φ.freeVarFinset)
+  let ψ : L.Formula (Fin (Fintype.card (↥φ.freeVarFinset))) := φ.restrictFreeVar e
+  let w := fun t : Fin (Fintype.card (↥φ.freeVarFinset)) => x (e.symm t).val
+  have hK : ψ.Realize (i ∘ w) ↔ φ.Realize (i ∘ x) := by
+    apply BoundedFormula.realize_restrictFreeVar
+    intro t
+    simp only [Function.comp_apply, w, Equiv.symm_apply_apply]
+  have hF : ψ.Realize (j ∘ w) ↔ φ.Realize (j ∘ x) := by
+    apply BoundedFormula.realize_restrictFreeVar
+    intro t
+    simp only [Function.comp_apply, w, Equiv.symm_apply_apply]
+  exact hK.symm.trans ((partialElementaryOfQE hT i j ψ w).trans hF)
 
 /-- The external input of Theorem 2.11 for the theory of proper T-convex
 pairs, from van den Dries–Lewenberg (1995), Theorem 3.10 and Corollary 3.13. -/
