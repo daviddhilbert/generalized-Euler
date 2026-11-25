@@ -61,3 +61,14 @@ public import Section3.ChildSemilinear
 public import Section3.SmoothSlices
 public import Section3.FourForms
 public import Section3.ResidueChartGraph
+public import Section3.HollyMonotonicity
+public import Section3.ValueChartLocus
+public import Section3.AdjacentCharts
+public import Section3.ContractedJets
+public import Section3.IteratedReduction
+public import Section3.DefinableRadii
+public import Section3.RegularOrientation
+public import Section3.DefinableTags
+public import Section3.DiscPartitionFormula
+public import Section3.ImaginaryValueChoice
+public import Section3.DifferentialPolynomial
