@@ -308,4 +308,42 @@ theorem sortedFormula_iff_of_common_field_representatives
   rw [← RM.realize_translate, ← RN.realize_translate]
   exact partialElementaryOfQE_anyVar hT p q (I.translate φ) representatives
 
+/-- Transport a substructure using common field representatives. The
+interpreting formulas and field QE give preservation of all primitives
+on the transported representatives, even when the common field
+substructure does not itself model the valued-field theory. -/
+theorem exists_sortedEmbedding_of_common_field_representatives
+    {T : J.Theory} (hT : EliminatesQuantifiers T)
+    {A B C : Type*} [J.Structure A] [J.Structure B] [Nonempty B] [B ⊨ T]
+      [J.Structure C] [Nonempty C] [C ⊨ T]
+    {X Y : TCsort → Type*} {M : SortedStructure L E X} {N : SortedStructure L E Y}
+    (RM : RealizesQuotientInterpretation I (A := B) M)
+    (RN : RealizesQuotientInterpretation I (A := C) N)
+    (p : A ↪[J] B) (q : A ↪[J] C) (S : SortedSubstructure M)
+    (r : ∀ s, S.carrier s → A)
+    (hr : ∀ s (x : S.carrier s), RM.rep s (p (r s x)) = x.val) :
+    ∃ e : SortedEmbedding S.structureOn N,
+      ∀ s (x : S.carrier s), e.toEmbedding s x = RN.rep s (q (r s x)) := by
+  let representatives : TaggedVar (fun s => S.carrier s) → A := fun a => r a.1 a.2
+  let map (s : TCsort) (x : S.carrier s) := RN.rep s (q (r s x))
+  have hLeft : RM.assignment (p ∘ representatives) = fun _ x => x.val := by
+    funext s x
+    rw [RealizesQuotientInterpretation.assignment_apply]
+    exact hr s x
+  have hRight : RN.assignment (q ∘ representatives) = map := by
+    funext s x
+    rw [RealizesQuotientInterpretation.assignment_apply]
+    rfl
+  have transfer (φ : SortedFormula L E (fun s => S.carrier s)) :
+      φ.realize M (fun _ x => x.val) ↔ φ.realize N map := by
+    have h := sortedFormula_iff_of_common_field_representatives I hT RM RN p q representatives φ
+    rwa [hLeft, hRight] at h
+  let e : SortedEmbedding S.structureOn N := {
+    toEmbedding := fun s => ⟨map s, fun x y he => Subtype.ext
+      ((transfer (.equal (.var x) (.var y))).mpr he)⟩
+    map_fun := fun f xs =>
+      (transfer (.equal (.var (S.structureOn.funMap f xs)) (.app f (fun i => .var (xs i))))).mp rfl
+    map_rel := fun f xs => (transfer (.rel f fun i => .var (xs i))).symm }
+  exact ⟨e, fun _ _ => rfl⟩
+
 end GeneralizedEuler.Section2

@@ -45,11 +45,13 @@ theorem powerBound_over_larger_base {A B : Set K} (hAB : A ⊆ B)
   Set.Definable.mono hg hAB
 
 /-- A unary cell with endpoints in the ambient order, allowing unbounded intervals. -/
+@[expose]
 def IsUnaryCell (s : Set K) : Prop :=
   s = Set.univ ∨ (∃ a, s = {a}) ∨ (∃ a, s = Set.Iio a) ∨
     (∃ a, s = Set.Ioi a) ∨ (∃ a b, s = Set.Ioo a b)
 
 /-- O-minimality with arbitrary parameters as in Convention 2.1. -/
+@[expose]
 def IsOMinimal (L : Language.{u, v}) [L.Structure K] : Prop :=
   ∀ s : Set K, (Set.univ : Set K).Definable₁ L s →
     ∃ cells : Finset (Set K), (∀ c ∈ cells, IsUnaryCell c) ∧ s = ⋃ c ∈ cells, c

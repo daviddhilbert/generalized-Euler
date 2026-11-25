@@ -89,3 +89,4 @@ public import Section2.ProjectionTopology
 public import Section2.ResidueTopology
 public import Section2.RelativeValueSubspace
 public import Section2.RVClosure
+public import Section2.ContinuousDefinitions
