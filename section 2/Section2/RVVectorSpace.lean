@@ -281,6 +281,18 @@ def positiveValueLinearMap :
   exact { (positiveValueMap O).toAdditive with
     map_smul' := fun e t => (valueScalar_eq O g P hP hunit e t.toMul).symm }
 
+theorem positiveValueLinearMap_apply (x : Additive (PositiveRV O)) :
+    positiveValueLinearMap O g P hP hzero hone hadd hmul hunit x =
+      Additive.ofMul (positiveValueMap O x.toMul) := by
+  rfl
+
+set_option linter.style.haveILetI false in
+theorem positiveRVToRV0_smul (e : E) (x : Additive (PositiveRV O)) :
+    letI := positiveRVModule O g P hP hzero hone hadd hmul
+    positiveRVToRV0 O (e • x).toMul = P e (positiveRVToRV0 O x.toMul) := by
+  letI := positiveRVModule O g P hP hzero hone hadd hmul
+  exact positiveRVToRV0_power O (hP e) x.toMul
+
 theorem positiveValueLinearMap_surjective :
     Function.Surjective (positiveValueLinearMap O g P hP hzero hone hadd hmul hunit) := by
   exact positiveValueMap_surjective O

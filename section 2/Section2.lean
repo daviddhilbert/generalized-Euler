@@ -73,3 +73,6 @@ public import Section2.ImmediateAdjunction
 public import Section2.ImmediateIdentity
 public import Section2.ImmediateTranslate
 public import Section2.ImmediateBackAndForth
+public import Section2.RVSplitCoordinates
+public import Section2.SplitDefinability
+public import Section2.RVFormulaSeparation
