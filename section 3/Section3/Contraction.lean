@@ -44,6 +44,7 @@ theorem rvBoundary_eq_empty_iff (p : X → U) (A : Set X) :
 
 /-- The range version of Definition 3.27 handles a partial domain by taking
 its subtype for X. It applies unchanged to residue and valuation. -/
+@[expose]
 def Contractible (p : X → U) (q : Y → V) (f : X → Y) : Prop :=
   ∀ x y, p x = p y → q (f x) = q (f y)
 

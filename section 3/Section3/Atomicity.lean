@@ -16,6 +16,7 @@ structure GeneratesType (D : Set (Set X)) (A : Set X) : Prop where
   nonempty : A.Nonempty
   uniform : ∀ B ∈ D, ∀ x ∈ A, ∀ y ∈ A, x ∈ B ↔ y ∈ B
 
+@[expose]
 def AtomicOver (D : Set (Set X)) (A : Set X) : Prop := A ∈ D ∧ GeneratesType D A
 
 theorem generatesType_iff (D : Set (Set X)) (A : Set X) :

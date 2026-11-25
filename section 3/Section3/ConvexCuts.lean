@@ -13,6 +13,7 @@ open GeneralizedEuler.Section2
 variable {X I : Type*} [LinearOrder X]
 
 /-- The members of a disjoint convex family cut by a unary set. -/
+@[expose]
 def cutLabels (D : I → Set X) (A : Set X) : Set I :=
   {i | (D i ∩ A).Nonempty ∧ (D i \ A).Nonempty}
 

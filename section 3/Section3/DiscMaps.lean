@@ -12,14 +12,17 @@ open GeneralizedEuler.Section2
 variable {K : Type*} [Field K] (O : ValuationSubring K)
 
 /-- Definition 3.23, written for maps on a specified domain. -/
+@[expose]
 def ConcentricOn (A : Set K) (f : K → K) : Prop :=
   ∀ c r, r ≠ 0 → openDisc O c r ⊆ A →
     ∃ c' r', r' ≠ 0 ∧ f '' openDisc O c r = openDisc O c' r'
 
+@[expose]
 def DiscToDiscOn (A B : Set K) (f g : K → K) : Prop :=
   Set.BijOn f A B ∧ Set.InvOn g f A B ∧ ConcentricOn O A f ∧ ConcentricOn O B g
 
 /-- The proposed sufficient condition in the paragraph following 3.23. -/
+@[expose]
 def PreservesClosedDiscsOn (A : Set K) (f : K → K) : Prop :=
   ∀ c r, closedDisc O c r ⊆ A →
     ∃ c' r', f '' closedDisc O c r = closedDisc O c' r'
