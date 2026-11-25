@@ -35,7 +35,7 @@ private theorem residue_update (a : Fin n → O) (i : Fin n) (y : O) :
 unary mean-value partitions for consecutive jets. The residue hypotheses
 are finite output values, definability of value equality, and continuous
 first derivatives of the given contractions in their nonzero charts. -/
-theorem contracted_jets_on_open_locus {L : Language} [L.Structure (Residue O)] {P : Set (Residue O)}
+theorem contracted_jets_on_open_value_locus {L : Language} [L.Structure (Residue O)] {P : Set (Residue O)}
     (F : OrderedFieldTerms L) (p : Fin n → ℕ) (A : Set (Fin n → Residue O))
     (f : (Fin n → ℕ) → (Fin n → O) → K) (R : (Fin n → ℕ) → (Fin n → Residue O) → RV0 O)
     (dA : P.Definable L A) (contract : ∀ q ≤ p, ∀ a, (IsLocalRing.residue O) ∘ a ∈ A →
@@ -58,6 +58,7 @@ theorem contracted_jets_on_open_locus {L : Language} [L.Structure (Residue O)] {
         (fun s => R q (Function.update ((IsLocalRing.residue O) ∘ a) i s))) →
     ∃ W ⊆ A, P.Definable L W ∧ P.Definable L (A \ W) ∧ IsOpen W ∧
       projectionDimensionWithBot (A \ W) < (n : WithBot ℕ) ∧
+      (∀ t ∈ W, ∀ q ≤ p, ∀ᶠ u in 𝓝 t, unsignedValue O (R q u) = unsignedValue O (R q t)) ∧
       ∀ a, (IsLocalRing.residue O) ∘ a ∈ W →
         (∀ q ≤ p, f q a ∈ O) ∧
         ∀ q ≤ p, ∀ i, q i ≠ 0 →
@@ -78,7 +79,7 @@ theorem contracted_jets_on_open_locus {L : Language} [L.Structure (Residue O)] {
   let v (j : J) := (unsignedValue O) ∘ R j.val
   obtain ⟨W,sub,dW,dE,op,dim,localVal⟩ := definable_value_chart_locus F hF A dA v
     (fun j => fin j.val j.property) (fun j => defEq j.val j.property) tame
-  refine ⟨W,sub,dW,dE,op,dim,?_⟩
+  refine ⟨W,sub,dW,dE,op,dim,fun t ht q hq => localVal t ht ⟨q,hq⟩,?_⟩
   intro a ha
   let t := (IsLocalRing.residue O) ∘ a
   have adj (q) (hq : q ≤ p) (i) (hi : q i ≠ 0) :
@@ -123,5 +124,45 @@ theorem contracted_jets_on_open_locus {L : Language} [L.Structure (Residue O)] {
   have hd := (hg (integ j ((pred_le q i).trans hq))).2
   rw [←contract q hq a (sub ha),rvResidue_rv]
   exact hd
+
+/-- The adjacent comparisons and residue identities without the additional
+value-neighborhoods provided by the chart construction. -/
+theorem contracted_jets_on_open_locus {L : Language} [L.Structure (Residue O)] {P : Set (Residue O)}
+    (F : OrderedFieldTerms L) (p : Fin n → ℕ) (A : Set (Fin n → Residue O))
+    (f : (Fin n → ℕ) → (Fin n → O) → K) (R : (Fin n → ℕ) → (Fin n → Residue O) → RV0 O)
+    (dA : P.Definable L A) (contract : ∀ q ≤ p, ∀ a, (IsLocalRing.residue O) ∘ a ∈ A →
+      rv O (f q a) = R q ((IsLocalRing.residue O) ∘ a))
+    (base : ∀ a, (IsLocalRing.residue O) ∘ a ∈ A → f 0 a ∈ O)
+    (fin : ∀ q ≤ p, ((unsignedValue O) ∘ R q '' A).Finite)
+    (defEq : ∀ q ≤ p, P.Definable L {w : Fin n ⊕ Fin n → Residue O |
+      unsignedValue O (R q (w ∘ Sum.inl)) = unsignedValue O (R q (w ∘ Sum.inr))}) :
+    letI := residueLinearOrder O hO
+    letI := residueOrderTopology O hO
+    InterpretsOrderedFieldTerms (A := Residue O) F →
+    (∀ S : Set (Fin n → Residue O), (univ : Set (Residue O)).Definable L S → IsNowhereDense (frontier S)) →
+    (∀ q ≤ p, ∀ i, q i ≠ 0 → ∀ (a : Fin n → O) l u,
+      MapsTo (Function.update ((IsLocalRing.residue O) ∘ a) i) (Ioo l u) A →
+      PiecewiseSliceMVT O (Ioo l u) (fun y => f (Function.update q i (q i-1)) (Function.update a i y))
+        (fun y => f q (Function.update a i y))) →
+    (∀ q ≤ p, ∀ (a : Fin n → O) i l u,
+      MapsTo (Function.update ((IsLocalRing.residue O) ∘ a) i) (Ioo l u) A →
+      SmoothSliceChart O hO (Ioo l u) (fun y => f q (Function.update a i y))
+        (fun s => R q (Function.update ((IsLocalRing.residue O) ∘ a) i s))) →
+    ∃ W ⊆ A, P.Definable L W ∧ P.Definable L (A \ W) ∧ IsOpen W ∧
+      projectionDimensionWithBot (A \ W) < (n : WithBot ℕ) ∧
+      ∀ a, (IsLocalRing.residue O) ∘ a ∈ W →
+        (∀ q ≤ p, f q a ∈ O) ∧
+        ∀ q ≤ p, ∀ i, q i ≠ 0 →
+          let j := Function.update q i (q i - 1)
+          let t := (IsLocalRing.residue O) ∘ a
+          AdjacentComparison O hO (fun y => f j (Function.update a i y))
+            (fun y => f q (Function.update a i y)) (fun s => R j (Function.update t i s)) (a i) ∧
+          HasOrderDerivativeAt (fun s => rvResidue O (R j (Function.update t i s))) (t i) (rvResidue O (R q t)) := by
+  let := residueLinearOrder O hO
+  let := residueOrderTopology O hO
+  intro hF tame mvt smooth
+  obtain ⟨W,sub,dW,dE,op,dim,_,adj⟩ := contracted_jets_on_open_value_locus O hO F p A f R
+    dA contract base fin defEq hF tame mvt smooth
+  exact ⟨W,sub,dW,dE,op,dim,adj⟩
 
 end GeneralizedEuler.Section3

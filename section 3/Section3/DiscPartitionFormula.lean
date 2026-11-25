@@ -1,10 +1,14 @@
 module
 
 public import Section3.ObjectPartitions
+public import Section3.PolydiscImages
+import all Section3.PolydiscImages
+import all Section3.DefinablePartitions
 public import Section2.RecoveredValuedField
 public import Section2.ValuedFieldFormulas
 import all Section2.SortedQuantifierBlock
 import all Section3.BoundaryBranches
+import all Section2.SortedStructure
 import all Section2.SortedSyntax
 
 public section
@@ -196,5 +200,47 @@ theorem partition_polydisc_images (T : SortedTheory L E) (A : SortedFormula L E 
   apply (SortedFormula.realize_conjunction _ _ _ _).mpr
   exact ⟨(SortedFormula.realize_exBlock _ _ _ _).mpr (ne.imp (fun x hx => (product_eval _ _ _ _).mpr hx)),
     (SortedFormula.realize_neg _ _ _).mpr (fun h => no ((good_eval _ _ _ _).mp h))⟩
+
+/-- In the pure-language version of 3.16, the finite truth patterns
+are themselves pure formulas over exactly the parameters of the input. -/
+theorem pure_definable_partition_pieces {K : Type*} {J : Language} [J.Structure K] {P : Set K}
+    {A : Set (Fin n → K)} {I : Type*} {B : I → Set (Fin n → K)} (dA : P.Definable J A)
+    (F : Finset I) (dB : ∀ i ∈ F, P.Definable J (B i)) (pat : F → Bool) :
+    P.Definable J (truthCell A B F pat) := by
+  let C (i : F) := if pat i then B i else (B i)ᶜ
+  have dC (i : F) : P.Definable J (C i) := by
+    cases h : pat i <;> simp only [C,h,Bool.false_eq_true,ite_false,ite_true]
+    · exact (dB i i.property).compl
+    · exact dB i i.property
+  convert dA.inter (definable_iInter_of_finite dC) using 1
+  ext x
+  change (x ∈ A ∧ ∀ i : F, x ∈ B i ↔ pat i = true) ↔ x ∈ A ∩ ⋂ i, C i
+  simp only [mem_inter_iff,mem_iInter]
+  exact and_congr_right (fun _ => forall_congr' (fun i => by cases h : pat i <;> simp [C,h]))
+
+/-- In the canonical valued field the object formula has exactly the
+geometric meaning of 3.16, including the finite-radius convention. -/
+theorem goodDiscImage_canonical {K : Type u} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
+    [L.Structure K] (O : ValuationSubring K) [L.Structure (Residue O)] (hO : IsOrderConvex O)
+    (power : E → RV0 O → RV0 O) (minusOne : L.Term Empty) (hm : minusOne.realize (Empty.elim : Empty → K) = -1)
+    (F : FieldTerms (convexLanguage L)) (hF : letI := convexStructure O L; InterpretsFieldTerms (K := K) F)
+    (S : Set K) (ne : S.Nonempty) :
+    GoodDiscImage (canonicalStructure O hO power) (sortedOpenDisc minusOne F) S ↔
+      (∃ t, ∀ y ∈ S, rv O y = t) ∧ IsPointOrOpen O S := by
+  unfold GoodDiscImage IsPointOrOpen
+  simp only [canonicalStructure_rvMap]
+  apply and_congr
+  · exact ⟨fun ⟨z,h⟩ => ⟨_,h⟩,fun ⟨t,h⟩ => by obtain ⟨z,rfl⟩ := rv_surjective O t; exact ⟨z,h⟩⟩
+  · apply or_congr_right
+    simp_rw [sortedOpenDisc_canonical O hO power minusOne hm F hF]
+    constructor
+    · rintro ⟨c,b,eqn⟩
+      obtain ⟨z,hz⟩ := ne
+      rw [eqn] at hz
+      have v : O.valuation (z-c) < O.valuation b := hz
+      exact ⟨c,_,(zero_le.trans_lt v).ne',eqn⟩
+    · rintro ⟨c,r,_,eqn⟩
+      obtain ⟨b,hb⟩ := O.valuation_surjective r
+      exact ⟨c,b,hb.symm ▸ eqn⟩
 
 end GeneralizedEuler.Section3.DiscPartition

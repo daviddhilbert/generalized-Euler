@@ -72,3 +72,15 @@ public import Section3.DefinableTags
 public import Section3.DiscPartitionFormula
 public import Section3.ImaginaryValueChoice
 public import Section3.DifferentialPolynomial
+public import Section3.InducedResidueCharts
+public import Section3.SaturatedAtomicDisc
+public import Section3.CriticalFamilies
+public import Section3.OuterDiscGerms
+public import Section3.SeparatedDiscGerms
+public import Section3.SmallParameterGerms
+public import Section3.IteratedRV
+public import Section3.SmoothDomain
+public import Section3.MixedPartitions
+public import Section3.AtomicFormTheorem
+public import Section3.CollapsedResidueBranch
+public import Section3.RepresentedGerms
