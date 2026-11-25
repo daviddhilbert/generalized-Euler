@@ -32,3 +32,8 @@ public import Section3.GoodLabels
 public import Section3.Monotonicity
 public import Section3.CofinalValues
 public import Section3.ValueGerms
+
+public import Section3.ValueParameterTests
+public import Section3.BoundaryDimension
+public import Section3.ExponentialObstruction
+public import Section3.FiniteAuxiliaryForm
