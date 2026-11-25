@@ -14,7 +14,7 @@ variable {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
 
 /-- The signed-valuative conclusion of van den Dries, Proposition 4.2,
 cited as Lemma 3.2. The cutoff belongs to the valuation ring. -/
-def EventuallyConstantValue (O : ValuationSubring K) (hO : IsOrderConvex O)
+@[expose] def EventuallyConstantValue (O : ValuationSubring K) (hO : IsOrderConvex O)
     (f : O → K) : Prop :=
   ∃ a : O, ∀ b c : O, a < b → a < c →
     signedValue O hO (rv O (f b)) = signedValue O hO (rv O (f c))

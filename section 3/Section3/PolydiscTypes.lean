@@ -135,4 +135,74 @@ theorem immediate_transitivity_of_field_type {E : Type*} [Field K] [LinearOrder 
     · rw [Function.update_of_ne hij]
       exact hfix ⟨z j, Substructure.subset_closure ⟨.inr ⟨j,hij⟩,rfl⟩⟩
 
+
+section
+open Cardinal
+universe u v w
+variable {L : Language.{u,v}}
+
+set_option linter.style.haveILetI false in
+/-- Lemma 3.15, with the Section 2 lifting and saturation inputs. Each
+intermediate base is the small field closure of the named parameters and
+the other coordinates. The final automorphism fixes the full RV sort. -/
+theorem immediate_automorphism_on_polydisc
+    {E : Type w} [Field E] {T : L.Theory} [T.IsUniversal]
+    {Tconvex : (convexLanguage L).Theory} {terms : OrderedFieldTerms L}
+    {graph : E → L.Formula (Fin 2)} {K : Type u}
+    (d : CanonicalQEModel T Tconvex terms graph K)
+    (hInput : d.hasAdjunctionInputs d)
+    (hOM : IsOMinimalFieldTheory.{u, v, u} T) (hQE : EliminatesQuantifiers T)
+    (hQEv : EliminatesQuantifiers Tconvex)
+    (F : FieldTerms (convexLanguage L))
+    {μ : Cardinal.{u}} (hμ : ℵ₀ ≤ μ) (hμK : μ < #K)
+    (hL : #(Σ i, L.Functions i) ≤ μ) :
+    letI := d.field
+    letI := d.order
+    letI := d.orderedRing
+    letI := d.languageStructure
+    letI := convexStructure d.ring L
+    InterpretsFieldTerms (K := K) F →
+    (∀ Names : Type u, #Names < #K →
+      RealizesFinitelySatisfiableFieldTypes (convexLanguage L) K Names) →
+    (∀ (D : L.Substructure K) (a : K),
+      (∃ y ∈ adjoinFieldRepresentative D a, rv d.ring y ∉ rv d.ring '' (D : Set K)) →
+      ∃ c : D, rv d.ring (a - c.val) ∉ rv d.ring '' (D : Set K)) →
+    ∀ (S : SortedSubstructure d.structureOn), #(S.carrier .vf) ≤ μ →
+      ∀ {n : ℕ} (c : Fin n → K) (r : Fin n → d.ring.ValueGroup),
+      (∀ i, (openDisc d.ring (c i) (r i)).Nontrivial) →
+      (∀ x, (∀ j, x j ∈ openDisc d.ring (c j) (r j)) →
+        ∀ y, (∀ j, y j ∈ openDisc d.ring (c j) (r j)) →
+        ∀ φ : L.Formula (S.carrier .vf ⊕ Fin n),
+        φ.Realize (Sum.elim Subtype.val x) ↔ φ.Realize (Sum.elim Subtype.val y)) →
+      ∀ x y : Fin n → K, (∀ j, x j ∈ openDisc d.ring (c j) (r j)) →
+        (∀ j, y j ∈ openDisc d.ring (c j) (r j)) →
+        ∃ e : SortedIsomorphism d.structureOn d.structureOn,
+          (∀ j, e.toEmbedding .vf (x j) = y j) ∧
+          (∀ a : S.carrier .vf, e.toEmbedding .vf a = a.val) ∧
+          ∀ t, e.toEmbedding .rv t = t := by
+  letI := d.field
+  letI := d.order
+  letI := d.orderedRing
+  letI := d.languageStructure
+  letI := d.residueStructure
+  letI := convexStructure d.ring L
+  intro hF hSat hDetect S hS n c r hD htype x y hx hy
+  apply immediate_transitivity_of_field_type d.ring d.convex d.rvPowers.pow
+    (Subtype.val : S.carrier .vf → K) c r hD htype _ x y hx hy
+  intro i z a b B htrans
+  let full : SortedSubstructure d.structureOn := ⟨fun _ => Set.univ,fun _ _ _ => Set.mem_univ _⟩
+  let E' := enlargeVF d.ring d.convex d.rvPowers.pow full B (fun _ _ => Set.mem_univ _)
+  have hSize : #(E'.carrier .vf) ≤ μ := by
+    apply card_fieldClosure_le hμ hL _ (Cardinal.mk_range_le.trans ?_)
+    rw [Cardinal.mk_sum]
+    simp only [Cardinal.lift_uzero]
+    apply Cardinal.add_le_of_le hμ hS
+    apply le_trans _ hμ
+    simp
+  obtain ⟨e,he,hfix,hRV⟩ := immediate_automorphism_of_matching_translates
+    d hInput hOM hQE hQEv F hμ hμK hL hF hSat hDetect E' hSize a b htrans
+  exact ⟨e,he,fun k => hfix k.val k.property,hRV⟩
+
+end
+
 end GeneralizedEuler.Section3

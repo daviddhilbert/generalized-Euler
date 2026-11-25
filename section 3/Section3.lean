@@ -5,10 +5,13 @@ public import Section3.Contraction
 public import Section3.AffineSlopes
 public import Section3.ConvexCuts
 public import Section3.Atomicity
+public import Section3.AtomicIntervals
 public import Section3.ResidueDerivatives
 public import Section3.TopTerms
 public import Section3.DefinableFunctions
 public import Section3.DefinablePoints
+public import Section3.DiscParameters
+public import Section3.ClosedDiscPoints
 public import Section3.AffineLine
 public import Section3.ExceptionalLabels
 public import Section3.AtomicDiscs
@@ -24,4 +27,5 @@ public import Section3.PolydiscTypes
 public import Section3.CutDiscPoints
 public import Section3.PartialDerivatives
 public import Section3.Monotonicity
+public import Section3.CofinalValues
 public import Section3.ValueGerms
