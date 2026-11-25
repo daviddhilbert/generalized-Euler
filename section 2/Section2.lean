@@ -69,3 +69,7 @@ public import Section2.PrescribedRVStep
 public import Section2.SortedQuantifierBlock
 public import Section2.UniformCharts
 public import Section2.DimensionFormulas
+public import Section2.ImmediateAdjunction
+public import Section2.ImmediateIdentity
+public import Section2.ImmediateTranslate
+public import Section2.ImmediateBackAndForth

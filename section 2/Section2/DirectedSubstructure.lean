@@ -125,6 +125,7 @@ namespace FixedRVLift
 variable {M N R}
 
 /-- Inclusion of sources together with agreement of the embeddings. -/
+@[expose]
 def Extends (A B : FixedRVLift M N R) : Prop :=
   ∃ h : ∀ s, A.source.carrier s ⊆ B.source.carrier s,
     ∀ s (x : A.source.carrier s),

@@ -38,6 +38,7 @@ def vfReductOfSortedSubstructure : L.Substructure K where
 variable (e : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
 
 /-- The old sorted map restricts to an embedding in the field language. -/
+@[expose]
 def fieldEmbeddingOfSorted : vfReductOfSortedSubstructure O hO P S ↪[L] F where
   toFun := e.toEmbedding .vf
   inj' := (e.toEmbedding .vf).injective
@@ -120,6 +121,7 @@ def convexReductOfSortedSubstructure :
 set_option linter.style.haveILetI false in
 /-- The field restriction of an old sorted embedding preserves the
 valued-field language used in Lemma 2.20 and Theorem 2.16. -/
+@[expose]
 def valuedFieldEmbeddingOfSorted (minusOne : S.carrier .vf)
     (hminus : minusOne.val = -1) (hminus' : e.toEmbedding .vf minusOne = -1) :
     letI := convexStructure O L

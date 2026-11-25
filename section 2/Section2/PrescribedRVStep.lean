@@ -98,6 +98,25 @@ theorem exists_fixedRVExtension_of_canonical_agreement
     rw [heq, he, right.rvHom_rv, hright]
   exact exists_fixedRVExtension_of_compatible_field O hO PO Q hQ PQ A B field hbase hB hfield hcomm
 
+/-- The immediate field-extension case only needs old leading-term
+representatives. Compatibility follows from the common field map. -/
+theorem exists_fixedRVExtension_of_unchanged_leadingTerms
+    (hOld : ∀ x : B, rv O x.val ∈ rv O '' A.source.carrier .vf) :
+    ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+  apply exists_fixedRVExtension_of_canonical_agreement A left right B field hbase hfield rep hleft hright
+  intro x
+  obtain ⟨c, hc, he⟩ := hOld x
+  let p : A.source.carrier .vf := ⟨c, hc⟩
+  let q : B := ⟨c, hbase hc⟩
+  have hp := rvMapsAgree_of_common_field_value A left right (rep q) p (hleft q)
+    ((hright q).trans (hfield p))
+  have hv : rv I (rep q) = rv I (rep x) := by
+    apply (left.toEmbedding .rv).injective
+    rw [← left.rvHom_apply, ← left.rvHom_apply, left.rvHom_rv, left.rvHom_rv, hleft, hleft]
+    exact he
+  exact hv ▸ hp
+
 /-- In the new-value case, the monomial descriptions of the intermediate
 leading terms extend the embedding with the original RV sort. -/
 theorem exists_fixedRVExtension_of_canonical_monomials
