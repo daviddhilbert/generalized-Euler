@@ -65,3 +65,7 @@ public import Section2.FieldOperations
 public import Section2.ValueMonomials
 public import Section2.EndDiscs
 public import Section2.DefinableEndDiscs
+public import Section2.PrescribedRVStep
+public import Section2.SortedQuantifierBlock
+public import Section2.UniformCharts
+public import Section2.DimensionFormulas

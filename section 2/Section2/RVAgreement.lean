@@ -101,6 +101,7 @@ variable {K F : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
 
 /-- The intermediate leading term has its source image in the old RV
 substructure and the old map sends that image to its target image. -/
+@[expose]
 def RVMapsAgree (x : H) : Prop :=
   ∃ hx : source x ∈ S.carrier .rv, old.toEmbedding .rv ⟨source x, hx⟩ = target x
 

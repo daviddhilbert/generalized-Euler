@@ -49,7 +49,7 @@ theorem realize_disjunction {X : TCsort → Type*} (M : SortedStructure L E X)
   classical
   simp only [disjunction, SortedFormula.realize, realize_neg, ← or_iff_not_imp_left]
 
-private def allOf (l : List (SortedFormula L E Var)) : SortedFormula L E Var :=
+def allOf (l : List (SortedFormula L E Var)) : SortedFormula L E Var :=
   l.foldr conjunction (.neg .falsum)
 
 def anyOf (l : List (SortedFormula L E Var)) : SortedFormula L E Var :=
@@ -71,7 +71,7 @@ private theorem anyOf_isQF (l : List (SortedFormula L E Var)) (h : ∀ ψ ∈ l,
     exact .imp (neg_isQF (h ψ (List.mem_cons_self ..)))
       (ih (fun χ hχ => h χ (List.mem_cons_of_mem _ hχ)))
 
-private theorem realize_allOf {X : TCsort → Type*} (M : SortedStructure L E X)
+theorem realize_allOf {X : TCsort → Type*} (M : SortedStructure L E X)
     (x : ∀ s, Var s → X s) (l : List (SortedFormula L E Var)) :
     (allOf l).realize M x ↔ ∀ ψ ∈ l, ψ.realize M x := by
   classical

@@ -16,6 +16,7 @@ namespace GeneralizedEuler.Section2
 variable {X : Type*} [TopologicalSpace X] {n : ℕ}
 
 /-- A coordinate projection indexed by an injection of coordinate sets. -/
+@[expose]
 def coordinateProjection {k : ℕ} (e : Fin k ↪ Fin n) (x : Fin n → X) : Fin k → X :=
   x ∘ e
 
@@ -46,6 +47,20 @@ theorem le_projectionDimension {D : Set (Fin n → X)} {k : ℕ}
   have hk : k ≤ n := by simpa using Fintype.card_le_of_injective e e.injective
   exact Finset.le_sup (f := id) (Finset.mem_filter.mpr
     ⟨Finset.mem_range.mpr (Nat.lt_succ_of_le hk), e, he⟩)
+
+theorem projectionDimension_le_iff {D : Set (Fin n → X)} {k : ℕ} :
+    projectionDimension D ≤ k ↔
+      ∀ (m : Fin (n + 1)) (p : Fin m.val ↪ Fin n), k < m.val →
+        ¬(interior (coordinateProjection p '' D)).Nonempty := by
+  classical
+  constructor
+  · intro h m p hm hi
+    exact hm.not_ge ((le_projectionDimension ⟨p, hi⟩).trans h)
+  · intro h
+    apply Finset.sup_le
+    intro m hm
+    obtain ⟨hn, p, hp⟩ := Finset.mem_filter.mp hm
+    exact le_of_not_gt (fun hk => h ⟨m, Finset.mem_range.mp hn⟩ p hk hp)
 
 theorem projectionDimension_mono {D B : Set (Fin n → X)} (h : D ⊆ B) :
     projectionDimension D ≤ projectionDimension B := by
