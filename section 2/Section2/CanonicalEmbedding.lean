@@ -21,6 +21,30 @@ variable {K F : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
   (O : ValuationSubring K) (P : ValuationSubring F)
   [L.Structure (Residue O)] [L.Structure (Residue P)]
 
+/-- Reducing a named power commutes with an ordered valued-field
+embedding that preserves the corresponding field power. -/
+theorem mapRV_commutes_with_power (hO : IsOrderConvex O) (hP : IsOrderConvex P)
+    (f : K →+* F) (hf : RespectsValuationRing O P f) (hmono : StrictMono f)
+    (g : PositiveField K →* PositiveField K) (g' : PositiveField F →* PositiveField F)
+    (Q : RV0 O → RV0 O) (Q' : RV0 P → RV0 P)
+    (hQ : AgreesWithFieldPower O g Q) (hQ' : AgreesWithFieldPower P g' Q')
+    (hzero : ∀ t, ¬IsPositiveRV O t → Q t = 0)
+    (hzero' : ∀ t, ¬IsPositiveRV P t → Q' t = 0)
+    (hg : ∀ (x : PositiveField K) (y : PositiveField F), (y : F) = f x →
+      f (g x : K) = (g' y : F)) (t : RV0 O) :
+    mapRV O P f hf (Q t) = Q' (mapRV O P f hf t) := by
+  obtain ⟨x, rfl⟩ := rv_surjective O t
+  by_cases hx : 0 < x
+  · have hy : 0 < f x := by simpa only [map_zero f] using hmono hx
+    let x' : PositiveField K := ⟨x, hx⟩
+    let y' : PositiveField F := ⟨f x, hy⟩
+    have h : f (g x' : K) = (g' y' : F) := hg x' y' rfl
+    rw [hQ x', mapRV_rv, h, mapRV_rv]
+    exact (hQ' y').symm
+  · have hy : ¬ 0 < f x := fun h => hx (hmono.lt_iff_lt.mp ((map_zero f).symm ▸ h))
+    rw [hzero _ ((isPositiveRV_rv_iff O hO).not.mpr hx), mapRV_zero, mapRV_rv,
+      hzero' _ ((isPositiveRV_rv_iff P hP).not.mpr hy)]
+
 private def canonicalEmbeddingSort (i : K ↪[L] F) (f : K →+* F)
     (hf : RespectsValuationRing O P f) :
     ∀ s, CanonicalSort O s ↪ CanonicalSort P s

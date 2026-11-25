@@ -19,6 +19,7 @@ variable {L : Language.{u, v}} {E : Type w}
 
 /-- Definability over the two sets of named parameters. Convention 2.1
 allows the full carrier of each sort as its parameter set. -/
+@[expose]
 def SortedDefinableOver {Var : TCsort → Type a}
     (A : ∀ s, Set (X s)) (D : Set (∀ s, Var s → X s)) : Prop :=
   ∃ φ : SortedFormula L E (fun s => (A s : Type z) ⊕ Var s),

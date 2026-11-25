@@ -28,11 +28,25 @@ theorem realize_neg {X : TCsort → Type*} (M : SortedStructure L E X)
     (x : ∀ s, Var s → X s) (φ : SortedFormula L E Var) :
     φ.neg.realize M x ↔ ¬φ.realize M x := Iff.rfl
 
-private def conjunction (φ ψ : SortedFormula L E Var) : SortedFormula L E Var :=
+@[expose]
+def conjunction (φ ψ : SortedFormula L E Var) : SortedFormula L E Var :=
   (.imp φ ψ.neg : SortedFormula L E Var).neg
 
-private def disjunction (φ ψ : SortedFormula L E Var) : SortedFormula L E Var :=
+@[expose]
+def disjunction (φ ψ : SortedFormula L E Var) : SortedFormula L E Var :=
   .imp φ.neg ψ
+
+theorem realize_conjunction {X : TCsort → Type*} (M : SortedStructure L E X)
+    (x : ∀ s, Var s → X s) (φ ψ : SortedFormula L E Var) :
+    (φ.conjunction ψ).realize M x ↔ φ.realize M x ∧ ψ.realize M x := by
+  classical
+  simp only [conjunction, realize_neg, SortedFormula.realize, not_imp, not_not]
+
+theorem realize_disjunction {X : TCsort → Type*} (M : SortedStructure L E X)
+    (x : ∀ s, Var s → X s) (φ ψ : SortedFormula L E Var) :
+    (φ.disjunction ψ).realize M x ↔ φ.realize M x ∨ ψ.realize M x := by
+  classical
+  simp only [disjunction, SortedFormula.realize, realize_neg, ← or_iff_not_imp_left]
 
 private def allOf (l : List (SortedFormula L E Var)) : SortedFormula L E Var :=
   l.foldr conjunction (.neg .falsum)
@@ -64,8 +78,7 @@ private theorem realize_allOf {X : TCsort → Type*} (M : SortedStructure L E X)
   | nil => simp [allOf, SortedFormula.realize]
   | cons ψ l ih =>
     change (conjunction ψ (allOf l)).realize M x ↔ _
-    simp only [conjunction, realize_neg, SortedFormula.realize, not_imp, not_not, ih,
-      List.forall_mem_cons]
+    simp only [realize_conjunction, ih, List.forall_mem_cons]
 
 private theorem realize_anyOf {X : TCsort → Type*} (M : SortedStructure L E X)
     (x : ∀ s, Var s → X s) (l : List (SortedFormula L E Var)) :
@@ -75,8 +88,7 @@ private theorem realize_anyOf {X : TCsort → Type*} (M : SortedStructure L E X)
   | nil => simp [anyOf, SortedFormula.realize]
   | cons ψ l ih =>
     change (disjunction ψ (anyOf l)).realize M x ↔ _
-    simp only [disjunction, SortedFormula.realize, realize_neg, ← or_iff_not_imp_left, ih,
-      List.exists_mem_cons_iff]
+    simp only [realize_disjunction, ih, List.exists_mem_cons_iff]
 
 end SortedFormula
 

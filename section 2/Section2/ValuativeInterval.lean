@@ -13,6 +13,7 @@ variable {K : Type*} [Field K] [LinearOrder K]
   (O : ValuationSubring K)
 
 /-- The end disc may be an open disc, a closed disc, or a singleton. -/
+@[expose]
 def IsEndDisc (D : Set K) : Prop :=
   (∃ c, D = {c}) ∨ ∃ c r, r ≠ 0 ∧ (D = openDisc O c r ∨ D = closedDisc O c r)
 
@@ -20,12 +21,14 @@ structure ValuativeIntervalEnd where
   disc : Set K
   included : Bool
 
+@[expose]
 def allowedBelow (e : Option (ValuativeIntervalEnd (K := K))) (x : K) : Prop :=
   match e with
   | none => True
   | some ⟨D, true⟩ => ∃ d ∈ D, x ≤ d
   | some ⟨D, false⟩ => ∀ d ∈ D, x < d
 
+@[expose]
 def allowedAbove (e : Option (ValuativeIntervalEnd (K := K))) (x : K) : Prop :=
   match e with
   | none => True
@@ -34,9 +37,11 @@ def allowedAbove (e : Option (ValuativeIntervalEnd (K := K))) (x : K) : Prop :=
 
 /-- The set between two possibly unbounded end discs. Included endpoints
 use the existential inequality in the manuscript. -/
+@[expose]
 def valuativeInterval (lo hi : Option (ValuativeIntervalEnd (K := K))) : Set K :=
   {x | allowedAbove lo x ∧ allowedBelow hi x}
 
+@[expose]
 def IsValuativeInterval (U : Set K) : Prop :=
   U.Nonempty ∧ ∃ lo hi : Option (ValuativeIntervalEnd (K := K)),
     (∀ e ∈ lo, IsEndDisc O e.disc) ∧ (∀ e ∈ hi, IsEndDisc O e.disc) ∧
@@ -83,6 +88,7 @@ theorem valuativeInterval_open_singletons (a b : K) :
 
 /-- The component sets in a Holly normal form. Different descriptions of
 the same interval by ends give the same component. -/
+@[expose]
 def IsHollyDecomposition (U : Set K) (pieces : Finset (Set K)) : Prop :=
   (∀ D ∈ pieces, IsValuativeInterval O D) ∧ U = ⋃ D ∈ pieces, D ∧
     ∀ D ∈ pieces, ∀ B ∈ pieces, D ≠ B → ¬ IsValuativeInterval O (D ∪ B)
@@ -128,6 +134,76 @@ theorem IsValuativeInterval.inter {U V : Set K}
       (allowedAbove c x ∧ allowedBelow d x) ↔ allowedAbove lo x ∧ allowedBelow hi x
     rw [hl, hh]
     tauto
+
+omit [Field K] in
+private theorem allowedAbove_iff_witness {lo hi : Option (ValuativeIntervalEnd (K := K))}
+    (hne : (valuativeInterval lo hi).Nonempty) (x : K) :
+    allowedAbove lo x ↔ ∃ y ∈ valuativeInterval lo hi, y ≤ x := by
+  constructor
+  · intro hx
+    obtain ⟨y, hy⟩ := hne
+    rcases le_total y x with h | h
+    · exact ⟨y, hy, h⟩
+    · exact ⟨x, ⟨hx, allowedBelow_downward hi h hy.2⟩, le_rfl⟩
+  · rintro ⟨y, hy, hyx⟩
+    exact allowedAbove_upward lo hyx hy.1
+
+omit [Field K] in
+private theorem allowedBelow_iff_witness {lo hi : Option (ValuativeIntervalEnd (K := K))}
+    (hne : (valuativeInterval lo hi).Nonempty) (x : K) :
+    allowedBelow hi x ↔ ∃ y ∈ valuativeInterval lo hi, x ≤ y := by
+  constructor
+  · intro hx
+    obtain ⟨y, hy⟩ := hne
+    rcases le_total x y with h | h
+    · exact ⟨y, hy, h⟩
+    · exact ⟨x, ⟨allowedAbove_upward lo h hy.1, hx⟩, le_rfl⟩
+  · rintro ⟨y, hy, hxy⟩
+    exact allowedBelow_downward hi hxy hy.2
+
+private theorem union_cuts {A Tag : Type*} {ray : Tag → A → Prop} (a b : Tag)
+    (hcmp : (∀ x, ray a x → ray b x) ∨ (∀ x, ray b x → ray a x)) :
+    ∃ e, (e = a ∨ e = b) ∧ ∀ x, ray e x ↔ ray a x ∨ ray b x := by
+  rcases hcmp with h | h
+  · exact ⟨b, Or.inr rfl, fun x => ⟨Or.inr, fun hx => hx.elim (h x) id⟩⟩
+  · exact ⟨a, Or.inl rfl, fun x => ⟨Or.inl, fun hx => hx.elim id (h x)⟩⟩
+
+/-- A convex union of two valuative intervals has their outer end cuts. -/
+theorem IsValuativeInterval.union_of_ordConnected {U V : Set K}
+    (hU : IsValuativeInterval O U) (hV : IsValuativeInterval O V)
+    (hcUV : Set.OrdConnected (U ∪ V)) : IsValuativeInterval O (U ∪ V) := by
+  obtain ⟨hneU, a, b, ha, hb, rfl⟩ := hU
+  obtain ⟨hneV, c, d, hc, hd, rfl⟩ := hV
+  obtain ⟨lo, hlo, hl⟩ := union_cuts (ray := allowedAbove) a c
+    (cuts_comparable le_total (allowedAbove_upward a) (allowedAbove_upward c))
+  obtain ⟨hi, hhi, hh⟩ := union_cuts (ray := allowedBelow) b d
+    (cuts_comparable (rel := fun x y : K => y ≤ x) (fun x y => le_total y x)
+      (fun hxy => allowedBelow_downward b hxy) (fun hxy => allowedBelow_downward d hxy))
+  refine ⟨hneU.mono Set.subset_union_left, lo, hi, ?_, ?_, ?_⟩
+  · rcases hlo with rfl | rfl
+    · exact ha
+    · exact hc
+  · rcases hhi with rfl | rfl
+    · exact hb
+    · exact hd
+  · ext x
+    change (allowedAbove a x ∧ allowedBelow b x) ∨
+      (allowedAbove c x ∧ allowedBelow d x) ↔ allowedAbove lo x ∧ allowedBelow hi x
+    rw [hl, hh]
+    constructor
+    · tauto
+    · rintro ⟨hlow, hhigh⟩
+      rw [allowedAbove_iff_witness hneU, allowedAbove_iff_witness hneV] at hlow
+      rw [allowedBelow_iff_witness hneU, allowedBelow_iff_witness hneV] at hhigh
+      obtain ⟨y, hy, hyx⟩ : ∃ y ∈ valuativeInterval a b ∪ valuativeInterval c d, y ≤ x := by
+        rcases hlow with ⟨y, hy, hle⟩ | ⟨y, hy, hle⟩
+        · exact ⟨y, Or.inl hy, hle⟩
+        · exact ⟨y, Or.inr hy, hle⟩
+      obtain ⟨z, hz, hxz⟩ : ∃ z ∈ valuativeInterval a b ∪ valuativeInterval c d, x ≤ z := by
+        rcases hhigh with ⟨z, hz, hle⟩ | ⟨z, hz, hle⟩
+        · exact ⟨z, Or.inl hz, hle⟩
+        · exact ⟨z, Or.inr hz, hle⟩
+      exact hcUV.out hy hz ⟨hyx, hxz⟩
 
 /-- Finite unions of valuative intervals, allowing the empty union. -/
 inductive ValuativeUnion : Set K → Prop where

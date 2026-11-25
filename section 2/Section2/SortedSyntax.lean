@@ -10,7 +10,7 @@ namespace GeneralizedEuler.Section2
 
 open FirstOrder
 
-universe u v w z z' a
+universe u v w z z' a b
 
 variable {L : Language.{u, v}} {E : Type w}
 
@@ -94,5 +94,61 @@ theorem SortedEmbedding.realize_qf (ι : SortedEmbedding M N) {Var : TCsort → 
   | rel r ts =>
     simp only [SortedFormula.realize, ← ι.realize_term assign, ι.map_rel]
   | imp _ _ hx hy => simp only [SortedFormula.realize, hx, hy]
+
+def SortedTerm.relabel {Var : TCsort → Type a} {Var' : TCsort → Type b}
+    (r : ∀ s, Var s → Var' s) :
+    {s : TCsort} → SortedTerm L E Var s → SortedTerm L E Var' s
+  | _, .var x => .var (r _ x)
+  | _, .app f ts => .app f (fun i => (ts i).relabel r)
+
+theorem SortedTerm.realize_relabel {Var : TCsort → Type a} {Var' : TCsort → Type b}
+    (r : ∀ s, Var s → Var' s) (v : ∀ s, Var' s → X s) {s : TCsort} (t : SortedTerm L E Var s) :
+    (t.relabel r).realize M v = t.realize M (fun s => v s ∘ r s) := by
+  induction t with
+  | var => rfl
+  | app f ts ih => simp only [SortedTerm.relabel, SortedTerm.realize, ih]
+
+def SortedFormula.relabel :
+    {Var : TCsort → Type a} → {Var' : TCsort → Type b} →
+      (∀ s, Var s → Var' s) → SortedFormula L E Var → SortedFormula L E Var'
+  | _, _, _, .falsum => .falsum
+  | _, _, r, .equal t t' => .equal (t.relabel r) (t'.relabel r)
+  | _, _, r, .rel q ts => .rel q (fun i => (ts i).relabel r)
+  | _, _, r, .imp φ ψ => .imp (φ.relabel r) (ψ.relabel r)
+  | _, _, r, .all s φ => .all s (φ.relabel (fun t => Sum.map (r t) id))
+
+theorem SortedFormula.realize_relabel {Var : TCsort → Type a} (φ : SortedFormula L E Var) :
+    ∀ {Var' : TCsort → Type b} (r : ∀ s, Var s → Var' s) (v : ∀ s, Var' s → X s),
+      (φ.relabel r).realize M v ↔ φ.realize M (fun s => v s ∘ r s) := by
+  induction φ with
+  | falsum => intros; rfl
+  | equal t t' =>
+    intros
+    simp only [SortedFormula.relabel, SortedFormula.realize, SortedTerm.realize_relabel]
+  | rel q ts =>
+    intros
+    simp only [SortedFormula.relabel, SortedFormula.realize, SortedTerm.realize_relabel]
+  | imp φ ψ hφ hψ =>
+    intros
+    simp only [SortedFormula.relabel, SortedFormula.realize, hφ, hψ]
+  | all s φ ih =>
+    intro Var' r v
+    simp only [SortedFormula.relabel, SortedFormula.realize]
+    apply forall_congr'
+    intro x
+    rw [ih]
+    apply iff_of_eq
+    congr 1
+    funext t a
+    cases a <;> rfl
+
+theorem SortedFormula.IsQF.relabel {Var : TCsort → Type a} {Var' : TCsort → Type b}
+    {φ : SortedFormula L E Var} (hφ : φ.IsQF) (r : ∀ s, Var s → Var' s) :
+    (φ.relabel r).IsQF := by
+  induction hφ with
+  | falsum => exact .falsum
+  | equal _ _ => exact .equal ..
+  | rel _ _ => exact .rel ..
+  | imp _ _ hφ hψ => exact .imp hφ hψ
 
 end GeneralizedEuler.Section2

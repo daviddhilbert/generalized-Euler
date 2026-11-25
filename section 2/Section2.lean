@@ -40,3 +40,7 @@ public import Section2.SortedTypes
 public import Section2.SortedQE
 public import Section2.HigherLeadingTerm
 public import Section2.ResidueFiber
+public import Section2.HollyNormalForm
+public import Section2.RVAgreement
+public import Section2.SortedDefinability
+public import Section2.RVReduct

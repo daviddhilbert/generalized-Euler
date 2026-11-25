@@ -69,6 +69,43 @@ theorem rvResidue_mapRV (t : RV0 O) :
   · rw [rvResidue_eq_zero_of_not_mem_range O ht, map_zero]
     exact rvResidue_eq_zero_of_not_mem_range P ((mapRV_in_residue_iff O P f hf t).not.mpr ht)
 
+/-- Reductions of compatible field functions commute with the induced
+residue map. This applies to the named continuous symbols in Ax. 8. -/
+theorem mapResidue_commutes_of_matching {n : ℕ}
+    (g : (Fin n → K) → K) (g' : (Fin n → F) → F)
+    (gO : (Fin n → Residue O) → Residue O) (gP : (Fin n → Residue P) → Residue P)
+    (hg : ∀ x, f (g x) = g' (f ∘ x))
+    (hO : ∀ a : Fin n → O, ∃ h : g (fun i => (a i : K)) ∈ O,
+      IsLocalRing.residue O ⟨g (fun i => (a i : K)), h⟩ = gO (IsLocalRing.residue O ∘ a))
+    (hP : ∀ a : Fin n → P, ∃ h : g' (fun i => (a i : F)) ∈ P,
+      IsLocalRing.residue P ⟨g' (fun i => (a i : F)), h⟩ = gP (IsLocalRing.residue P ∘ a))
+    (a : Fin n → Residue O) :
+    mapResidue O P f hf (gO a) = gP (mapResidue O P f hf ∘ a) := by
+  have lift (i : Fin n) : ∃ b : O, IsLocalRing.residue O b = a i :=
+    IsLocalRing.residue_surjective (a i)
+  choose b hb using lift
+  have hb' : IsLocalRing.residue O ∘ b = a := funext hb
+  let bP : Fin n → P := mapValuationRing O P f hf ∘ b
+  obtain ⟨hgO, hgo⟩ := hO b
+  obtain ⟨hgP, hgp⟩ := hP bP
+  let cO : O := ⟨g (fun i => (b i : K)), hgO⟩
+  let cP : P := ⟨g' (fun i => (bP i : F)), hgP⟩
+  have hc : mapValuationRing O P f hf cO = cP := by
+    apply Subtype.ext
+    exact hg (fun i => (b i : K))
+  have hbP : IsLocalRing.residue P ∘ bP = mapResidue O P f hf ∘ a := by
+    funext i
+    change IsLocalRing.residue P (mapValuationRing O P f hf (b i)) =
+      mapResidue O P f hf (a i)
+    rw [← mapResidue_residue, hb]
+  rw [hb'] at hgo
+  rw [hbP] at hgp
+  calc
+    _ = mapResidue O P f hf (IsLocalRing.residue O cO) := congrArg _ hgo.symm
+    _ = IsLocalRing.residue P (mapValuationRing O P f hf cO) := mapResidue_residue O P f hf cO
+    _ = IsLocalRing.residue P cP := congrArg _ hc
+    _ = _ := hgp
+
 /-- A compatible residue operation commutes with the induced RV map,
 including arguments outside the residue field. -/
 theorem mapRV_extendResidueOperation {n : ℕ}

@@ -74,6 +74,17 @@ theorem mapRV_one (f : K →+* F) (hf : RespectsValuationRing O P f) :
     mapRV O P f hf 1 = 1 := by
   rw [← map_one (rv O), mapRV_rv, map_one, map_one]
 
+/-- The induced leading-term map packaged as a homomorphism with zero. -/
+def mapRVHom (f : K →+* F) (hf : RespectsValuationRing O P f) : RV0 O →*₀ RV0 P where
+  toFun := mapRV O P f hf
+  map_zero' := mapRV_zero O P f hf
+  map_one' := mapRV_one O P f hf
+  map_mul' := mapRV_mul O P f hf
+
+@[simp]
+theorem mapRVHom_apply (f : K →+* F) (hf : RespectsValuationRing O P f) (t : RV0 O) :
+    mapRVHom O P f hf t = mapRV O P f hf t := by rfl
+
 private theorem valuation_eq_one_iff (x : K) :
     O.valuation x = 1 ↔ x ≠ 0 ∧ x ∈ O ∧ x⁻¹ ∈ O := by
   by_cases hx : x = 0
