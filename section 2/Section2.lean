@@ -6,6 +6,7 @@ public import Section2.LeadingTerm
 public import Section2.ConvexValuation
 public import Section2.LeadingTermPower
 public import Section2.LeadingTermOrder
+public import Section2.SignedValue
 public import Section2.Residue
 public import Section2.ConvexLanguage
 public import Section2.ResidueOrder

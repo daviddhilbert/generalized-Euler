@@ -68,6 +68,21 @@ representative in that substructure. -/
 def SortedStructure.IsVFGenerated : Prop :=
   Function.Surjective M.rvMap
 
+/-- A sorted embedding preserves generation by field representatives
+on its range. -/
+theorem SortedEmbedding.rangeSubstructure_isVFGenerated {M : SortedStructure L E X}
+    (e : SortedEmbedding M N) (hM : M.IsVFGenerated) : e.rangeSubstructure.structureOn.IsVFGenerated := by
+  intro t
+  obtain ⟨r, hr⟩ := t.property
+  obtain ⟨a, ha⟩ := hM r
+  let b : e.rangeSubstructure.carrier .vf := ⟨e.toEmbedding .vf a, ⟨a, rfl⟩⟩
+  refine ⟨b, Subtype.ext ?_⟩
+  have h := e.rangeSubstructure.inclusion.map_rv b
+  rw [SortedSubstructure.inclusion_apply, SortedSubstructure.inclusion_apply] at h
+  refine h.trans ?_
+  change N.rvMap (e.toEmbedding .vf a) = t.val
+  rw [← e.map_rv, ha, hr]
+
 /-- Agreement on VF forces agreement on both sorts for a VF-generated
 substructure, including ones with trivial valuation. -/
 theorem SortedEmbedding.ext_of_vf_generated (h : M.IsVFGenerated)

@@ -52,6 +52,16 @@ theorem inclusion_apply (A : SortedSubstructure M) (s : TCsort) (x : A.carrier s
 
 end SortedSubstructure
 
+/-- The image of a sorted embedding is a substructure of its target. -/
+@[expose]
+def SortedEmbedding.rangeSubstructure {M : SortedStructure L E X} {N : SortedStructure L E Y}
+    (e : SortedEmbedding M N) : SortedSubstructure N where
+  carrier s := Set.range (e.toEmbedding s)
+  closed := by
+    intro ss s f a ha
+    choose b hb using ha
+    exact ⟨M.funMap f b, (e.map_fun f b).trans (congrArg (N.funMap f) (funext hb))⟩
+
 /-- A system of matching assignments with the two one-element extension
 properties. Quantifiers extend the assignment in their own sort. -/
 structure SortedBackAndForth where

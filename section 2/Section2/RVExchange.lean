@@ -189,7 +189,7 @@ theorem definable_rv_exchange_at_new_value
     (hOff : ∀ e t, ¬IsPositiveRV O t → P e t = 0)
     (hDcl : ∀ C : SortedSubstructure (canonicalStructure (L := L) O hO P),
       RVDefinablyClosed (canonicalStructure (L := L) O hO P) (C.carrier .rv))
-    {t x : RV0 O} (ht : IsPositiveRV O t)
+    {t x : RV0 O}
     (hVal : unsignedValue O t ∉ unsignedValue O '' S.carrier .rv)
     (hNew : x ∉ S.carrier .rv)
     (hDef : SortedDefinableOver (canonicalStructure (L := L) O hO P)
@@ -198,17 +198,35 @@ theorem definable_rv_exchange_at_new_value
     SortedDefinableOver (canonicalStructure (L := L) O hO P)
       (fun s => match s with | .vf => ∅ | .rv => insert x (S.carrier .rv))
       {a : ∀ s, RVVariables Unit s → CanonicalSort O s | a .rv () = t} := by
+  obtain ⟨a, rfl⟩ := rv_surjective O t
   let V := S.carrier .rv
+  have h0 : (0 : RV0 O) ∈ V := S.closed .rvZero (fun i => i.elim0) (fun i => i.elim0)
+  have h1 : (1 : RV0 O) ∈ V := S.closed .rvOne (fun i => i.elim0) (fun i => i.elim0)
+  have ha : a ≠ 0 := by
+    intro he
+    exact hVal ⟨0, h0, by simp [he]⟩
+  let t := rv O |a|
+  let factor : RV0 O := if a < 0 then rv O (-1) else 1
+  have hFactor : factor ∈ V ∧ factor ≠ 0 ∧ rv O a = factor * t := by
+    by_cases hn : a < 0
+    · refine ⟨by simpa [factor, hn] using minusIn, ?_, ?_⟩
+      · simp [factor, hn, rv_eq_zero_iff]
+      · simp only [factor, hn, ↓reduceIte, t, abs_of_neg hn, ← map_mul (rv O),
+          neg_one_mul, neg_neg]
+    · simp only [factor, hn, ↓reduceIte, t, abs_of_nonneg (le_of_not_gt hn), one_mul (M := RV0 O)]
+      exact ⟨h1, IsPositiveRV.ne_zero O (isPositiveRV_one O), trivial⟩
+  have ht : IsPositiveRV O t := ⟨⟨|a|, abs_pos.mpr ha⟩, rfl⟩
+  have htVal : unsignedValue O t ∉ unsignedValue O '' V := by
+    simpa only [t, unsignedValue_rv, valuation_abs] using hVal
   have hExponent := exponent_eq_zero_of_new_value_of_substructure O hO P g hP hone hmul S hunit
-    minusIn ht hVal
+    minusIn ht htVal
   let C := adjoinNewValueRV O g P hP hzero hone hadd hmul hO hOff S t ht hExponent
   have hCarrier : C.carrier .rv = rvOneGeneratorMonomials O P V t :=
     adjoinNewValueRV_rv_carrier O g P hP hzero hone hadd hmul hO hOff S t ht hExponent
   have hL := leadingTermPower_scalarLaws O hP hzero hone hadd hmul ht
-  have htC : t ∈ C.carrier .rv := by
+  have htC : rv O a ∈ C.carrier .rv := by
     rw [hCarrier]
-    exact Or.inr ⟨1, S.closed .rvOne (fun i => i.elim0) (fun i => i.elim0),
-      IsPositiveRV.ne_zero O (isPositiveRV_one O), 1, by rw [hL.2.1, one_mul (M := RV0 O)]⟩
+    exact Or.inr ⟨factor, hFactor.1, hFactor.2.1, 1, by rw [hL.2.1, hFactor.2.2]⟩
   have hxC : x ∈ C.carrier .rv := hDcl C x (hDef.mono (fun s => by
     cases s with
     | vf => exact Set.Subset.rfl
@@ -221,11 +239,19 @@ theorem definable_rv_exchange_at_new_value
         · exact Or.inl h
         · exact Or.inr ⟨u, hu, h, 0, by rw [hL.1, mul_one (M := RV0 O)]⟩))
   rw [hCarrier] at hxC
-  have hx0 : x ≠ 0 := fun he =>
-    hNew (he.symm ▸ S.closed .rvZero (fun i => i.elim0) (fun i => i.elim0))
+  have hx0 : x ≠ 0 := fun he => hNew (he.symm ▸ h0)
   obtain ⟨u, hu, hu0, e, hx⟩ := hxC.resolve_left hx0
   have he : e ≠ 0 := fun he => hNew (by rwa [hx, he, hL.1, mul_one (M := RV0 O)])
-  exact definable_rv_exchange_of_monomial O hO P g hP hzero hone hadd hmul V ht hu hu0 he hx
+  let W := insert x V
+  let aVar : SortedTerm L E (RVVariables W) .rv := .var ⟨x, Set.mem_insert _ _⟩
+  let uVar : SortedTerm L E (RVVariables W) .rv := .var ⟨u, Set.mem_insert_of_mem _ hu⟩
+  let fVar : SortedTerm L E (RVVariables W) .rv := .var ⟨factor, Set.mem_insert_of_mem _ hFactor.1⟩
+  let term := rvMulTerm fVar (rvPowerTerm e⁻¹ (rvDivTerm aVar uVar))
+  apply definable_rv_point_of_term O hO P W term
+  dsimp only [term]
+  rw [realize_rvMulTerm, realize_rvPowerTerm, realize_rvDivTerm]
+  change factor * P e⁻¹ (x / u) = rv O a
+  rw [recover_rv_of_monomial O g P hP hzero hone hadd hmul ht hu0 he hx, ← hFactor.2.2]
 
 end NewValue
 

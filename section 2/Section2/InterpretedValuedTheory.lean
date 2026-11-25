@@ -238,6 +238,50 @@ theorem models_interpretedValuedTheory_iff (T : (convexLanguage L).Theory) :
       simpa only [← hR] using R.relation r
 
 set_option linter.style.haveILetI false in
+/-- A VF-generated substructure inherits the interpreted theory once
+its recovered valued field is a model of the valued theory with QE. -/
+theorem models_interpretedValuedTheory_of_vfGenerated
+    {Y : TCsort → Type*} (N : SortedStructure L E Y)
+    (e : SortedEmbedding N M) [Nonempty (X .vf)] [Nonempty (Y .vf)]
+    {T : (convexLanguage L).Theory} (hQE : EliminatesQuantifiers T)
+    (hM : ∀ φ ∈ interpretedValuedTheory I minusOne T, φ.realize M)
+    (hgen : N.IsVFGenerated) :
+    letI := valuedStructureOfSorted N (recoveredRing N minusOne)
+    (Y .vf ⊨ T) → ∀ φ ∈ interpretedValuedTheory I minusOne T, φ.realize N := by
+  let Mfield := valuedStructureOfSorted M (recoveredRing M minusOne)
+  let Nfield := valuedStructureOfSorted N (recoveredRing N minusOne)
+  letI := Mfield
+  letI := Nfield
+  intro hN
+  letI := hN
+  obtain ⟨hMT, RM, hRM⟩ := (models_interpretedValuedTheory_iff M I minusOne T).mp hM
+  letI := hMT
+  let j := elementaryEmbeddingOfQE hQE (valuedEmbeddingOfSorted e minusOne)
+  have hj (a : Y .vf) : j a = e.toEmbedding .vf a :=
+    valuedEmbeddingOfSorted_apply e minusOne a
+  let rep := representativeFromVF N
+  have hr (s : TCsort) (a : Y .vf) : RM.rep s (j a) = e.toEmbedding s (rep s a) := by
+    rw [hRM, hj]
+    cases s
+    · rfl
+    · exact (e.map_rv a).symm
+  apply (models_interpretedValuedTheory_iff N I minusOne T).mpr
+  refine ⟨hN, ⟨rep, ?_, ?_, ?_, ?_⟩, fun _ _ => rfl⟩
+  · intro s
+    cases s
+    · exact Function.surjective_id
+    · exact hgen
+  · intro s v
+    rw [← j.map_formula, RM.equal]
+    simp only [Function.comp_apply, hr, (e.toEmbedding s).injective.eq_iff]
+  · intro ss s f v
+    rw [← j.map_formula, RM.function]
+    simp only [Function.comp_apply, hr, ← e.map_fun f, (e.toEmbedding s).injective.eq_iff]
+  · intro ss r v
+    rw [← j.map_formula, RM.relation]
+    simp only [Function.comp_apply, hr, e.map_rel]
+
+set_option linter.style.haveILetI false in
 /-- The first-order theory of the interpreted expansion is complete
 when the underlying valued-field theory is complete. -/
 theorem interpretedValuedTheory_realize_iff_of_complete

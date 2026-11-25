@@ -19,15 +19,6 @@ variable {L : Language.{u, v}} {E : Type w}
   {M : SortedStructure L E X} {N : SortedStructure L E Y}
   {S : SortedSubstructure M}
 
-/-- The image of a partial sorted embedding is a substructure. -/
-@[expose]
-def SortedEmbedding.rangeSubstructure (e : SortedEmbedding S.structureOn N) : SortedSubstructure N where
-  carrier s := Set.range (e.toEmbedding s)
-  closed := by
-    intro ss s f a ha
-    choose b hb using ha
-    exact ⟨S.structureOn.funMap f b, (e.map_fun f b).trans (congrArg (N.funMap f) (funext hb))⟩
-
 private def rangePreimage (e : SortedEmbedding S.structureOn N)
     (s : TCsort) (x : e.rangeSubstructure.carrier s) : S.carrier s := x.property.choose
 

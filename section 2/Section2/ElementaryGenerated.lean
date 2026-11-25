@@ -1,5 +1,6 @@
 module
 
+public import Section2.InterpretedValuedTheory
 public import Section2.RVMonomials
 public import Section2.SortedQE
 
@@ -109,5 +110,34 @@ theorem elementary_iff_nontrivial_of_vfGenerated
       rw [SortedEmbedding.mapAssignment_apply, SortedSubstructure.inclusion_apply]
     rw [he] at h
     exact (hEq n).trans (h.symm.trans (hEq m).symm)
+
+set_option linter.style.haveILetI false in
+/-- For the interpreted theory in Corollary 2.17, a proper
+VF-generated substructure needs only the proper valued-field model
+condition. Its quotient interpretation is inherited by valued-field QE. -/
+theorem elementary_iff_nontrivial_of_interpreted_vfGenerated
+    (I : QuotientInterpretation (convexLanguage L) L E)
+    (minusOne : L.Term Empty) (T : (convexLanguage L).Theory)
+    (hQE : ∀ {Var : TCsort → Type a} (φ : SortedFormula L E Var), ∃ ψ, ψ.IsQF ∧
+      ∀ M : (interpretedValuedTheory I minusOne T).PointedModel Var, M.realizes φ ↔ M.realizes ψ)
+    (hQEv : EliminatesQuantifiers T)
+    (hM : ∀ ψ ∈ interpretedValuedTheory I minusOne T, ψ.realize (canonicalStructure O hO P))
+    (hVal : O.valuation.IsNontrivial)
+    (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
+    (hS : ∀ s, Nonempty (S.carrier s))
+    (hGen : S.structureOn.IsVFGenerated)
+    (hProper : (∃ t : S.carrier .rv, t.val ≠ 0 ∧ unsignedValue O t.val ≠ 1) →
+      letI := valuedStructureOfSorted S.structureOn (recoveredRing S.structureOn minusOne)
+      S.carrier .vf ⊨ T) :
+    (∀ {Var : TCsort → Type a} (φ : SortedFormula L E Var) (x : ∀ s, Var s → S.carrier s),
+      φ.realize S.structureOn x ↔
+        φ.realize (canonicalStructure O hO P) (fun s i => (x s i).val)) ↔
+      ∃ t : S.carrier .rv, t.val ≠ 0 ∧ unsignedValue O t.val ≠ 1 := by
+  apply elementary_iff_nontrivial_of_vfGenerated.{u, v, w, a} O hO P
+    (interpretedValuedTheory I minusOne T) hQE hM hVal S hS hGen
+  intro hG hV
+  letI : Nonempty (S.carrier .vf) := hS .vf
+  exact models_interpretedValuedTheory_of_vfGenerated _ I minusOne
+    S.structureOn S.inclusion hQEv hM hG (hProper hV)
 
 end GeneralizedEuler.Section2

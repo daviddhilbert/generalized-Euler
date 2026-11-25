@@ -1,9 +1,12 @@
 module
 
+public import Section2.FieldDefinableClosure
 public import Section2.PowerBounded
 public import Section2.ResidueInterpretation
+public import Mathlib.Topology.Algebra.Order.Field
 public import Mathlib.Topology.LocallyClosed
 public import Mathlib.Topology.Order.Basic
+public import Mathlib.Topology.Order.DenselyOrdered
 public import Mathlib.Tactic.Linarith
 
 /-! The continuous-function presentation in Remark 2.3. Distances
@@ -392,6 +395,99 @@ theorem exists_continuous_definable_description_of_cell_decomposition
   exact ⟨f, g, fun i => ⟨hf i, hg i, hfc i, hgc i⟩, by rw [hD]; simp only [he]⟩
 
 end Definability
+
+section UniversalAxiomatization
+
+variable {J : Language.{u, v}} [J.Structure K] [TopologicalSpace K] [OrderTopology K]
+
+private theorem exists_point_avoiding_finite_inverse_terms
+    (hContinuous : ∀ {n} (f : J.Functions n), Continuous (Structure.funMap f : (Fin n → K) → K))
+    (F : Finset (J.Term Unit)) :
+    ∃ x : K, ∀ t ∈ F, t.realize (fun _ => x) ≠ x⁻¹ := by
+  have hTerm (t : J.Term Unit) : Continuous (fun x : K => t.realize (fun _ => x)) := by
+    induction t with
+    | var _ => exact continuous_id
+    | func f _ ih => exact (hContinuous f).comp (continuous_pi ih)
+  let : (𝓝[>] (0 : K)).NeBot := nhdsGT_neBot_of_exists_gt ⟨1, zero_lt_one⟩
+  apply Filter.Eventually.exists (f := 𝓝[>] (0 : K))
+  apply (Filter.eventually_all_finite F.finite_toSet).mpr
+  intro t _
+  let c : K := t.realize (fun _ => 0) + 1
+  have hb : ∀ᶠ x in 𝓝[>] (0 : K), t.realize (fun _ => x) < c :=
+    Filter.Eventually.filter_mono nhdsWithin_le_nhds
+      ((hTerm t).continuousAt.eventually_lt continuousAt_const (lt_add_one _))
+  have hi : ∀ᶠ x in 𝓝[>] (0 : K), c < x⁻¹ := tendsto_inv_nhdsGT_zero.eventually_gt_atTop c
+  exact (hb.and hi).mono fun _ h => (h.1.trans h.2).ne
+
+private def graphAtTerm (φ : J.Formula (Unit ⊕ Unit)) (t : J.Term Unit) : J.Formula Unit :=
+  φ.subst (Sum.elim Term.var (fun _ => t))
+
+private theorem realize_graphAtTerm {M : Type*} [J.Structure M]
+    (φ : J.Formula (Unit ⊕ Unit)) (t : J.Term Unit) (x : Unit → M) :
+    (graphAtTerm φ t).Realize x ↔ φ.Realize (Sum.elim x (fun _ => t.realize x)) := by
+  unfold graphAtTerm Formula.Realize
+  rw [BoundedFormula.realize_subst]
+  have he : (fun i : Unit ⊕ Unit => (Sum.elim Term.var (fun _ => t) i).realize x) =
+      Sum.elim x (fun _ => t.realize x) := by
+    funext i
+    cases i <;> rfl
+  rw [he]
+
+/-- The continuous functional language in Remark 2.3 cannot give a
+universal theory with quantifier elimination. The inverse graph only
+needs to be provably total and single-valued in the theory. -/
+theorem not_isUniversal_of_continuous_functions_and_inverse
+    (T : J.Theory) [K ⊨ T] (hQE : EliminatesQuantifiers T)
+    (hContinuous : ∀ {n} (f : J.Functions n), Continuous (Structure.funMap f : (Fin n → K) → K))
+    (φ : J.Formula (Unit ⊕ Unit))
+    (hInv : ∀ x y : K, φ.Realize (Sum.elim (fun _ => x) (fun _ => y)) ↔ y = x⁻¹)
+    (hTotal : ∀ (M : Type (max u v)), ∀ [J.Structure M] [M ⊨ T],
+      ∀ x : Unit → M, ∃ y : M, ∀ z, φ.Realize (Sum.elim x (fun _ => z)) ↔ z = y) :
+    ¬ T.IsUniversal := by
+  classical
+  intro hU
+  let := hU
+  let l := J.lhomWithConstants Unit
+  let avoid (t : J.Term Unit) : J[[Unit]].Sentence := Formula.equivSentence (graphAtTerm φ t).not
+  let D : J[[Unit]].Theory := l.onTheory T ∪ Set.range avoid
+  have hSat : D.IsSatisfiable := by
+    apply Theory.isSatisfiable_iff_isFinitelySatisfiable.mpr
+    intro U hU
+    let V := U.filter (fun σ => σ ∉ l.onTheory T)
+    have hV : (V : Set _) ⊆ avoid '' (Set.univ : Set (J.Term Unit)) := by
+      intro σ hσ
+      obtain ⟨hUσ, hbase⟩ := Finset.mem_filter.mp hσ
+      rw [Set.image_univ]
+      exact (hU hUσ).resolve_left hbase
+    obtain ⟨F, _, hF⟩ := Finset.subset_set_image_iff.mp hV
+    obtain ⟨x, hx⟩ := exists_point_avoiding_finite_inverse_terms hContinuous F
+    let : (constantsOn Unit).Structure K := constantsOn.structure (fun _ => x)
+    have hBase : K ⊨ l.onTheory T := (LHom.onTheory_model l T).mpr inferInstance
+    have hModel : K ⊨ (U : J[[Unit]].Theory) := by
+      constructor
+      intro σ hσ
+      by_cases hT : σ ∈ l.onTheory T
+      · exact hBase.realize_of_mem _ hT
+      have hσ' : σ ∈ F.image avoid := hF.symm ▸ Finset.mem_filter.mpr ⟨hσ, hT⟩
+      obtain ⟨t, ht, rfl⟩ := Finset.mem_image.mp hσ'
+      apply (Formula.realize_equivSentence K _).mpr
+      rw [Formula.realize_not, realize_graphAtTerm]
+      exact fun he => hx t ht ((hInv _ _).mp he)
+    exact Theory.Model.isSatisfiable K
+  let A := hSat.some
+  let := l.reduct A
+  have hA : A ⊨ T :=
+    (LHom.onTheory_model l _).mp (Theory.Model.mono A.is_model Set.subset_union_left)
+  let := hA
+  let x (i : Unit) : A := ↑(J.con i)
+  obtain ⟨y, hy⟩ := hTotal A x
+  obtain ⟨t, ht⟩ := exists_term_of_uniquely_definable hQE x y φ hy
+  have hAvoid := (Formula.realize_equivSentence A (graphAtTerm φ t).not).mp
+    (A.is_model.realize_of_mem (avoid t) (Or.inr ⟨t, rfl⟩))
+  rw [Formula.realize_not, realize_graphAtTerm] at hAvoid
+  exact hAvoid ((hy _).mpr ht)
+
+end UniversalAxiomatization
 
 section FunctionalLanguage
 
