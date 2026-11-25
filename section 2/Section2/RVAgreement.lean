@@ -136,6 +136,20 @@ theorem RVMapsAgree.mul {x y : H}
   rw [hxe, hye] at h
   exact h
 
+theorem RVMapsAgree.of_inverse {x y : H}
+    (hsource : source y = (source x)⁻¹) (htarget : target y = (target x)⁻¹)
+    (hx : RVMapsAgree old source target x) : RVMapsAgree old source target y := by
+  obtain ⟨hx, hxe⟩ := hx
+  let a : SortedArgs (fun s => S.carrier s) [.rv] := Fin.cases ⟨source x, hx⟩ (fun j => j.elim0)
+  let z := S.structureOn.funMap (.rvInv : FunctionSymbol L E [.rv] .rv) a
+  have hz : (z : RV0 O) = source y := hsource.symm
+  refine ⟨hz ▸ z.property, ?_⟩
+  have hz' : (⟨source y, hz ▸ z.property⟩ : S.carrier .rv) = z := Subtype.ext hz.symm
+  rw [hz', htarget]
+  have h := old.map_fun .rvInv a
+  change old.toEmbedding .rv z = (old.toEmbedding .rv ⟨source x, hx⟩)⁻¹ at h
+  rwa [hxe] at h
+
 theorem RVMapsAgree.power (p : E → H → H) (e : E) {x : H}
     (hsource : source (p e x) = P e (source x))
     (htarget : target (p e x) = PQ e (target x))

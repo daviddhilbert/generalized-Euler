@@ -134,6 +134,7 @@ theorem realizes_iff_of_entails {L : Language.{u, v}} {T : L.Theory}
   Formula.realize_iff.mp (h.realize_formula K)
 
 /-- An embedding of models of a theory with QE is elementary. -/
+@[expose]
 def elementaryEmbeddingOfQE {L : Language.{u, v}} {T : L.Theory}
     {K F : Type*} [L.Structure K] [L.Structure F] [K ⊨ T] [F ⊨ T]
     [Nonempty K] [Nonempty F] (hT : EliminatesQuantifiers T) (ι : K ↪[L] F) :

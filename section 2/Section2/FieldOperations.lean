@@ -4,6 +4,7 @@ public import Section2.ValuedFieldFormulas
 public import Section2.ConvexRingComparison
 public import Section2.LeadingTermMap
 public import Mathlib.ModelTheory.Substructures
+public import Mathlib.Algebra.Order.Ring.InjSurj
 
 /-! Field terms on a generated substructure and transport of its convex ring. -/
 
@@ -128,6 +129,45 @@ def subfieldOfFieldSubstructure (hK : InterpretsOrderedFieldTerms (A := K) terms
 @[simp] theorem mem_subfieldOfFieldSubstructure (hK : InterpretsOrderedFieldTerms (A := K) terms)
     (B : L.Substructure K) (x : K) : x ∈ subfieldOfFieldSubstructure terms hK B ↔ x ∈ B := by
   rfl
+
+/-- The field operations on the underlying type of a field-language
+substructure are inherited from its corresponding subfield. -/
+@[instance_reducible]
+def fieldOnFieldSubstructure (hK : InterpretsOrderedFieldTerms (A := K) terms)
+    (B : L.Substructure K) : Field B :=
+  inferInstanceAs (Field (subfieldOfFieldSubstructure terms hK B))
+
+set_option linter.style.haveILetI false in
+theorem strictOrderedRingOnFieldSubstructure [IsStrictOrderedRing K]
+    (hK : InterpretsOrderedFieldTerms (A := K) terms) (B : L.Substructure K) :
+    letI := fieldOnFieldSubstructure terms hK B
+    IsStrictOrderedRing B := by
+  letI := fieldOnFieldSubstructure terms hK B
+  let f : B →+* K := (subfieldOfFieldSubstructure terms hK B).subtype
+  exact Function.Injective.isStrictOrderedRing f (map_zero f) (map_one f) (map_add f) (map_mul f)
+    Iff.rfl Iff.rfl
+
+/-- The canonical ring embedding of a field-language substructure. -/
+def ringInclusionOfFieldSubstructure (hK : InterpretsOrderedFieldTerms (A := K) terms)
+    (B : L.Substructure K) :
+    letI := fieldOnFieldSubstructure terms hK B
+    B →+* K :=
+  (subfieldOfFieldSubstructure terms hK B).subtype
+
+@[simp]
+theorem ringInclusionOfFieldSubstructure_apply (hK : InterpretsOrderedFieldTerms (A := K) terms)
+    (B : L.Substructure K) (x : B) :
+    letI := fieldOnFieldSubstructure terms hK B
+    ringInclusionOfFieldSubstructure terms hK B x = x.val := by rfl
+
+set_option linter.style.haveILetI false in
+theorem interpretsOrderedFieldTerms_fieldSubstructure
+    (hK : InterpretsOrderedFieldTerms (A := K) terms) (B : L.Substructure K) :
+    letI := fieldOnFieldSubstructure terms hK B
+    InterpretsOrderedFieldTerms (A := B) terms := by
+  letI := fieldOnFieldSubstructure terms hK B
+  exact InterpretsOrderedFieldTerms.of_embedding terms hK B.subtype
+    (ringInclusionOfFieldSubstructure terms hK B) (fun _ => rfl) (fun _ _ h => h)
 
 section Transport
 

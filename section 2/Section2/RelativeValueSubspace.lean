@@ -52,6 +52,14 @@ def oldValueSubspace :
           positiveFieldValue_power O g P hP hzero hone hadd hmul hunit e x.val⟩ }
 
 set_option linter.style.haveILetI false in
+theorem exists_positive_representative_of_mem_oldValueSubspace (z : Additive (O.ValueGroupˣ)) :
+    letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+    z ∈ oldValueSubspace O g hzero hone hadd hmul A hA P hP hunit →
+      ∃ x : PositiveField K, (x : K) ∈ A ∧ positiveFieldValue O x = z := by
+  rintro ⟨x, hx⟩
+  exact ⟨x.val, x.property, hx⟩
+
+set_option linter.style.haveILetI false in
 theorem mem_oldValueSubspace_iff (z : Additive (O.ValueGroupˣ)) :
     letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
     z ∈ oldValueSubspace O g hzero hone hadd hmul A hA P hP hunit ↔
@@ -80,6 +88,7 @@ theorem mem_oldValueSubspace_iff (z : Additive (O.ValueGroupˣ)) :
 set_option linter.style.haveILetI false in
 /-- The value-group consequence of the Wilkie bound for a
 one-generator extension over the specified old field. -/
+@[expose]
 def RelativeValueRankLEOne : Prop :=
   letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
   let U := oldValueSubspace O g hzero hone hadd hmul A hA P hP hunit
@@ -141,5 +150,26 @@ theorem eq_convexValuationRing_of_rank_one_and_new_values
       h hbase hrankO a haQ
   · exact (eq_of_coarsening_of_relative_rank Q g hzero hone hadd hmul A hA R hR hunitQ O P hP hunit
       h (fun x hx => (hbase x hx).symm) hrankQ a haO).symm
+
+/-- The Wilkie alternatives determine the valuation on the common
+adjunction. If the generator has old value, all values are old for
+both valuations. In the other case the common generator has new
+value and the relative rank bounds apply. -/
+theorem eq_convexValuationRing_of_wilkie_value_cases
+    (hO : IsOrderConvex O) (hQ : IsOrderConvex Q)
+    (hbase : ∀ x ∈ A, x ∈ O ↔ x ∈ Q)
+    (hrankO : RelativeValueRankLEOne O g hzero hone hadd hmul A hA P hP hunit)
+    (hrankQ : RelativeValueRankLEOne Q g hzero hone hadd hmul A hA R hR hunitQ)
+    (a : PositiveField K)
+    (hOldEq : O.valuation (a : K) ∈ O.valuation '' (A : Set K) ↔
+      Q.valuation (a : K) ∈ Q.valuation '' (A : Set K))
+    (hOldO : O.valuation (a : K) ∈ O.valuation '' (A : Set K) →
+      ∀ u, u ∈ O.valuation '' (A : Set K))
+    (hOldQ : Q.valuation (a : K) ∈ Q.valuation '' (A : Set K) →
+      ∀ u, u ∈ Q.valuation '' (A : Set K)) : O = Q := by
+  by_cases ha : O.valuation (a : K) ∈ O.valuation '' (A : Set K)
+  · exact eq_convexValuationRing_of_all_values_old O Q hO hQ A hbase (hOldO ha) (hOldQ (hOldEq.mp ha))
+  · exact eq_convexValuationRing_of_rank_one_and_new_values O g hzero hone hadd hmul A hA P hP hunit
+      Q R hR hunitQ hO hQ hbase hrankO hrankQ a ha (hOldEq.not.mp ha)
 
 end GeneralizedEuler.Section2

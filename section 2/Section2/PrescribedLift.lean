@@ -84,4 +84,28 @@ theorem rv_absorb_coefficient {A : Subfield K} {x c y : K}
       exact (mul_assoc (rv O b) (rv O c) (rv O y)).symm
     _ = _ := by rw [map_mul (rv O) b c]
 
+omit [LinearOrder K] [IsStrictOrderedRing K] in
+/-- Dividing a new leading term of old value by an old field element
+gives a new residue. -/
+theorem exists_new_residue_of_old_value {A : Subfield K} {a : K}
+    (ha : O.valuation a ∈ O.valuation '' (A : Set K)) (hna : rv O a ∉ rv O '' (A : Set K)) :
+    ∃ c ∈ A, c ≠ 0 ∧ ∃ r : IsLocalRing.ResidueField O,
+      residueRV O r = rv O (a / c) ∧ residueRV O r ∉ rv O '' (A : Set K) := by
+  have hane : a ≠ 0 := by
+    intro h
+    exact hna ⟨0, A.zero_mem, congrArg (rv O) h.symm⟩
+  obtain ⟨c, hc, hcv⟩ := ha
+  have hcne : c ≠ 0 := (map_ne_zero O.valuation).mp (hcv.trans_ne ((map_ne_zero O.valuation).mpr hane))
+  have hvalue : unsignedValue O (rv O (a / c)) = 1 := by
+    rw [unsignedValue_rv, map_div₀, hcv, div_self ((map_ne_zero O.valuation).mpr hane)]
+  have hr : rv O (a / c) ∈ Set.range (residueRV O) := by
+    rw [range_residueRV]
+    exact Or.inr hvalue
+  obtain ⟨r, hr⟩ := hr
+  refine ⟨c, hc, hcne, r, hr, ?_⟩
+  rintro ⟨d, hd, he⟩
+  apply hna
+  refine ⟨d * c, A.mul_mem hd hc, ?_⟩
+  rw [map_mul (rv O), he, hr, ← map_mul (rv O), div_mul_cancel₀ a hcne]
+
 end GeneralizedEuler.Section2

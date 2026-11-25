@@ -95,3 +95,6 @@ public import Section2.SmallImmediateAdjunction
 public import Section2.RecoveredValuedField
 public import Section2.InterpretedValuedTheory
 public import Section2.InterpretedValuedQE
+public import Section2.FieldDefinableClosure
+public import Section2.PrescribedValueComparison
+public import Section2.WilkieRVStep

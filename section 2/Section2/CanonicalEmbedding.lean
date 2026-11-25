@@ -51,6 +51,26 @@ private def canonicalEmbeddingSort (i : K ↪[L] F) (f : K →+* F)
   | .vf => ⟨i, i.injective⟩
   | .rv => mapRV O P f hf
 
+/-- If the field powers restrict to a valued subfield, the leading-term
+powers on that subfield descend from the ambient operations. -/
+theorem existsUnique_leadingTermPower_of_valued_embedding
+    (f : K →+* F) (hf : RespectsValuationRing O P f) (horder : StrictMono f)
+    (g : PositiveField K →* PositiveField K) (g' : PositiveField F →* PositiveField F)
+    (Q' : RV0 P → RV0 P) (hQ' : AgreesWithFieldPower P g' Q')
+    (hg : ∀ (x : PositiveField K) (y : PositiveField F), (y : F) = f x →
+      f (g x : K) = (g' y : F)) :
+    ∃! Q : RV0 O → RV0 O, AgreesWithFieldPower O g Q ∧ (∀ t, ¬IsPositiveRV O t → Q t = 0) := by
+  apply existsUnique_leadingTermPower_of_same_representatives O g
+  have hm (x : PositiveField K) :
+      mapRV O P f hf (rv O (g x : K)) = Q' (mapRV O P f hf (rv O (x : K))) := by
+    have hx : 0 < f (x : K) := by simpa only [map_zero f] using horder x.property
+    let y : PositiveField F := ⟨f (x : K), hx⟩
+    rw [mapRV_rv, mapRV_rv, hg x y rfl]
+    exact (hQ' y).symm
+  intro x y he
+  apply (mapRV O P f hf).injective
+  rw [hm x, hm y, he]
+
 set_option linter.style.haveILetI false in
 /-- A pair embedding compatible with the field language, residue operations,
 and powers induces an embedding of the reviewed canonical structures. -/

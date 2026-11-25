@@ -73,30 +73,13 @@ abbrev AgreesWithFieldPower (g : PositiveField K →* PositiveField K)
     (P : RV0 O → RV0 O) : Prop :=
   ∀ x : PositiveField K, P (rv O x) = rv O (g x : K)
 
-/-- Compatibility on representatives suffices to define a unique total
-power operation, with zero on the other branches. -/
-theorem existsUnique_leadingTermPower (g : PositiveField K →* PositiveField K)
-    (hprincipal : ∀ x : PositiveField K, (x : K) - 1 ∈ O.nonunits →
-      (g x : K) - 1 ∈ O.nonunits) :
+/-- Equal positive representatives give a unique total power operation,
+with zero outside the positive branch. -/
+theorem existsUnique_leadingTermPower_of_same_representatives (g : PositiveField K →* PositiveField K)
+    (hdesc : ∀ x y : PositiveField K, rv O x = rv O y → rv O (g x : K) = rv O (g y : K)) :
     ∃! P : RV0 O → RV0 O,
-      AgreesWithFieldPower O g P ∧
-      (∀ t, ¬ IsPositiveRV O t → P t = 0) := by
+      AgreesWithFieldPower O g P ∧ (∀ t, ¬IsPositiveRV O t → P t = 0) := by
   classical
-  have hdesc : ∀ x y : PositiveField K, rv O x = rv O y →
-      rv O (g x : K) = rv O (g y : K) := by
-    intro x y heq
-    have hxy := (rv_eq_rv_iff O y.property.ne').mp heq
-    have sub_div_eq (a b : K) (hb : b ≠ 0) : (a - b) / b = a / b - 1 := by
-      rw [sub_div, div_self hb]
-    rw [sub_div_eq _ _ y.property.ne'] at hxy
-    have coe_div (a b : PositiveField K) : ((a / b : PositiveField K) : K) =
-        (a : K) / (b : K) := by
-      rw [div_eq_mul_inv, div_eq_mul_inv]
-      rfl
-    have hgxy := hprincipal (x / y) (by simpa only [coe_div] using hxy)
-    apply (rv_eq_rv_iff O (g y).property.ne').mpr
-    rw [sub_div_eq _ _ (g y).property.ne']
-    simpa only [map_div, coe_div] using hgxy
   let P (t : RV0 O) : RV0 O :=
     if h : IsPositiveRV O t then rv O (g (Classical.choose h) : K) else 0
   have hagree (x : PositiveField K) : P (rv O x) = rv O (g x : K) := by
@@ -110,6 +93,29 @@ theorem existsUnique_leadingTermPower (g : PositiveField K →* PositiveField K)
   · obtain ⟨x, rfl⟩ := h
     rw [hpos, hagree]
   · rw [hnonpos t h, hoff t h]
+
+/-- Compatibility on representatives suffices to define a unique total
+power operation, with zero on the other branches. -/
+theorem existsUnique_leadingTermPower (g : PositiveField K →* PositiveField K)
+    (hprincipal : ∀ x : PositiveField K, (x : K) - 1 ∈ O.nonunits →
+      (g x : K) - 1 ∈ O.nonunits) :
+    ∃! P : RV0 O → RV0 O,
+      AgreesWithFieldPower O g P ∧
+      (∀ t, ¬ IsPositiveRV O t → P t = 0) := by
+  apply existsUnique_leadingTermPower_of_same_representatives O g
+  intro x y heq
+  have hxy := (rv_eq_rv_iff O y.property.ne').mp heq
+  have sub_div_eq (a b : K) (hb : b ≠ 0) : (a - b) / b = a / b - 1 := by
+    rw [sub_div, div_self hb]
+  rw [sub_div_eq _ _ y.property.ne'] at hxy
+  have coe_div (a b : PositiveField K) : ((a / b : PositiveField K) : K) =
+      (a : K) / (b : K) := by
+    rw [div_eq_mul_inv, div_eq_mul_inv]
+    rfl
+  have hgxy := hprincipal (x / y) (by simpa only [coe_div] using hxy)
+  apply (rv_eq_rv_iff O (g y).property.ne').mpr
+  rw [sub_div_eq _ _ (g y).property.ne']
+  simpa only [map_div, coe_div] using hgxy
 
 /-- Descent and uniqueness under the residue compatibility of the reviewed
 clamping argument. -/

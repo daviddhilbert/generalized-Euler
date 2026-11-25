@@ -45,6 +45,12 @@ theorem SortedEmbedding.rvHom_rv
     (x : J) : e.rvHom (rv I x) = rv O (e.toEmbedding .vf x) := by
   simpa only [SortedEmbedding.rvHom_apply, canonicalStructure_rvMap] using e.map_rv x
 
+theorem SortedEmbedding.rvHom_inv
+    (e : SortedEmbedding (canonicalStructure (L := L) I hI PI) (canonicalStructure O hO PO))
+    (t : RV0 I) : e.rvHom t⁻¹ = (e.rvHom t)⁻¹ := by
+  let args : SortedArgs (CanonicalSort I) [.rv] := Fin.cases t (fun i => i.elim0)
+  exact e.map_fun .rvInv args
+
 theorem SortedEmbedding.rvHom_power
     (e : SortedEmbedding (canonicalStructure (L := L) I hI PI) (canonicalStructure O hO PO))
     (d : E) (t : RV0 I) : e.rvHom (PI d t) = PO d (e.rvHom t) := by
@@ -70,6 +76,16 @@ theorem rvMapsAgree_of_common_field_value (x : J) (a : A.source.carrier .vf)
     Subtype.ext ht.symm
   rw [he, right.rvHom_rv, hr]
   simpa only [canonicalStructure_rvMap] using A.embedding.map_rv a
+
+theorem rvMapsAgree_of_prescribed_representatives (a : J) (t : A.source.carrier .rv)
+    (ha : rv O (left.toEmbedding .vf a) = t.val)
+    (hb : rv Q (right.toEmbedding .vf a) = A.embedding.toEmbedding .rv t) :
+    RVMapsAgree A.embedding left.rvHom right.rvHom (rv I a) := by
+  have ht : t.val = left.rvHom (rv I a) := ((left.rvHom_rv a).trans ha).symm
+  refine ⟨ht ▸ t.property, ?_⟩
+  have he : (⟨left.rvHom (rv I a), ht ▸ t.property⟩ : A.source.carrier .rv) = t :=
+    Subtype.ext ht.symm
+  rw [he, right.rvHom_rv, hb]
 
 variable (B : L.Substructure K) (field : B ↪[L] F)
   (hbase : A.source.carrier .vf ⊆ B)
@@ -127,12 +143,7 @@ theorem exists_fixedRVExtension_of_canonical_monomials
       s = rv I (rep ⟨c.val, hbase c.property⟩) * PI d (rv I a)) :
     ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
       A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
-  have hgen : RVMapsAgree A.embedding left.rvHom right.rvHom (rv I a) := by
-    have ht : t.val = left.rvHom (rv I a) := (left.rvHom_rv a).trans ha |>.symm
-    refine ⟨ht ▸ t.property, ?_⟩
-    have he : (⟨left.rvHom (rv I a), ht ▸ t.property⟩ : A.source.carrier .rv) = t :=
-      Subtype.ext ht.symm
-    rw [he, right.rvHom_rv, hb]
+  have hgen := rvMapsAgree_of_prescribed_representatives A left right a t ha hb
   let w (c : A.source.carrier .vf) := rv I (rep ⟨c.val, hbase c.property⟩)
   have hW (s : RV0 I) (hs : s ∈ Set.range w) : RVMapsAgree A.embedding left.rvHom right.rvHom s := by
     obtain ⟨c, rfl⟩ := hs
@@ -169,5 +180,44 @@ theorem exists_fixedRVExtension_of_canonical_residue_generation
       exact ⟨w c, Set.mem_range_self c, hc⟩)
   exact exists_fixedRVExtension_of_canonical_agreement A left right B field hbase hfield rep hleft hright
     (fun x => h (rv I (rep x)))
+
+/-- In the new-residue case, the normalized residue has compatible
+images because both the prescribed representative and the old value
+representative have compatible images. -/
+theorem exists_fixedRVExtension_of_normalized_residue
+    (a : J) (t : A.source.carrier .rv) (c : A.source.carrier .vf)
+    (ha : rv O (left.toEmbedding .vf a) = t.val)
+    (hb : rv Q (right.toEmbedding .vf a) = A.embedding.toEmbedding .rv t)
+    (r : Residue I)
+    (hr : residueRV I r = rv I a / rv I (rep ⟨c.val, hbase c.property⟩))
+    (old : Set (Residue I))
+    (hold : ∀ s ∈ old, ∃ d : A.source.carrier .vf,
+      residueRV I s = rv I (rep ⟨d.val, hbase d.property⟩))
+    (hTerm : ∀ s : Residue I, ∃ τ : L.Term (old ⊕ Unit),
+      τ.realize (Sum.elim Subtype.val (fun _ => r)) = s)
+    (hvalues : ∀ x : J, ∃ d : A.source.carrier .vf,
+      I.valuation (rep ⟨d.val, hbase d.property⟩) = I.valuation x) :
+    ∃ C : FixedRVLift (canonicalStructure (L := L) O hO PO) (canonicalStructure Q hQ PQ) R,
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+  let oldRep (d : A.source.carrier .vf) := rep ⟨d.val, hbase d.property⟩
+  have hOld (d : A.source.carrier .vf) :
+      RVMapsAgree A.embedding left.rvHom right.rvHom (rv I (oldRep d)) :=
+    rvMapsAgree_of_common_field_value A left right (oldRep d) d (hleft _)
+      ((hright _).trans (hfield d))
+  have hInv : RVMapsAgree A.embedding left.rvHom right.rvHom (rv I (oldRep c))⁻¹ :=
+    (hOld c).of_inverse (left.rvHom_inv _) (right.rvHom_inv _)
+  have hR : RVMapsAgree A.embedding left.rvHom right.rvHom (residueRV I r) := by
+    rw [hr, div_eq_mul_inv (G := RV0 I)]
+    exact (rvMapsAgree_of_prescribed_representatives A left right a t ha hb).mul hInv
+  apply exists_fixedRVExtension_of_canonical_residue_generation A left right B field
+    hbase hfield rep hleft hright (Sum.elim Subtype.val (fun _ => r)) hTerm ?_ hvalues
+  intro i
+  cases i with
+  | inl s =>
+    obtain ⟨d, hd⟩ := hold s.val s.property
+    change RVMapsAgree A.embedding left.rvHom right.rvHom (residueRV I s.val)
+    rw [hd]
+    exact hOld d
+  | inr i => exact hR
 
 end GeneralizedEuler.Section2
