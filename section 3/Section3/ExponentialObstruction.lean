@@ -136,4 +136,53 @@ theorem no_definable_exponential (hom : IsOMinimal (K := k) L)
   rw [hratio] at hsup
   linarith [mul_lt_mul_of_pos_right htwo hq]
 
+omit [IsStrictOrderedRing k] in
+/-- Normalize the graph in residue coordinates by its value at the
+origin. The parameter is allowed in the residue structure after choosing
+affine coordinates on the source line and target ray. -/
+theorem definable_normalized_graph {F : OrderedFieldTerms L}
+    (hF : InterpretsOrderedFieldTerms (A := k) F) {h : k → k} (hn : h 0 ≠ 0)
+    (hd : (univ : Set k).Definable₂ L (fieldGraph univ h)) :
+    (univ : Set k).Definable₂ L (fieldGraph univ (fun z => h z / h 0)) := by
+  obtain ⟨φ,hφ⟩ := hd
+  let P : Set k := univ
+  let c : (L[[P]]).Term (Fin 2) := (L.con (⟨h 0,mem_univ _⟩ : P)).term
+  let y : (L[[P]]).Term (Fin 2) := .var 1
+  let prod := ((L.lhomWithConstants P).onTerm F.mul).subst ![y,c]
+  refine ⟨φ.subst ![.var 0,prod],?_⟩
+  ext v
+  have graph (t : Fin 2 → k) : φ.Realize t ↔ t 1 = h (t 0) := by
+    simpa [fieldGraph] using (Set.ext_iff.mp hφ t).symm
+  have hp : prod.realize v = v 1 * h 0 := by
+    simp [prod,Term.realize_subst,LHom.realize_onTerm,hF.mul,y,c]
+  change (v 0 ∈ univ ∧ v 1 = h (v 0) / h 0) ↔ _
+  rw [and_iff_right (mem_univ _)]
+  have substEval : Formula.Realize (φ.subst ![.var 0,prod]) v ↔
+      φ.Realize (fun i => (![.var 0,prod] i).realize v) := BoundedFormula.realize_subst
+  rw [mem_ofPred_eq,substEval,graph]
+  change _ ↔ prod.realize v = h (v 0)
+  rw [hp]
+  exact eq_div_iff hn
+
+/-- A line-to-ray chart with common profiles is impossible. Orient the
+source coordinate so the chart increases. Surjectivity onto the positive
+ray gives cofinality even over a non-Archimedean residue field. -/
+theorem no_line_to_ray_of_common_profiles (hom : IsOMinimal (K := k) L)
+    (hpb : IsPowerBounded (K := k) L) {F : OrderedFieldTerms L}
+    (hF : InterpretsOrderedFieldTerms (A := k) F) {h : k → k} (inc : StrictMono h)
+    (ray : range h = Ioi 0) (hd : (univ : Set k).Definable₂ L (fieldGraph univ h))
+    (profiles : ∀ y, ∃ v w : k, v ≠ 0 ∧
+      ∀ s, h (0 + s*v) / h 0 = h (y+s*w) / h y) : False := by
+  have pos (x : k) : 0 < h x := by
+    have hx := mem_range_self (f := h) x
+    rwa [ray] at hx
+  have law := (exponential_of_common_profiles inc.injective (fun x => (pos x).ne') profiles).2.2
+  apply no_definable_exponential hom hpb hF _ (definable_normalized_graph hF (pos 0).ne' hd)
+    (fun x => div_pos (pos x) (pos 0)) _ law
+  intro c
+  obtain ⟨u,hu⟩ := exists_gt (max 0 (c*h 0))
+  obtain ⟨b,hb⟩ : u ∈ range h := ray.symm ▸ ((le_max_left _ _).trans_lt hu : 0 < u)
+  refine ⟨b,fun x hx => (lt_div_iff₀ (pos 0)).mpr ?_⟩
+  exact ((le_max_right _ _).trans_lt hu).trans (hb ▸ inc hx)
+
 end GeneralizedEuler.Section3

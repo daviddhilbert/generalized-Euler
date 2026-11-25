@@ -41,3 +41,5 @@ public import Section3.NormalizedSlice
 public import Section3.UnaryDiscImages
 public import Section3.BoundaryBranches
 public import Section3.SplittingValues
+public import Section3.ResidueInterval
+public import Section3.BoundaryCharts
