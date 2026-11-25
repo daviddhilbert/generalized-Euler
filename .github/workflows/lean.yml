@@ -1,0 +1,70 @@
+name: Lean CI
+
+"on":
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    name: Find Lean packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.packages.outputs.directories }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Find tracked Lake packages
+        id: packages
+        shell: bash
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import PurePosixPath
+
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+          lakefiles = {"lakefile.lean", "lakefile.toml"}
+          packages = sorted({
+              str(path.parent)
+              for path in map(PurePosixPath, map(os.fsdecode, filter(None, tracked)))
+              if path.name in lakefiles
+          })
+          if not packages:
+              raise SystemExit("No tracked Lake packages found")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              print(f"directories={json.dumps(packages)}", file=output)
+          print("Lean packages:", ", ".join(packages))
+          PY
+
+  build:
+    name: Build ${{ matrix.package }}
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.discover.outputs.packages) }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Build Lean package
+        uses: leanprover/lean-action@fe408643ea7367d8c0404a8be3975bb145f5fb64 # v1.7.0
+        with:
+          lake-package-directory: ${{ matrix.package }}
+          auto-config: "false"
+          build: "true"
+          use-mathlib-cache: "auto"
+          use-github-cache: "false"
