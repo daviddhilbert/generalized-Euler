@@ -150,27 +150,53 @@ theorem le_of_compatible {A B : FixedRVLift M N R}
       A.embedding.toEmbedding s x = B.embedding.toEmbedding s ⟨x.val, h s x.property⟩) :
     A ≤ B := ⟨h, he⟩
 
+section DirectedUnion
+
+variable {I : Type*} [Preorder I] [IsDirectedOrder I] [Nonempty I]
+  (A : I → FixedRVLift M N R) (hA : Monotone A)
+
+include hA
+
+omit [IsDirectedOrder I] [Nonempty I] in
+private theorem liftCarrierMonotone (s : TCsort) : Monotone (fun i => (A i).source.carrier s) :=
+  fun _ _ hij => ((le_iff_extends _ _).mp (hA hij)).choose s
+
+omit [IsDirectedOrder I] [Nonempty I] in
+private theorem liftEmbeddingCompatible {i j : I} (hij : i ≤ j) (s : TCsort)
+    (x : (A i).source.carrier s) :
+    (A i).embedding.toEmbedding s x =
+      (A j).embedding.toEmbedding s ⟨x.val, liftCarrierMonotone A hA s hij x.property⟩ :=
+  ((le_iff_extends _ _).mp (hA hij)).choose_spec s x
+
+/-- Compatible partial lifts with a fixed RV sort glue along a directed
+family. The field domain is the union of the field domains. -/
+def directedUnion : FixedRVLift M N R :=
+  ⟨SortedSubstructure.directedUnion (fun i => (A i).source) (liftCarrierMonotone A hA),
+    SortedSubstructure.directedUnion_rv_eq (fun i => (A i).source) (liftCarrierMonotone A hA)
+      (fun i => (A i).rv_eq),
+    SortedSubstructure.directedUnionEmbedding (fun i => (A i).source) (liftCarrierMonotone A hA)
+      (fun i => (A i).embedding) (liftEmbeddingCompatible A hA)⟩
+
+theorem directedUnion_carrier (s : TCsort) :
+    (directedUnion A hA).source.carrier s = ⋃ i, (A i).source.carrier s := by rfl
+
+theorem le_directedUnion (i : I) : A i ≤ directedUnion A hA := by
+  apply le_of_compatible (fun _ _ hx => Set.mem_iUnion.mpr ⟨i, hx⟩)
+  intro s x
+  exact (SortedSubstructure.directedUnionEmbedding_apply_at_stage (fun i => (A i).source)
+    (liftCarrierMonotone A hA) (fun i => (A i).embedding) (liftEmbeddingCompatible A hA) i s x).symm
+
+end DirectedUnion
+
 private theorem bddAbove_of_chain (c : Set (FixedRVLift M N R))
     (hc : IsChain (· ≤ ·) c) (hne : c.Nonempty) : BddAbove c := by
   let : Nonempty c := hne.to_subtype
   let : IsDirectedOrder c := ⟨fun i j => by
     obtain ⟨k, hk, hik, hjk⟩ := hc.directedOn i.val i.property j.val j.property
     exact ⟨⟨k, hk⟩, hik, hjk⟩⟩
-  let S (i : c) := i.val.source
-  have hS (s : TCsort) : Monotone fun i => (S i).carrier s :=
-    fun _ _ h => ((le_iff_extends _ _).mp h).choose s
-  let e (i : c) := i.val.embedding
-  have he {i j : c} (h : i ≤ j) (s : TCsort) (x : (S i).carrier s) :
-      (e i).toEmbedding s x = (e j).toEmbedding s ⟨x.val, hS s h x.property⟩ :=
-    ((le_iff_extends _ _).mp h).choose_spec s x
-  let B : FixedRVLift M N R :=
-    ⟨SortedSubstructure.directedUnion S hS,
-      SortedSubstructure.directedUnion_rv_eq S hS (fun i => i.val.rv_eq),
-      SortedSubstructure.directedUnionEmbedding S hS e he⟩
-  refine ⟨B, fun A hA => (le_iff_extends A B).mpr ⟨?_, ?_⟩⟩
-  · exact fun _ _ hx => Set.mem_iUnion.mpr ⟨⟨A, hA⟩, hx⟩
-  · exact fun s x => (SortedSubstructure.directedUnionEmbedding_apply_at_stage
-      S hS e he ⟨A, hA⟩ s x).symm
+  let A : c → FixedRVLift M N R := Subtype.val
+  have hA : Monotone A := fun _ _ h => h
+  exact ⟨directedUnion A hA, fun x hx => le_directedUnion A hA ⟨x, hx⟩⟩
 
 private theorem exists_maximal_extension (A : FixedRVLift M N R) :
     ∃ B : FixedRVLift M N R, A ≤ B ∧ IsMax B :=
@@ -209,19 +235,15 @@ theorem exists_fullVF_and_surjectiveVF (A : FixedRVLift M N R)
     obtain ⟨hm, he⟩ := (le_iff_extends C B).mp (hmax hBC)
     exact ⟨⟨x.val, hm .vf x.property⟩, (he .vf x).symm.trans hx⟩
 
-/-- The back-and-forth part of Lemma 2.20. Once the initial map is the
-identity on all RV and the two field extension properties hold, it extends
-to a sorted automorphism that still fixes RV pointwise. -/
-theorem exists_immediate_automorphism {A : FixedRVLift M M Set.univ}
+/-- A full field lift that is surjective on VF and fixes RV on the
+initial domain gives an automorphism fixing RV pointwise. -/
+theorem exists_immediate_automorphism_of_fullVF {A : FixedRVLift M M Set.univ}
     (hidentity : ∀ t : A.source.carrier .rv, A.embedding.toEmbedding .rv t = t.val)
-    (hforth : ∀ B : FixedRVLift M M Set.univ, A ≤ B → ∀ x : X .vf,
-      ∃ C : FixedRVLift M M Set.univ, B ≤ C ∧ x ∈ C.source.carrier .vf)
-    (hback : ∀ B : FixedRVLift M M Set.univ, A ≤ B → ∀ y : X .vf,
-      ∃ C : FixedRVLift M M Set.univ, B ≤ C ∧ ∃ x, C.embedding.toEmbedding .vf x = y) :
+    (B : FixedRVLift M M Set.univ) (hAB : A ≤ B) (hvf : B.source.carrier .vf = Set.univ)
+    (hsVF : Function.Surjective (B.embedding.toEmbedding .vf)) :
     ∃ e : SortedIsomorphism M M,
       (∀ s (x : A.source.carrier s), e.toEmbedding s x.val = A.embedding.toEmbedding s x) ∧
       ∀ t : X .rv, e.toEmbedding .rv t = t := by
-  obtain ⟨B, hAB, hvf, hsVF⟩ := exists_fullVF_and_surjectiveVF A hforth hback
   obtain ⟨hmem, hagree⟩ := (le_iff_extends A B).mp hAB
   have hfull (s : TCsort) (x : X s) : x ∈ B.source.carrier s := by
     cases s with
@@ -245,6 +267,21 @@ theorem exists_immediate_automorphism {A : FixedRVLift M M Set.univ}
           exact ⟨x.val, hx⟩
         | rv => exact ⟨y, hfix y⟩ }
   exact ⟨e, fun s x => (hagree s x).symm, hfix⟩
+
+/-- The back-and-forth part of Lemma 2.20. Once the initial map is the
+identity on all RV and the two field extension properties hold, it extends
+to a sorted automorphism that still fixes RV pointwise. -/
+theorem exists_immediate_automorphism {A : FixedRVLift M M Set.univ}
+    (hidentity : ∀ t : A.source.carrier .rv, A.embedding.toEmbedding .rv t = t.val)
+    (hforth : ∀ B : FixedRVLift M M Set.univ, A ≤ B → ∀ x : X .vf,
+      ∃ C : FixedRVLift M M Set.univ, B ≤ C ∧ x ∈ C.source.carrier .vf)
+    (hback : ∀ B : FixedRVLift M M Set.univ, A ≤ B → ∀ y : X .vf,
+      ∃ C : FixedRVLift M M Set.univ, B ≤ C ∧ ∃ x, C.embedding.toEmbedding .vf x = y) :
+    ∃ e : SortedIsomorphism M M,
+      (∀ s (x : A.source.carrier s), e.toEmbedding s x.val = A.embedding.toEmbedding s x) ∧
+      ∀ t : X .rv, e.toEmbedding .rv t = t := by
+  obtain ⟨B, hAB, hvf, hsVF⟩ := exists_fullVF_and_surjectiveVF A hforth hback
+  exact exists_immediate_automorphism_of_fullVF hidentity B hAB hvf hsVF
 
 /-- Iteration of the common-lift step supplies all the required field
 representatives in Lemma 2.20 while keeping the RV map fixed. -/

@@ -80,7 +80,7 @@ end FixedRVLift
 
 variable {A B : FixedRVLift M M (Set.univ : Set (X .rv))}
 
-private theorem fixesRV_of_extends (hAB : A ≤ B)
+theorem fixesRV_of_extends (hAB : A ≤ B)
     (hA : ∀ t : A.source.carrier .rv, A.embedding.toEmbedding .rv t = t.val) :
     ∀ t : B.source.carrier .rv, B.embedding.toEmbedding .rv t = t.val := by
   obtain ⟨hc, he⟩ := (FixedRVLift.le_iff_extends A B).mp hAB
@@ -89,19 +89,54 @@ private theorem fixesRV_of_extends (hAB : A ≤ B)
   let u : A.source.carrier .rv := ⟨t.val, ht⟩
   exact (he .rv u).symm.trans (hA u)
 
-private theorem ontoRV_of_fixesRV (A : FixedRVLift M M (Set.univ : Set (X .rv)))
+theorem ontoRV_of_fixesRV (A : FixedRVLift M M (Set.univ : Set (X .rv)))
     (hA : ∀ t : A.source.carrier .rv, A.embedding.toEmbedding .rv t = t.val) :
     Function.Surjective (A.embedding.toEmbedding .rv) := by
   intro x
   let t : A.source.carrier .rv := ⟨x, A.rv_eq.symm ▸ Set.mem_univ x⟩
   exact ⟨t, hA t⟩
 
-private theorem reverse_fixesRV (A : FixedRVLift M M (Set.univ : Set (X .rv)))
+theorem reverse_fixesRV (A : FixedRVLift M M (Set.univ : Set (X .rv)))
     (hA : ∀ t : A.source.carrier .rv, A.embedding.toEmbedding .rv t = t.val)
     (t : (A.reverse (ontoRV_of_fixesRV A hA)).source.carrier .rv) :
     (A.reverse (ontoRV_of_fixesRV A hA)).embedding.toEmbedding .rv t = t.val := by
   let p := rangePreimage A.embedding .rv t
   exact (hA p).symm.trans (rangePreimage_map A.embedding .rv t)
+
+theorem reverse_carrier (A : FixedRVLift M M (Set.univ : Set (X .rv)))
+    (h : Function.Surjective (A.embedding.toEmbedding .rv)) (s : TCsort) :
+    (A.reverse h).source.carrier s = Set.range (A.embedding.toEmbedding s) := by rfl
+
+theorem le_reverse_of_reverse_le
+    (A D : FixedRVLift M M (Set.univ : Set (X .rv)))
+    (hA : Function.Surjective (A.embedding.toEmbedding .rv))
+    (hD : Function.Surjective (D.embedding.toEmbedding .rv))
+    (hBD : A.reverse hA ≤ D) : A ≤ D.reverse hD := by
+  let B := A.reverse hA
+  let C := D.reverse hD
+  obtain ⟨hBDmem, hBDeq⟩ := (FixedRVLift.le_iff_extends B D).mp hBD
+  have hpoint (s : TCsort) (x : A.source.carrier s) :
+      ∃ u : D.source.carrier s, u.val = A.embedding.toEmbedding s x ∧ D.embedding.toEmbedding s u = x.val := by
+    let t : B.source.carrier s := ⟨A.embedding.toEmbedding s x, Set.mem_range_self x⟩
+    let u : D.source.carrier s := ⟨t.val, hBDmem s t.property⟩
+    exact ⟨u, rfl, (hBDeq s t).symm.trans (A.embedding.inverseFromRange_apply_image s x t.property)⟩
+  have hACmem (s : TCsort) : A.source.carrier s ⊆ C.source.carrier s := by
+    intro x hx
+    obtain ⟨u, _, he⟩ := hpoint s ⟨x, hx⟩
+    exact ⟨u, he⟩
+  apply FixedRVLift.le_of_compatible hACmem
+  intro s x
+  obtain ⟨u, hu, he⟩ := hpoint s x
+  have he' : (⟨x.val, hACmem s x.property⟩ : C.source.carrier s) =
+        ⟨D.embedding.toEmbedding s u, Set.mem_range_self u⟩ := Subtype.ext he.symm
+  rw [he']
+  exact hu.symm.trans (D.embedding.inverseFromRange_apply_image s u _).symm
+
+theorem reverse_hits_vf (D : FixedRVLift M M (Set.univ : Set (X .rv)))
+    (hD : Function.Surjective (D.embedding.toEmbedding .rv)) (y : D.source.carrier .vf) :
+    ∃ x, (D.reverse hD).embedding.toEmbedding .vf x = y.val :=
+  ⟨⟨D.embedding.toEmbedding .vf y, Set.mem_range_self y⟩,
+    D.embedding.inverseFromRange_apply_image .vf y _⟩
 
 /-- The field-point extension property for maps fixing all of RV
 automatically gives the back property, by applying it to the inverse. -/
@@ -118,26 +153,7 @@ theorem exists_back_extension_of_immediate_forth
   obtain ⟨D, hBD, hy⟩ := hforth B hB y
   have hD := fixesRV_of_extends hBD hB
   let C := D.reverse (ontoRV_of_fixesRV D hD)
-  obtain ⟨hBDmem, hBDeq⟩ := (FixedRVLift.le_iff_extends B D).mp hBD
-  have hpoint (s : TCsort) (x : A.source.carrier s) :
-      ∃ u : D.source.carrier s, u.val = A.embedding.toEmbedding s x ∧ D.embedding.toEmbedding s u = x.val := by
-    let t : B.source.carrier s := ⟨A.embedding.toEmbedding s x, Set.mem_range_self x⟩
-    let u : D.source.carrier s := ⟨t.val, hBDmem s t.property⟩
-    exact ⟨u, rfl, (hBDeq s t).symm.trans (A.embedding.inverseFromRange_apply_image s x t.property)⟩
-  have hACmem (s : TCsort) : A.source.carrier s ⊆ C.source.carrier s := by
-    intro x hx
-    obtain ⟨u, _, he⟩ := hpoint s ⟨x, hx⟩
-    exact ⟨u, he⟩
-  refine ⟨C, FixedRVLift.le_of_compatible hACmem ?_, ?_⟩
-  · intro s x
-    obtain ⟨u, hu, he⟩ := hpoint s x
-    have he' : (⟨x.val, hACmem s x.property⟩ : C.source.carrier s) =
-        ⟨D.embedding.toEmbedding s u, Set.mem_range_self u⟩ := Subtype.ext he.symm
-    rw [he']
-    exact hu.symm.trans (D.embedding.inverseFromRange_apply_image s u _).symm
-  · let x : D.source.carrier .vf := ⟨y, hy⟩
-    exact ⟨⟨D.embedding.toEmbedding .vf x, Set.mem_range_self x⟩,
-      D.embedding.inverseFromRange_apply_image .vf x _⟩
+  exact ⟨C, le_reverse_of_reverse_le A D _ _ hBD, reverse_hits_vf D _ ⟨y, hy⟩⟩
 
 /-- Lemma 2.20 after supplying the one-field-point extension step.
 The two directions and the initial extension by identity follow formally. -/

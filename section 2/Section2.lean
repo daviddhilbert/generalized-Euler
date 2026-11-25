@@ -90,3 +90,5 @@ public import Section2.ResidueTopology
 public import Section2.RelativeValueSubspace
 public import Section2.RVClosure
 public import Section2.ContinuousDefinitions
+public import Section2.SmallBackAndForth
+public import Section2.SmallImmediateAdjunction
