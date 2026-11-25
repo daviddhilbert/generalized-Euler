@@ -151,6 +151,21 @@ theorem SortedTerm.realize_relabel {Var : TCsort → Type a} {Var' : TCsort → 
   | var => rfl
   | app f ts ih => simp only [SortedTerm.relabel, SortedTerm.realize, ih]
 
+/-- Simultaneous substitution of sorted terms for their variables. -/
+def SortedTerm.subst {Var : TCsort → Type a} {Var' : TCsort → Type b}
+    (r : ∀ s, Var s → SortedTerm L E Var' s) :
+    {s : TCsort} → SortedTerm L E Var s → SortedTerm L E Var' s
+  | _, .var x => r _ x
+  | _, .app f ts => .app f (fun i => (ts i).subst r)
+
+theorem SortedTerm.realize_subst {Var : TCsort → Type a} {Var' : TCsort → Type b}
+    (r : ∀ s, Var s → SortedTerm L E Var' s) (v : ∀ s, Var' s → X s)
+    {s : TCsort} (t : SortedTerm L E Var s) :
+    (t.subst r).realize M v = t.realize M (fun s i => (r s i).realize M v) := by
+  induction t with
+  | var => rfl
+  | app f ts ih => simp only [SortedTerm.subst, SortedTerm.realize, ih]
+
 def SortedFormula.relabel :
     {Var : TCsort → Type a} → {Var' : TCsort → Type b} →
       (∀ s, Var s → Var' s) → SortedFormula L E Var → SortedFormula L E Var'

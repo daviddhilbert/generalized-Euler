@@ -2,6 +2,7 @@ module
 
 public import Section2.ImmediateAdjunction
 public import Section2.SmallBackAndForth
+public import Section2.CanonicalQuantifierElimination
 
 /-! The representative step and saturation use only small field
 domains in the immediate automorphism argument. -/
@@ -143,5 +144,48 @@ theorem exists_immediate_automorphism_of_small_saturation {μ : Cardinal.{u}}
     | vf => exact (e.extendImmediateByIdentity_carrier_vf S he).symm ▸ x.property
     | rv => exact A.rv_eq.symm ▸ Set.mem_univ _
   exact (hf s ⟨x.val, hx⟩).trans (e.extendImmediateByIdentity_agrees S he s x hx)
+
+omit [Field K] [LinearOrder K] [IsStrictOrderedRing K] [L.Structure K]
+  [L.Structure (Residue O)] hTerms hConvexTerms hQE in
+set_option linter.style.haveILetI false in
+/-- Lemma 2.20 with the representative step supplied by the
+generated adjunction proof. -/
+theorem CanonicalQEModel.exists_small_immediate_automorphism
+    {K : Type u} [Field E] {T : L.Theory} [T.IsUniversal]
+    {Tconvex : (convexLanguage L).Theory} {terms : OrderedFieldTerms L}
+    {graph : E → L.Formula (Fin 2)} (d : CanonicalQEModel T Tconvex terms graph K)
+    (hInput : d.hasAdjunctionInputs d)
+    (hOM : IsOMinimalFieldTheory.{u, v, u} T) (hQE : EliminatesQuantifiers T)
+    (hQEconvex : EliminatesQuantifiers Tconvex)
+    (convexTerms : FieldTerms (convexLanguage L))
+    {μ : Cardinal.{u}} (hμ : ℵ₀ ≤ μ) (hμK : μ < #K)
+    (hL : #(Σ i, L.Functions i) ≤ μ) :
+    letI := d.field
+    letI := d.languageStructure
+    letI := convexStructure d.ring L
+    InterpretsFieldTerms (K := K) convexTerms →
+    (∀ Names : Type u, #Names < #K →
+      RealizesFinitelySatisfiableFieldTypes (convexLanguage L) K Names) →
+    ∀ (S : SortedSubstructure d.structureOn), #(S.carrier .vf) ≤ μ →
+      ∀ (e : SortedEmbedding S.structureOn d.structureOn),
+        (∀ t : S.carrier .rv, e.toEmbedding .rv t = t.val) →
+        ∃ f : SortedIsomorphism d.structureOn d.structureOn,
+          (∀ s (x : S.carrier s), f.toEmbedding s x.val = e.toEmbedding s x) ∧
+          ∀ t : RV0 d.ring, f.toEmbedding .rv t = t := by
+  letI := d.field
+  letI := d.order
+  letI := d.orderedRing
+  letI := d.languageStructure
+  letI := d.residueStructure
+  letI := d.models
+  letI := convexStructure d.ring L
+  intro hConvex hSat S hS e he
+  refine exists_immediate_automorphism_of_small_saturation d.ring d.convex d.rvPowers.pow
+    terms d.orderedTerms convexTerms hConvex Tconvex hQEconvex hμ hμK hL
+    d.modelsValued hSat ?_ S hS e he
+  intro A _ t hNew
+  exact exists_fixedRVExtension_of_tconvex_inputs terms d.orderedTerms d.orderedTerms
+    d.ring d.ring d.powers d.powers d.rvPowers d.rvPowers d.convex d.convex
+    A hOM hQE (hInput A) t (Set.mem_univ _) hNew
 
 end GeneralizedEuler.Section2

@@ -145,4 +145,55 @@ theorem mapRV_extendResidueOperation {n : ℕ}
       extendResidueOperation_off_residue P g' ⟨i, (mapRV_in_residue_iff O P f hf _).not.mpr hi⟩,
       mapRV_zero]
 
+section ResidueSections
+
+open FirstOrder FirstOrder.Language
+
+variable {L : Language} [L.Structure K] [L.Structure F]
+  [L.Structure (Residue O)] [L.Structure (Residue P)]
+
+/-- A residue section in the field language of the canonical residue
+model. The sections of van den Dries and Lewenberg, Remark 2.16,
+are obtained from elementary submodels of the field inside the ring. -/
+structure LanguageResidueSection (L : Language) [L.Structure K] [L.Structure (Residue O)] where
+  lift : Residue O ↪[L] K
+  integral : ∀ r, lift r ∈ O
+  reduce : ∀ r, IsLocalRing.residue O ⟨lift r, integral r⟩ = r
+
+include hf in
+/-- Compatible residue sections make the induced residue map an
+embedding in the full field language. -/
+theorem exists_residueEmbedding_of_compatible_sections
+    (i : K ↪[L] F) (hi : ∀ x, i x = f x)
+    (source : LanguageResidueSection O L) (target : LanguageResidueSection P L)
+    (h : ∀ r, i (source.lift r) ∈ Set.range target.lift) :
+    ∃ e : Residue O ↪[L] Residue P, ∀ r, e r = mapResidue O P f hf r := by
+  let m := mapResidue O P f hf
+  have commutes (r : Residue O) : target.lift (m r) = i (source.lift r) := by
+    obtain ⟨s, hs⟩ := h r
+    have hr : m r = s := by
+      rw [← source.reduce r, mapResidue_residue]
+      refine (congrArg (IsLocalRing.residue P) ?_).trans (target.reduce s)
+      exact Subtype.ext (by
+        rw [coe_mapValuationRing]
+        exact (hi _).symm.trans hs.symm)
+    rw [hr, hs]
+  let e : Residue O ↪[L] Residue P :=
+    { toFun := m
+      inj' := m.injective
+      map_fun' := by
+        intro n symbol a
+        apply target.lift.injective
+        rw [commutes, source.lift.map_fun, i.map_fun, target.lift.map_fun]
+        congr 1
+        funext j
+        exact (commutes (a j)).symm
+      map_rel' := by
+        intro n symbol a
+        have hm : target.lift ∘ (m ∘ a) = i ∘ (source.lift ∘ a) := funext (fun j => commutes (a j))
+        rw [← target.lift.map_rel, hm, i.map_rel, source.lift.map_rel] }
+  exact ⟨e, fun _ => rfl⟩
+
+end ResidueSections
+
 end GeneralizedEuler.Section2

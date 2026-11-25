@@ -105,3 +105,7 @@ public import Section2.AdjunctionPowers
 public import Section2.WilkieInequality
 public import Section2.GeneratedRVAdjunction
 public import Section2.CanonicalQuantifierElimination
+public import Section2.TrivialAdjunctionRank
+public import Section2.ImmediateFieldLift
+public import Section2.ImmediateTranslateLift
+public import Section2.RVExchange

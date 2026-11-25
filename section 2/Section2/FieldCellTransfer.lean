@@ -117,6 +117,31 @@ def IsOMinimalFieldTheory (T : L.Theory) : Prop :=
     IsOMinimal (K := A) L
 
 set_option linter.style.haveILetI false in
+/-- A shared cut over the old field determines a field embedding of
+the actual generated extension in a universal o-minimal theory with QE. -/
+theorem exists_simpleFieldEmbedding_of_model_cut
+    {K N : Type z} [Field K] [LinearOrder K] [IsStrictOrderedRing K] [L.Structure K]
+    [Field N] [LinearOrder N] [IsStrictOrderedRing N] [L.Structure N]
+    {T : L.Theory} [T.IsUniversal] [K ⊨ T] [N ⊨ T]
+    (hK : InterpretsOrderedFieldTerms (A := K) F) (hN : InterpretsOrderedFieldTerms (A := N) F)
+    (hOM : IsOMinimalFieldTheory.{u, v, z} T) (hQE : EliminatesQuantifiers T)
+    (A : L.Substructure K) (k : A ↪[L] N) (a : K) (b : N)
+    (hcut : ∀ c : A, ((c : K) < a ↔ k c < b) ∧ (a < (c : K) ↔ b < k c)) :
+    ∃ f : Substructure.closure L (Set.range (Sum.elim (Subtype.val : A → K)
+      (fun _ : Unit => a))) ↪[L] N,
+      f ⟨a, Substructure.subset_closure ⟨.inr (), rfl⟩⟩ = b ∧
+      ∀ c : A, f ⟨c.val, Substructure.subset_closure ⟨.inl c, rfl⟩⟩ = k c := by
+  letI := fieldOnFieldSubstructure F hK A
+  letI := strictOrderedRingOnFieldSubstructure F hK A
+  have hA := interpretsOrderedFieldTerms_fieldSubstructure F hK A
+  let p : A ↪ₑ[L] K := elementaryEmbeddingOfQE hQE A.subtype
+  let q : A ↪ₑ[L] N := elementaryEmbeddingOfQE hQE k
+  apply exists_simpleFieldEmbedding_of_same_cut A k a b hcut
+  intro φ
+  obtain ⟨n, cells, hLeft, hRight⟩ := exists_common_unary_cells F hA hK hN (hOM A) p q φ
+  exact ⟨n, cells, hLeft a, hRight b⟩
+
+set_option linter.style.haveILetI false in
 /-- Universality and field QE make the old field an elementary
 submodel. O-minimality then supplies the common cell descriptions, so
 any prescribed representatives induce the chosen field adjunction. -/
@@ -139,18 +164,8 @@ theorem exists_fieldEmbedding_of_prescribed_representatives
       f ⟨a, Substructure.subset_closure ⟨.inr (), rfl⟩⟩ = b ∧
       ∀ c : A, f ⟨c.val, Substructure.subset_closure ⟨.inl c, rfl⟩⟩ = e.toEmbedding .vf c := by
   let A := vfReductOfSortedSubstructure O hO P S
-  letI := fieldOnFieldSubstructure F hK A
-  letI := strictOrderedRingOnFieldSubstructure F hK A
-  have hA := interpretsOrderedFieldTerms_fieldSubstructure F hK A
   let k := fieldEmbeddingOfSorted O Q hO hQ P PQ S e
-  let p : A ↪ₑ[L] K := elementaryEmbeddingOfQE hQE A.subtype
-  let q : A ↪ₑ[L] N := elementaryEmbeddingOfQE hQE k
-  have hcut := prescribedLift_sameCut_of_sortedEmbedding O hO P Q hQ PQ e t ht ha hb
-  change ∃ f : Substructure.closure L (Set.range (Sum.elim (Subtype.val : A → K)
-    (fun _ : Unit => a))) ↪[L] N, _
-  apply exists_simpleFieldEmbedding_of_same_cut A k a b hcut
-  intro φ
-  obtain ⟨n, cells, hLeft, hRight⟩ := exists_common_unary_cells F hA hK hN (hOM A) p q φ
-  exact ⟨n, cells, hLeft a, hRight b⟩
+  exact exists_simpleFieldEmbedding_of_model_cut F hK hN hOM hQE A k a b
+    (prescribedLift_sameCut_of_sortedEmbedding O hO P Q hQ PQ e t ht ha hb)
 
 end GeneralizedEuler.Section2

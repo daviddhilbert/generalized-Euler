@@ -71,6 +71,11 @@ theorem realize_rvDivTerm (x y : SortedTerm L E Var .rv)
   exact (div_eq_mul_inv (x.realize (canonicalStructure O hO P) a : RV0 O)
     (y.realize (canonicalStructure O hO P) a)).symm
 
+theorem realize_rvPowerTerm (e : E) (x : SortedTerm L E Var .rv)
+    (a : ∀ s, Var s → CanonicalSort O s) :
+    (rvPowerTerm e x).realize (canonicalStructure O hO P) a =
+      P e (x.realize (canonicalStructure O hO P) a) := by rfl
+
 theorem realize_rvSameUnsignedValueFormula (x y : SortedTerm L E Var .rv)
     (a : ∀ s, Var s → CanonicalSort O s) :
     let M := canonicalStructure (L := L) O hO P

@@ -143,6 +143,23 @@ theorem relativeValueRankLEOne_of_monomials (a : PositiveField K)
   refine ⟨FiniteDimensional.of_surjective f hOnto, ?_⟩
   simpa only [Module.finrank_self] using LinearMap.finrank_le_finrank_of_surjective hOnto
 
+set_option linter.style.haveILetI false in
+/-- If all values have old representatives, the relative value
+quotient is zero. -/
+theorem relativeValueRankLEOne_of_old_values
+    (hOld : ∀ x : K, O.valuation x ∈ O.valuation '' (A : Set K)) :
+    RelativeValueRankLEOne O g hzero hone hadd hmul A hA P hP hunit := by
+  letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+  let U := oldValueSubspace O g hzero hone hadd hmul A hA P hP hunit
+  have htriv (x : Additive (O.ValueGroupˣ) ⧸ U) : x = 0 := by
+    obtain ⟨z, rfl⟩ := U.mkQ_surjective x
+    obtain ⟨y, hy⟩ := O.valuation_surjective (z.toMul : O.ValueGroup)
+    have hm : z ∈ U := (mem_oldValueSubspace_iff O g hzero hone hadd hmul A hA P hP hunit z).mpr
+      (hy ▸ hOld y)
+    exact (Submodule.Quotient.mk_eq_zero U).mpr hm
+  letI : Subsingleton (Additive (O.ValueGroupˣ) ⧸ U) := ⟨fun x y => (htriv x).trans (htriv y).symm⟩
+  exact ⟨inferInstance, Module.finrank_zero_of_subsingleton.le.trans (Nat.zero_le 1)⟩
+
 variable (Q : ValuationSubring K)
   (R : E → RV0 Q → RV0 Q) (hR : ∀ e, AgreesWithFieldPower Q (g e) (R e))
   (hunitQ : ∀ e (x : PositiveField K), Q.valuation (x : K) = 1 → Q.valuation (g e x : K) = 1)

@@ -61,4 +61,30 @@ theorem exists_new_translate_of_changed_fieldRV {A B : Subfield K} {a : K}
   · obtain ⟨d, hd, htranslate⟩ := hdetect y hy hval
     exact ⟨d, hd, rv_not_mem_range_of_new_fine_value O Q hO hQ htranslate⟩
 
+omit hO [LinearOrder K] [IsStrictOrderedRing K] in
+/-- A point outside a trivially valued base has a new leading term
+after translation by at most one old representative. -/
+theorem exists_new_translate_of_trivially_valued_field {A : Subfield K} {a : K}
+    (ha : a ∉ A) (hTriv : ∀ x ∈ A, x ≠ 0 → O.valuation x = 1) :
+    ∃ d ∈ A, rv O (a - d) ∉ fieldRV O A := by
+  by_cases h : rv O a ∈ fieldRV O A
+  · obtain ⟨c, hc, he⟩ := h
+    have ha0 : a ≠ 0 := fun hz => ha (hz.symm ▸ A.zero_mem)
+    have hc0 : c ≠ 0 := by
+      intro hz
+      rw [hz, map_zero] at he
+      exact ha0 ((rv_eq_zero_iff O).mp he.symm)
+    have hv := (rv_eq_rv_iff_valuation O hc0).mp he.symm
+    rw [hTriv c hc hc0] at hv
+    refine ⟨c, hc, ?_⟩
+    rintro ⟨d, hd, he⟩
+    have hval := congrArg (unsignedValue O) he
+    rw [unsignedValue_rv, unsignedValue_rv] at hval
+    by_cases hd0 : d = 0
+    · rw [hd0, map_zero] at he
+      exact ha ((sub_eq_zero.mp ((rv_eq_zero_iff O).mp he.symm)) ▸ hc)
+    · rw [hTriv d hd hd0] at hval
+      exact hv.ne hval.symm
+  · exact ⟨0, A.zero_mem, by simpa only [sub_zero] using h⟩
+
 end GeneralizedEuler.Section2
