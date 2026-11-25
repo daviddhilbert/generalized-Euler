@@ -1,6 +1,7 @@
 module
 
 public import Section2.GeneratedSubstructure
+public import Section2.PrescribedLift
 public import Mathlib.ModelTheory.Substructures
 public import Mathlib.Tactic.FinCases
 
@@ -198,5 +199,52 @@ def liftVFEmbedding
           (old.toEmbedding .rv (a 1)) ↔
         (rvLinearOrder O hO).le (a 0).val (a 1).val at h
       exact h
+
+theorem canonicalSubstructure_rvMap (S : SortedSubstructure (canonicalStructure (L := L) O hO P))
+    (x : S.carrier .vf) : (S.structureOn.rvMap x).val = rv O x := by
+  have h := S.inclusion.map_rv x
+  simpa only [SortedSubstructure.inclusion_apply, canonicalStructure_rvMap] using h
+
+theorem canonicalEmbedding_rv_le_iff
+    {S : SortedSubstructure (canonicalStructure (L := L) O hO P)}
+    (e : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
+    (s t : S.carrier .rv) :
+    (rvLinearOrder Q hQ).le (e.toEmbedding .rv s) (e.toEmbedding .rv t) ↔
+      (rvLinearOrder O hO).le s.val t.val := by
+  let args : SortedArgs (fun t => S.carrier t) [.rv, .rv] :=
+    Fin.cases s (fun j => by
+      have hj : j = 0 := Fin.fin_one_eq_zero (j : Fin 1)
+      subst j
+      exact t)
+  exact e.map_rel .rvLE args
+
+set_option linter.style.haveILetI false in
+/-- A specified new RV element can be lifted in the target, and each
+target representative has the required cut over the old VF substructure. -/
+theorem exists_prescribedLift_sameCut
+    {S : SortedSubstructure (canonicalStructure (L := L) O hO P)}
+    (e : SortedEmbedding S.structureOn (canonicalStructure (L := L) Q hQ PQ))
+    (t : S.carrier .rv) (ht : t.val ∉ rv O '' S.carrier .vf)
+    {a : K} (ha : rv O a = t.val) :
+    ∃ b : F, rv Q b = e.toEmbedding .rv t ∧
+      ∀ x : S.carrier .vf,
+        (x.val < a ↔ e.toEmbedding .vf x < b) ∧ (a < x.val ↔ b < e.toEmbedding .vf x) := by
+  letI := rvLinearOrder O hO
+  letI := rvLinearOrder Q hQ
+  have hlt (s t : S.carrier .rv) : s.val < t.val ↔ e.toEmbedding .rv s < e.toEmbedding .rv t := by
+    simp only [lt_iff_le_not_ge, canonicalEmbedding_rv_le_iff O hO P Q hQ PQ e]
+  obtain ⟨b, hb⟩ := rv_surjective Q (e.toEmbedding .rv t)
+  have haW : rv O a ∈ S.carrier .rv := ha.symm ▸ t.property
+  have hW (x : S.carrier .vf) : rv O x.val ∈ S.carrier .rv :=
+    canonicalSubstructure_rvMap O hO P S x ▸ (S.structureOn.rvMap x).property
+  have hcomm (x : S.carrier .vf) :
+      e.toEmbedding .rv ⟨rv O x.val, hW x⟩ = rv Q (e.toEmbedding .vf x) := by
+    have heq : (⟨rv O x.val, hW x⟩ : S.carrier .rv) = S.structureOn.rvMap x :=
+      Subtype.ext (canonicalSubstructure_rvMap O hO P S x).symm
+    rw [heq, e.map_rv, canonicalStructure_rvMap]
+  refine ⟨b, hb, prescribedLift_sameCut_on O Q hO hQ (S.carrier .rv)
+    (e.toEmbedding .rv) hlt (e.toEmbedding .vf) (ha.symm ▸ ht) haW ?_ hW hcomm⟩
+  have heq : (⟨rv O a, haW⟩ : S.carrier .rv) = t := Subtype.ext ha
+  rw [heq, hb]
 
 end GeneralizedEuler.Section2

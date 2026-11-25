@@ -44,3 +44,5 @@ public import Section2.HollyNormalForm
 public import Section2.RVAgreement
 public import Section2.SortedDefinability
 public import Section2.RVReduct
+public import Section2.RVVectorSpace
+public import Section2.CanonicalModel

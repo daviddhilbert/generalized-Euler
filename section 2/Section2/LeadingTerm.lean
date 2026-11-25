@@ -126,6 +126,11 @@ def unsignedValueUnit : RV O →* O.ValueGroup :=
 manuscript's additive convention. -/
 def unsignedValue : RV0 O →*₀ O.ValueGroup := WithZero.lift' (unsignedValueUnit O)
 
+@[simp]
+theorem unsignedValue_coe (t : RV O) :
+    unsignedValue O (t : RV0 O) = unsignedValueUnit O t := by
+  rw [unsignedValue, WithZero.lift'_coe]
+
 @[simp] theorem unsignedValue_rv (x : K) : unsignedValue O (rv O x) = O.valuation x := by
   by_cases hx : x = 0
   · simp [hx]
@@ -145,6 +150,14 @@ theorem mem_valuationRing_iff (x : K) : x ∈ O ↔ unsignedValue O (rv O x) ≤
 theorem mem_maximalIdeal_iff (x : K) :
     x ∈ O.nonunits ↔ unsignedValue O (rv O x) < 1 := by
   rw [unsignedValue_rv, O.mem_nonunits_iff]
+
+theorem valuation_eq_one_iff_mem_and_inv (x : K) :
+    O.valuation x = 1 ↔ x ≠ 0 ∧ x ∈ O ∧ x⁻¹ ∈ O := by
+  by_cases hx : x = 0
+  · simp [hx]
+  rw [O.valuation_le_one_iff x |>.symm, O.valuation_le_one_iff x⁻¹ |>.symm, map_inv₀]
+  have hv : O.valuation x ≠ 0 := (map_ne_zero O.valuation).mpr hx
+  rw [inv_le_one₀ (pos_iff_ne_zero.mpr hv), and_iff_right hx, le_antisymm_iff]
 
 /-- The named witness used in §2.3 excludes the trivial valuation. -/
 theorem exists_nonzero_maximalIdeal_iff :

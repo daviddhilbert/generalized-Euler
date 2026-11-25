@@ -46,6 +46,10 @@ def inclusion (A : SortedSubstructure M) : SortedEmbedding A.structureOn M where
   map_fun _ _ := rfl
   map_rel _ _ := Iff.rfl
 
+@[simp]
+theorem inclusion_apply (A : SortedSubstructure M) (s : TCsort) (x : A.carrier s) :
+    A.inclusion.toEmbedding s x = x.val := by rfl
+
 end SortedSubstructure
 
 /-- A system of matching assignments with the two one-element extension

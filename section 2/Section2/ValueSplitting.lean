@@ -48,4 +48,39 @@ theorem exists_linearSection_preserving_base (v : G →ₗ[E] V)
     rw [ha', sub_self, map_zero, add_zero]
     exact (sr ar).property
 
+/-- The coordinates associated to a linear section of the value map. -/
+def valueSplitEquiv (v : G →ₗ[E] V) (s : V →ₗ[E] G)
+    (hs : v.comp s = LinearMap.id) : G ≃ₗ[E] V × v.ker where
+  toLinearMap := v.prod ((LinearMap.id - s.comp v).codRestrict v.ker (fun x => by
+    have hv : v (s (v x)) = v x := DFunLike.congr_fun hs (v x)
+    change v (x - s (v x)) = 0
+    rw [map_sub, hv, sub_self]))
+  invFun p := s p.1 + p.2
+  left_inv x := by
+    change s (v x) + (x - s (v x)) = x
+    exact add_sub_cancel _ _
+  right_inv p := by
+    have hs' : v (s p.1) = p.1 := DFunLike.congr_fun hs p.1
+    have hp : v (p.2 : G) = 0 := p.2.property
+    have hv : v (s p.1 + p.2) = p.1 := by rw [map_add, hs', hp, add_zero]
+    apply Prod.ext
+    · exact hv
+    · apply Subtype.ext
+      change s p.1 + (p.2 : G) - s (v (s p.1 + p.2)) = p.2
+      rw [hv, add_sub_cancel_left]
+
+theorem valueSplitEquiv_mem_base_iff (v : G →ₗ[E] V) (s : V →ₗ[E] G)
+    (hs : v.comp s = LinearMap.id) (W : Submodule E G)
+    (hbase : ∀ y ∈ W.map v, s y ∈ W) (x : G) :
+    x ∈ W ↔ (valueSplitEquiv v s hs x).1 ∈ W.map v ∧
+      ((valueSplitEquiv v s hs x).2 : G) ∈ W := by
+  change x ∈ W ↔ v x ∈ W.map v ∧ x - s (v x) ∈ W
+  constructor
+  · intro hx
+    have hv : v x ∈ W.map v := Submodule.mem_map_of_mem hx
+    exact ⟨hv, W.sub_mem hx (hbase _ hv)⟩
+  · rintro ⟨hv, hk⟩
+    have h := W.add_mem (hbase _ hv) hk
+    rwa [add_sub_cancel] at h
+
 end GeneralizedEuler.Section2

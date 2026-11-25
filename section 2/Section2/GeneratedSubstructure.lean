@@ -28,6 +28,11 @@ private def vfArgument (x : X .vf) : SortedArgs X [.vf] :=
 def SortedStructure.rvMap (x : X .vf) : X .rv :=
   M.funMap (.rv : FunctionSymbol L E [.vf] .rv) (vfArgument x)
 
+theorem canonicalStructure_rvMap {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
+    [L.Structure K] (O : ValuationSubring K) [L.Structure (Residue O)]
+    (hO : IsOrderConvex O) (P : E → RV0 O → RV0 O) (x : K) :
+    (canonicalStructure (L := L) O hO P).rvMap x = rv O x := by rfl
+
 theorem SortedEmbedding.map_rv {M : SortedStructure L E X} (e : SortedEmbedding M N)
     (x : X .vf) :
     e.toEmbedding .rv (M.rvMap x) = N.rvMap (e.toEmbedding .vf x) := by

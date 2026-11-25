@@ -129,6 +129,19 @@ theorem existsUnique_leadingTermPower_of_residue (hO : IsOrderConvex O)
   obtain ⟨_, hg⟩ := power_preserves_principalUnits O hO g hmatch hone hu
   exact hg
 
+/-- All named power symbols can be interpreted at once on the canonical
+leading-term sort, and their interpretation is unique. -/
+theorem existsUnique_leadingTermPowerFamily {E : Type*} (hO : IsOrderConvex O)
+    (g : E → PositiveField K →* PositiveField K)
+    (gResidue : E → IsLocalRing.ResidueField O → IsLocalRing.ResidueField O)
+    (hmatch : ∀ e, ResidueCompatible O (fun x => g e (clampForPower x)) (gResidue e))
+    (hone : ∀ e, gResidue e 1 = 1) :
+    ∃! P : E → RV0 O → RV0 O,
+      ∀ e, AgreesWithFieldPower O (g e) (P e) ∧ (∀ t, ¬IsPositiveRV O t → P e t = 0) := by
+  have hex e := existsUnique_leadingTermPower_of_residue O hO (g e) (hmatch e) (hone e)
+  choose P hP hunique using hex
+  exact ⟨P, hP, fun P' hP' => funext fun e => hunique e (P' e) (hP' e)⟩
+
 /-- Multiplicativity and positivity descend to the positive RV branch. -/
 theorem leadingTermPower_mul {g : PositiveField K →* PositiveField K}
     {P : RV0 O → RV0 O} (h : AgreesWithFieldPower O g P)

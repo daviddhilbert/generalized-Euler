@@ -34,6 +34,20 @@ theorem leadingTermPower_strictMonoOn (hO : IsOrderConvex O)
   rw [hInv, hInv, hleft x, hleft y] at h
   exact ((rv_lt_rv_iff O hO).mp hst).2 h
 
+set_option linter.style.haveILetI false in
+/-- A positive exponent is strictly increasing on positive RV. The
+reciprocal exponent provides the descended inverse. -/
+theorem leadingTermPower_positive_exponent {E : Type*} [Field E] [LinearOrder E]
+    (hO : IsOrderConvex O) (g : E → PositiveField K →* PositiveField K)
+    (P : E → RV0 O → RV0 O) (hP : ∀ e, AgreesWithFieldPower O (g e) (P e))
+    (hone : ∀ x, g 1 x = x) (hmul : ∀ e d x, g (e * d) x = g e (g d x))
+    (hmono : ∀ e > 0, StrictMono (g e)) {e : E} (he : 0 < e) :
+    letI := rvLinearOrder O hO
+    StrictMonoOn (P e) {t | IsPositiveRV O t} := by
+  apply leadingTermPower_strictMonoOn O hO (hP e) (hP e⁻¹) (hmono e he)
+  intro x
+  rw [← hmul, inv_mul_cancel₀ he.ne', hone]
+
 /-- A positive field power that sends positive integral elements into the
 ring also sends positive valuation units to valuation units. -/
 theorem positive_power_preserves_units (g : PositiveField K →* PositiveField K)

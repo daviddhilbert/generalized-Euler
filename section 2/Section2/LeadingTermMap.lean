@@ -85,19 +85,11 @@ def mapRVHom (f : K →+* F) (hf : RespectsValuationRing O P f) : RV0 O →*₀ 
 theorem mapRVHom_apply (f : K →+* F) (hf : RespectsValuationRing O P f) (t : RV0 O) :
     mapRVHom O P f hf t = mapRV O P f hf t := by rfl
 
-private theorem valuation_eq_one_iff (x : K) :
-    O.valuation x = 1 ↔ x ≠ 0 ∧ x ∈ O ∧ x⁻¹ ∈ O := by
-  by_cases hx : x = 0
-  · simp [hx]
-  rw [O.valuation_le_one_iff x |>.symm, O.valuation_le_one_iff x⁻¹ |>.symm, map_inv₀]
-  have hv : O.valuation x ≠ 0 := (map_ne_zero O.valuation).mpr hx
-  rw [inv_le_one₀ (pos_iff_ne_zero.mpr hv), and_iff_right hx, le_antisymm_iff]
-
 theorem mapRV_value_one_iff (f : K →+* F) (hf : RespectsValuationRing O P f) (t : RV0 O) :
     unsignedValue P (mapRV O P f hf t) = 1 ↔ unsignedValue O t = 1 := by
   obtain ⟨x, rfl⟩ := rv_surjective O t
-  rw [mapRV_rv, unsignedValue_rv, unsignedValue_rv, valuation_eq_one_iff,
-    valuation_eq_one_iff, ← map_inv₀ f, hf, hf, map_ne_zero]
+  rw [mapRV_rv, unsignedValue_rv, unsignedValue_rv, valuation_eq_one_iff_mem_and_inv,
+    valuation_eq_one_iff_mem_and_inv, ← map_inv₀ f, hf, hf, map_ne_zero]
 
 variable [LinearOrder K] [IsStrictOrderedRing K] [LinearOrder F] [IsStrictOrderedRing F]
 

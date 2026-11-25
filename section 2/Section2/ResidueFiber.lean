@@ -62,4 +62,17 @@ def valueTupleFiberResidueEquiv {n : ℕ} (t : Fin n → RV0 O) (ht : ∀ i, t i
     ((valueFiberResidueEquiv O (t i) (ht i)).symm_apply_apply ⟨s.val i, s.property i⟩))
   right_inv r := funext fun i => (valueFiberResidueEquiv O (t i) (ht i)).apply_symm_apply (r i)
 
+/-- In the unchanged-value case, each leading term is the product of
+an old representative of its value and a nonzero residue. -/
+theorem rv_factor_residue_of_same_value {x y : K} (hy : y ≠ 0)
+    (hval : O.valuation x = O.valuation y) :
+    ∃ r : Residue O, r ≠ 0 ∧ rv O x = rv O y * residueRV O r := by
+  let s : {t : RV0 O // unsignedValue O t = unsignedValue O (rv O y)} :=
+    ⟨rv O x, by rw [unsignedValue_rv, unsignedValue_rv, hval]⟩
+  let e := valueFiberResidueEquiv O (rv O y) ((rv_eq_zero_iff O).not.mpr hy)
+  let r := e s
+  have h := congrArg Subtype.val (e.symm_apply_apply s)
+  change residueRV O (r : Residue O) * rv O y = rv O x at h
+  exact ⟨r, r.property, h.symm.trans (mul_comm (residueRV O r) (rv O y))⟩
+
 end GeneralizedEuler.Section2

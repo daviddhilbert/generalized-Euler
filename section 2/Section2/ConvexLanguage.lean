@@ -55,6 +55,11 @@ def IsTConvex {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
       DefinesTotalFunction φ f → Continuous (fun x : K => f (fun _ => x)) →
       ∀ x ∈ O, f (fun _ => x) ∈ O
 
+theorem IsTConvex.isOrderConvex {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
+    [TopologicalSpace K] {L : Language.{u, v}} [L.Structure K] {O : ValuationSubring K}
+    (h : IsTConvex L O) : IsOrderConvex O :=
+  h.1
+
 /-- Ax. 8 in the reviewed language, using the same parameter-free graph
 formula in both structures. Lemma 2.12's canonical residue model can
 supply the residue structure. -/
