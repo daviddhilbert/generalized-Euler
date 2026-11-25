@@ -247,6 +247,7 @@ theorem exists_qf_equivalent (T : SortedTheory L E) (φ : SortedFormula L E Var)
   · rintro ⟨ψ, hψ, hPψ⟩
     exact (hW (Finset.mem_toList.mp hψ)).2 P hPψ
 
+@[expose]
 def PointedModel.extend (P : T.PointedModel Var) (s : TCsort) (x : P.carrier s) :
     T.PointedModel (AddSortedVar Var s) :=
   ⟨P.carrier, P.model, extendSortedAssignment P.point x, P.nonempty, P.models⟩

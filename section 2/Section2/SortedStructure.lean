@@ -21,6 +21,7 @@ universe u v w z
 abbrev SortedArgs (X : TCsort → Type z) (ss : List TCsort) :=
   (i : Fin ss.length) → X (ss.get i)
 
+@[expose]
 def homogeneousArgs {X : TCsort → Type z} {s : TCsort} {n : ℕ}
     (xs : SortedArgs X (List.replicate n s)) (i : Fin n) : X s := by
   let j : Fin (List.replicate n s).length := ⟨i.val, by simp⟩

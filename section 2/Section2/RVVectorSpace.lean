@@ -319,6 +319,15 @@ theorem positiveFieldValue_power (e : E) (x : PositiveField K) :
   rfl
 
 set_option linter.style.haveILetI false in
+theorem unsignedValue_namedPower (e : E) (x : PositiveField K) :
+    letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+    unsignedValue O (P e (rv O (x : K))) =
+      ((e • positiveFieldValue O x).toMul : O.ValueGroup) := by
+  letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+  rw [hP e x, unsignedValue_rv, ← positiveFieldValue_power O g P hP hzero hone hadd hmul hunit,
+    positiveFieldValue_coe]
+
+set_option linter.style.haveILetI false in
 /-- Coarsening a valuation commutes with the exponent action when both
 value spaces are induced by the same field powers. -/
 def valueCoarseningLinearMap (Q : ValuationSubring K) (h : O ≤ Q)
@@ -353,6 +362,17 @@ def valueCoarseningLinearMap (Q : ValuationSubring K) (h : O ≤ Q)
   rw [valueScalar_eq O g P hP hunit, positiveRVPower_field O g P hP]
   rw [onField x, valueScalar_eq Q g R hR hunitQ, positiveRVPower_field Q g R hR]
   exact congrArg Additive.ofMul (onField (g e x))
+
+set_option linter.style.haveILetI false in
+theorem valueCoarseningLinearMap_coe (Q : ValuationSubring K) (h : O ≤ Q)
+    (R : E → RV0 Q → RV0 Q) (hR : ∀ e, AgreesWithFieldPower Q (g e) (R e))
+    (hunitQ : ∀ e (x : PositiveField K), Q.valuation (x : K) = 1 →
+      Q.valuation (g e x : K) = 1) (x : Additive (O.ValueGroupˣ)) :
+    letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+    letI := unsignedValueModule Q g R hR hzero hone hadd hmul hunitQ
+    ((valueCoarseningLinearMap O g P hP hzero hone hadd hmul hunit Q h R hR hunitQ x).toMul :
+      Q.ValueGroup) = ValuationSubring.mapOfLE O Q h (x.toMul : O.ValueGroup) :=
+  valueCoarseningUnits_coe O Q h x.toMul
 
 end ValueModule
 

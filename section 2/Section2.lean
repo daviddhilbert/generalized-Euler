@@ -87,3 +87,5 @@ public import Section2.ValueResidueOrthogonality
 public import Section2.RVInvariants
 public import Section2.ProjectionTopology
 public import Section2.ResidueTopology
+public import Section2.RelativeValueSubspace
+public import Section2.RVClosure
