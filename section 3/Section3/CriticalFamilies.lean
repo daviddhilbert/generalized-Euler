@@ -156,4 +156,42 @@ theorem critical_family_of_uniform_finiteness (T : Finset (L.Term (Option I)))
   obtain ⟨N,hN⟩ := uniform S defS
   exact ⟨N,S,defS,hN,fun a j _ hx => (Set.Finite.mem_toFinset _).mpr (mem_iUnion_of_mem j hx)⟩
 
+variable {E : Type*} {J : Type _}
+
+include hF in
+/-- Lemma 3.3 from sorted QE, o-minimal unary continuity cells and
+uniform finiteness. After a field input is fixed the branch list works
+simultaneously for all auxiliary inputs. -/
+theorem piecewise_field_functions_of_ominimality (O : ValuationSubring K) [L.Structure (Residue O)]
+    (hO : IsOrderConvex O) (powers : E → RV0 O → RV0 O)
+    (only : ∀ {n} (r : L.Relations n), ∃ e : n = 2, e ▸ r = F.le)
+    (f : (I → K) → (J → RV0 O) → K) (φ : SortedFormula L E (FunctionGraphVars I J))
+    (graph : ∀ x t y, φ.realize (canonicalStructure (L := L) O hO powers) (graphAssignment O x t y) ↔ y = f x t)
+    (qe : ∃ ψ : SortedFormula L E (FunctionGraphVars I J), ψ.IsQF ∧
+      ∀ v, ψ.realize (canonicalStructure (L := L) O hO powers) v ↔ φ.realize (canonicalStructure (L := L) O hO powers) v)
+    {e : K} (he : 0 < e) (heO : O.valuation e < 1) (omin : IsOMinimal (K := K) L)
+    (continuity : ∀ g : K → K, (univ : Set K).DefinableFun L (fun v : Fin 1 → K => g (v 0)) →
+      ∃ C : Finset (Set K), (⋃ B ∈ C, B) = univ ∧ ∀ B ∈ C, IsUnaryCell B ∧ ContinuousOn g B)
+    (uniform : ∀ U : (I → K) → Finset K, (∅ : Set K).Definable L {w : Option I → K | w none ∈ U (w ∘ some)} →
+      ∃ N, ∀ a, (U a).card ≤ N) :
+    ∃ (N : ℕ) (g : Fin N → (I → K) → K), (∀ i, (∅ : Set K).DefinableFun L (g i)) ∧
+      (∀ a t, ∃! i, f a t = g i a ∧ ∀ j < i, f a t ≠ g j a) ∧ ∀ a, (range (f a)).Finite := by
+  apply piecewise_field_functions_of_qe O hO powers F hF only f φ graph qe he heO
+  intro T
+  apply critical_family_of_uniform_finiteness F hF T _ uniform
+  intro t _ a
+  let g (y : K) := t.realize (Option.elim · y a)
+  have dg : (univ : Set K).DefinableFun L (fun v : Fin 1 → K => g (v 0)) := by
+    let ρ : Option I → (univ : Set K) ⊕ Option (Fin 1) :=
+      (Option.elim · (.inr (some 0)) (fun j => .inl ⟨a j,mem_univ _⟩))
+    apply definable_iff_exists_formula_sum.mpr
+    refine ⟨(t.relabel ρ).equal (.var (.inr none)),?_⟩
+    ext v
+    change g (v (some 0)) = v none ↔ _
+    simp only [mem_ofPred_eq,Formula.realize_equal,Term.realize_relabel,Term.realize_var,Sum.elim_inr]
+    have he : Sum.elim Subtype.val v ∘ ρ = (Option.elim · (v (some 0)) a) := by funext j; cases j <;> rfl
+    rw [he]
+  obtain ⟨C,covers,cont⟩ := continuity g dg
+  exact finite_critical_of_unary_cells g omin (dg.ofPred_eq (L.definableFun_const _ (mem_univ 0))) C covers cont
+
 end GeneralizedEuler.Section3
