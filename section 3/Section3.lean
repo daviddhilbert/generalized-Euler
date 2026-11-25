@@ -37,3 +37,7 @@ public import Section3.ValueParameterTests
 public import Section3.BoundaryDimension
 public import Section3.ExponentialObstruction
 public import Section3.FiniteAuxiliaryForm
+public import Section3.NormalizedSlice
+public import Section3.UnaryDiscImages
+public import Section3.BoundaryBranches
+public import Section3.SplittingValues
