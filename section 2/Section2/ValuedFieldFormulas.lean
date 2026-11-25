@@ -252,6 +252,10 @@ classes, with the manuscript's extension by zero. -/
 def totalFieldPower (g : PositiveField K →* PositiveField K) (x : K) : K :=
   if hx : 0 < x then g ⟨x, hx⟩ else 0
 
+theorem totalFieldPower_positive (g : PositiveField K →* PositiveField K) (x : PositiveField K) :
+    totalFieldPower g (x : K) = (g x : K) := by
+  rw [totalFieldPower, dite_eq_left x.property]
+
 /-- Apply a field power to an input representative and compare leading
 terms with its output representative. -/
 noncomputable def rvPowerGraphFormula (F : FieldTerms (convexLanguage L))

@@ -1,7 +1,7 @@
 module
 
 public import Section2.ResidueMap
-public import Section2.SortedSyntax
+public import Section2.ValuedFieldFormulas
 
 /-! Embeddings between canonical two-sorted expansions. -/
 
@@ -103,5 +103,57 @@ def canonicalEmbedding (hO : IsOrderConvex O) (hP : IsOrderConvex P)
       letI := rvLinearOrder O hO
       letI := rvLinearOrder P hP
       exact (mapRV_strictMono O P hO hP f hf hfOrder).le_iff_le
+
+/-- A field embedding preserves the positive powers when it is
+elementary and both models use the same parameter-free graph formulas. -/
+theorem fieldPower_agrees_of_elementary
+    (i : K ↪ₑ[L] F) (g : PositiveField K →* PositiveField K)
+    (g' : PositiveField F →* PositiveField F) (graph : L.Formula (Fin 2))
+    (hgraph : ∀ x, graph.Realize x ↔ totalFieldPower g (x 0) = x 1)
+    (hgraph' : ∀ x, graph.Realize x ↔ totalFieldPower g' (x 0) = x 1)
+    (x : PositiveField K) (y : PositiveField F) (hy : (y : F) = i x) :
+    i (g x : K) = (g' y : F) := by
+  let a : Fin 2 → K := ![(x : K), (g x : K)]
+  have ha : graph.Realize a := (hgraph a).mpr (totalFieldPower_positive g x)
+  have hb := (hgraph' (i ∘ a)).mp ((i.map_formula graph a).mpr ha)
+  change totalFieldPower g' (i x) = i (g x : K) at hb
+  rw [← hy, totalFieldPower_positive] at hb
+  exact hb.symm
+
+/-- Canonical expansion of a valued-field embedding. Elementarity on
+the field preserves the named powers, and the residue embedding
+preserves the extended residue primitives. -/
+theorem exists_canonicalEmbedding_of_elementary_field
+    (hO : IsOrderConvex O) (hP : IsOrderConvex P)
+    (PO : E → RV0 O → RV0 O) (PP : E → RV0 P → RV0 P)
+    (i : K ↪ₑ[L] F) (f : K →+* F) (hi : ∀ x, i x = f x)
+    (hf : RespectsValuationRing O P f) (hfOrder : StrictMono f)
+    (res : Residue O ↪[L] Residue P) (hr : ∀ r, res r = mapResidue O P f hf r)
+    (g : E → PositiveField K →* PositiveField K) (g' : E → PositiveField F →* PositiveField F)
+    (graph : E → L.Formula (Fin 2))
+    (hgraph : ∀ e (v : Fin 2 → K), (graph e).Realize v ↔ totalFieldPower (g e) (v 0) = v 1)
+    (hgraph' : ∀ e (v : Fin 2 → F), (graph e).Realize v ↔ totalFieldPower (g' e) (v 0) = v 1)
+    (hPO : ∀ e, AgreesWithFieldPower O (g e) (PO e))
+    (hPP : ∀ e, AgreesWithFieldPower P (g' e) (PP e))
+    (hzeroO : ∀ e t, ¬IsPositiveRV O t → PO e t = 0)
+    (hzeroP : ∀ e t, ¬IsPositiveRV P t → PP e t = 0) :
+    ∃ e : SortedEmbedding (canonicalStructure (L := L) O hO PO) (canonicalStructure P hP PP),
+      (∀ x, e.toEmbedding .vf x = i x) ∧ ∀ t, e.toEmbedding .rv t = mapRV O P f hf t := by
+  have hRes : ∀ {n} (symbol : L.Functions n) (a : Fin n → Residue O),
+      mapResidue O P f hf (Language.Structure.funMap symbol a) =
+        Language.Structure.funMap symbol (mapResidue O P f hf ∘ a) := by
+    intro n symbol a
+    rw [← hr, res.map_fun]
+    congr 1
+    exact funext (fun i => hr (a i))
+  have hPow (e : E) (t : RV0 O) : mapRV O P f hf (PO e t) = PP e (mapRV O P f hf t) := by
+    apply mapRV_commutes_with_power O P hO hP f hf hfOrder (g e) (g' e) (PO e) (PP e)
+      (hPO e) (hPP e) (hzeroO e) (hzeroP e) _ t
+    intro x y h
+    rw [← hi]
+    exact fieldPower_agrees_of_elementary i (g e) (g' e) (graph e) (hgraph e) (hgraph' e)
+      x y (h.trans (hi _).symm)
+  exact ⟨canonicalEmbedding O P hO hP PO PP i.toEmbedding f hi hf hfOrder hRes hPow,
+    fun _ => rfl, fun _ => rfl⟩
 
 end GeneralizedEuler.Section2

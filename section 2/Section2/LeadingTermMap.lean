@@ -91,6 +91,28 @@ theorem mapRV_value_one_iff (f : K →+* F) (hf : RespectsValuationRing O P f) (
   rw [mapRV_rv, unsignedValue_rv, unsignedValue_rv, valuation_eq_one_iff_mem_and_inv,
     valuation_eq_one_iff_mem_and_inv, ← map_inv₀ f, hf, hf, map_ne_zero]
 
+/-- Equality of values is preserved and reflected by a valued-field
+embedding, including the separate value of zero. -/
+theorem valuation_eq_map_iff (f : K →+* F) (hf : RespectsValuationRing O P f) (x y : K) :
+    P.valuation (f x) = P.valuation (f y) ↔ O.valuation x = O.valuation y := by
+  by_cases hy : y = 0
+  · simp only [hy, map_zero, map_eq_zero]
+  have h := mapRV_value_one_iff O P f hf (rv O (x / y))
+  rw [mapRV_rv, unsignedValue_rv, unsignedValue_rv, map_div₀ f,
+    map_div₀ P.valuation, map_div₀ O.valuation,
+    div_eq_one_iff_eq ((map_ne_zero P.valuation).mpr ((map_ne_zero f).mpr hy)),
+    div_eq_one_iff_eq ((map_ne_zero O.valuation).mpr hy)] at h
+  exact h
+
+theorem valuation_map_mem_image_iff (f : K →+* F) (hf : RespectsValuationRing O P f)
+    (A : Set K) (x : K) :
+    P.valuation (f x) ∈ P.valuation '' (f '' A) ↔ O.valuation x ∈ O.valuation '' A := by
+  constructor
+  · rintro ⟨_, ⟨y, hy, rfl⟩, he⟩
+    exact ⟨y, hy, (valuation_eq_map_iff O P f hf y x).mp he⟩
+  · rintro ⟨y, hy, he⟩
+    exact ⟨f y, Set.mem_image_of_mem f hy, (valuation_eq_map_iff O P f hf y x).mpr he⟩
+
 variable [LinearOrder K] [IsStrictOrderedRing K] [LinearOrder F] [IsStrictOrderedRing F]
 
 theorem mapRV_strictMono (hO : IsOrderConvex O) (hP : IsOrderConvex P)

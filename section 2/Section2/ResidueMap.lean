@@ -2,6 +2,7 @@ module
 
 public import Section2.LeadingTermMap
 public import Section2.SortedStructure
+public import Section2.ResidueOrder
 
 /-! Compatibility of residue maps and leading-term maps. -/
 
@@ -39,6 +40,21 @@ def mapResidue : Residue O →+* Residue P :=
 @[simp] theorem mapResidue_residue (x : O) :
     mapResidue O P f hf (IsLocalRing.residue O x) =
       IsLocalRing.residue P (mapValuationRing O P f hf x) := rfl
+
+/-- An ordered valued-field embedding induces a strictly monotone
+map between the two residue fields in their quotient orders. -/
+theorem mapResidue_strictMono [LinearOrder K] [IsStrictOrderedRing K]
+    [LinearOrder F] [IsStrictOrderedRing F] (hO : IsOrderConvex O) (hP : IsOrderConvex P)
+    (hmono : StrictMono f) :
+    letI := residueLinearOrder O hO
+    letI := residueLinearOrder P hP
+    StrictMono (mapResidue O P f hf) := by
+  intro r s h
+  obtain ⟨x, rfl⟩ := IsLocalRing.residue_surjective (R := O) r
+  obtain ⟨y, rfl⟩ := IsLocalRing.residue_surjective (R := O) s
+  rw [mapResidue_residue, mapResidue_residue, residue_lt_residue_iff P hP]
+  obtain ⟨hxy, hne⟩ := (residue_lt_residue_iff O hO).mp h
+  exact ⟨hmono hxy, fun he => hne ((mapResidue O P f hf).injective he)⟩
 
 theorem mapRV_residueRV (r : Residue O) :
     mapRV O P f hf (residueRV O r) = residueRV P (mapResidue O P f hf r) := by

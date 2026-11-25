@@ -54,6 +54,45 @@ theorem strictMono_ringHomOfFieldEmbedding (hK : InterpretsOrderedFieldTerms (A 
       (h.mpr ((hK.le _).mpr hxy.le))
   exact lt_of_le_of_ne hle (fun heq => hxy.ne (e.injective heq))
 
+/-- The interpretation of the ordered-field terms descends along a
+language embedding realized by a strictly monotone ring embedding. -/
+theorem InterpretsOrderedFieldTerms.of_embedding
+    (hF : InterpretsOrderedFieldTerms (A := F) terms) (e : K ↪[L] F)
+    (f : K →+* F) (he : ∀ x, e x = f x) (hf : StrictMono f) :
+    InterpretsOrderedFieldTerms (A := K) terms := by
+  have transport {I : Type} (t : L.Term I) (x : I → K) :
+      f (t.realize x) = t.realize (e ∘ x) :=
+    (he _).symm.trans (HomClass.realize_term e).symm
+  have hEmpty : (e ∘ (Empty.elim : Empty → K)) = (Empty.elim : Empty → F) :=
+    Subsingleton.elim _ _
+  refine {
+    zero := by
+      apply f.injective
+      rw [transport, hEmpty, hF.zero, map_zero]
+    one := by
+      apply f.injective
+      rw [transport, hEmpty, hF.one, map_one]
+    sub := by
+      intro x
+      apply f.injective
+      rw [transport, hF.sub, map_sub]
+      exact congrArg₂ (· - ·) (he _) (he _)
+    mul := by
+      intro x
+      apply f.injective
+      rw [transport, hF.mul, map_mul]
+      exact congrArg₂ (· * ·) (he _) (he _)
+    inv := by
+      intro x
+      apply f.injective
+      rw [transport, hF.inv, map_inv₀]
+      exact congrArg Inv.inv (he _)
+    le := by
+      intro x
+      rw [← e.map_rel, hF.le]
+      change e (x 0) ≤ e (x 1) ↔ x 0 ≤ x 1
+      rw [he, he, hf.le_iff_le] }
+
 /-- An L-substructure has the same carrier as a subfield once the
 ordered-field operations are named by terms. -/
 def subfieldOfFieldSubstructure (hK : InterpretsOrderedFieldTerms (A := K) terms)
