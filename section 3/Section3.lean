@@ -15,3 +15,12 @@ public import Section3.AtomicDiscs
 public import Section3.AtomicParameters
 public import Section3.ClosedDiscImages
 public import Section3.BoundaryInduction
+public import Section3.DefinablePartitions
+public import Section3.Orientation
+public import Section3.DiscEnds
+public import Section3.ImmediateDiscs
+public import Section3.PolydiscTypes
+public import Section3.CutDiscPoints
+public import Section3.PartialDerivatives
+public import Section3.Monotonicity
+public import Section3.ValueGerms

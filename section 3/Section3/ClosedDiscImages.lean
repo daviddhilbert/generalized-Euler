@@ -1,6 +1,7 @@
 module
 
 public import Section3.DiscMaps
+public import Section3.ValueGerms
 
 public section
 
@@ -167,6 +168,35 @@ def HasTerminalAffineRadius (A : Set K) (f : K → K) : Prop :=
     (∀ t < r, f '' closedDisc O a t = closedDisc O (f a) (ρ t)) →
     StrictMonoOn ρ (Iio r) →
     ∃ l < r, ∃ e : O.ValueGroup ≃o O.ValueGroup, ∀ t ∈ Ioo l r, ρ t = e t
+
+/-- Derive the terminal affine-radius input from a finite unary affine
+decomposition. An affine branch in one ordered value coordinate is
+either an increasing affine order isomorphism or antitone (this includes
+zero slope). Two different points exclude the latter for an injective map. -/
+theorem terminal_radius_of_affine_pieces [DenselyOrdered O.ValueGroup]
+    {A : Set K} {f : K → K}
+    (pieces : ∀ a r, r ≠ 0 → openDisc O a r ⊆ A → ∀ ρ : O.ValueGroup → O.ValueGroup,
+      (∀ t < r, f '' closedDisc O a t = closedDisc O (f a) (ρ t)) →
+      ∃ n, ∃ C : Fin n → Set O.ValueGroup,
+        Ioo 0 r ⊆ ⋃ j, C j ∧ (∀ j, (C j).OrdConnected) ∧
+        ∀ j, AntitoneOn ρ (C j) ∨
+          ∃ e : O.ValueGroup ≃o O.ValueGroup, ∀ t ∈ C j, ρ t = e t) :
+    HasTerminalAffineRadius O A f := by
+  intro a r hr hA ρ hρ hmono
+  obtain ⟨n,C,hcov,hconv,hcharts⟩ := pieces a r hr hA ρ hρ
+  have hdual : (Ioo (α := O.ValueGroupᵒᵈ) r 0) ⊆ ⋃ j, C j :=
+    fun _ ht => hcov ⟨ht.2,ht.1⟩
+  obtain ⟨j,l,hl,hpiece⟩ := exists_initial_interval_in_piece (G := O.ValueGroupᵒᵈ) C
+    (fun j => (hconv j).dual) (pos_iff_ne_zero.mpr hr : 0 < r) hdual
+  let k : O.ValueGroup := OrderDual.ofDual l
+  have hkr : k < r := hl
+  have hsub (t : O.ValueGroup) (ht : t ∈ Ioo k r) : t ∈ C j := hpiece ⟨ht.2, ht.1⟩
+  rcases hcharts j with hanti | ⟨e,he⟩
+  · obtain ⟨u,hlu,hur⟩ := exists_between hkr
+    obtain ⟨v,huv,hvr⟩ := exists_between hur
+    exact False.elim ((hmono hur hvr huv).not_ge (hanti (hsub u ⟨hlu,hur⟩)
+      (hsub v ⟨hlu.trans huv,hvr⟩) huv.le))
+  · exact ⟨k,hkr,e,fun t ht => he _ (hsub t ht)⟩
 
 theorem concentric_of_preservesClosed [DenselyOrdered O.ValueGroup] {A : Set K} {f : K → K}
     (hi : InjOn f A) (hclosed : PreservesClosedDiscsOn O A f)
