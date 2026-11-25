@@ -22,6 +22,7 @@ public import Section2.SortedModelTheory
 public import Section2.PowerOrder
 public import Section2.PrescribedLift
 public import Section2.Dimension
+public import Section2.DimensionWithBot
 public import Section2.ValueFiberTopology
 public import Section2.ValueSplitting
 public import Section2.ResidueMap

@@ -17,6 +17,7 @@ public import Section3.ClosedDiscImages
 public import Section3.BoundaryInduction
 public import Section3.DefinablePartitions
 public import Section3.Orientation
+public import Section3.RegularPoints
 public import Section3.DiscEnds
 public import Section3.ImmediateDiscs
 public import Section3.PolydiscTypes

@@ -29,6 +29,12 @@ theorem RVAffineOn.unique {A : Set K} (hA : A.Nontrivial) {f : K → K} {s t : R
   rw [mul_comm (G := RV0 O) (s : RV0 O), mul_comm (G := RV0 O) (t : RV0 O)] at h
   exact WithZero.coe_inj.mp (rv_mul_left_cancel O (by simpa using sub_ne_zero.mpr hab) h)
 
+theorem ValAffineOn.unique {A : Set K} (hA : A.Nontrivial) {f : K → K}
+    {s t : O.ValueGroup} (hs : ValAffineOn O A f s) (ht : ValAffineOn O A f t) : s = t := by
+  obtain ⟨a, ha, b, hb, hab⟩ := hA
+  exact mul_right_cancel₀ ((map_ne_zero O.valuation).mpr (sub_ne_zero.mpr hab))
+    ((hs a ha b hb).symm.trans (ht a ha b hb))
+
 /-- Value differences in an open disc exhaust the strict initial segment.
 The center is fixed, so no definable choice of centers is needed. -/
 theorem openDisc_difference_values (c : K) (r : O.ValueGroup) :
@@ -79,5 +85,29 @@ theorem rvAffine_of_mean_value {A : Set K} {f d : K → K} {t : RV O}
   · simp [he, mul_zero (M₀ := RV0 O)]
   obtain ⟨c, hc, h⟩ := hmvt a ha b hb he
   rw [h, map_mul, hder c hc]
+
+/-- Lemma 3.36 after choosing the differentiable branch and showing its derivative
+has constant leading term. Injectivity on one pair forces that term to be nonzero.
+Surjectivity then recovers the target radius from the same slope. -/
+theorem affine_openDisc_of_constant_derivative_rv {a b : K} {r s : O.ValueGroup}
+    (hr : r ≠ 0) (hA : (openDisc O a r).Nontrivial) {f d : K → K}
+    (hinj : Set.InjOn f (openDisc O a r)) (himage : f '' openDisc O a r = openDisc O b s)
+    {u : RV0 O} (hder : ∀ x ∈ openDisc O a r, rv O (d x) = u)
+    (hmvt : ∀ x ∈ openDisc O a r, ∀ y ∈ openDisc O a r, x ≠ y →
+      ∃ c ∈ openDisc O a r, f x - f y = d c * (x - y)) :
+    ∃ t : RV O, (t : RV0 O) = u ∧ RVAffineOn O (openDisc O a r) f t ∧
+      s = (unsignedValueUnit O t : O.ValueGroup) * r := by
+  obtain ⟨x, hx, y, hy, hxy⟩ := hA
+  obtain ⟨c, hc, hsec⟩ := hmvt x hx y hy hxy
+  have hdc : d c ≠ 0 := by
+    intro hz
+    rw [hz, zero_mul] at hsec
+    exact hxy (hinj hx hy (sub_eq_zero.mp hsec))
+  have hu : u ≠ 0 := hder c hc ▸ (rv_eq_zero_iff O).not.mpr hdc
+  obtain ⟨t, rfl⟩ := WithZero.ne_zero_iff_exists.mp hu
+  have haff := rvAffine_of_mean_value O hder hmvt
+  have hk : unsignedValueUnit O t ≠ 0 := (Group.isUnit t).map (unsignedValueUnit O) |>.ne_zero
+  exact ⟨t, rfl, haff, radius_eq_shift_mul O hr hk himage
+    (haff.toValAffine O)⟩
 
 end GeneralizedEuler.Section3

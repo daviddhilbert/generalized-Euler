@@ -54,6 +54,40 @@ theorem boundary_witness_in_coordinate_slice (p : K → R) (A : Set (Fin n → K
       (fun he => (congrArg p he).trans (congrFun hyu j))
   exact ⟨i,z,w,hz,hw,lift _ hzx,lift _ hwx,hzw⟩
 
+/-- The covering inclusion in the induction of Lemma 3.26. On each chart
+the unary boundary labels are enumerated by the given branches. Over a
+full base fiber their labels descend to the displayed graphs. -/
+theorem boundary_subset_charts {I J : Type*} (p : K → R)
+    (A : Set (Fin (n+1) → K))
+    (domain : Fin (n+1) → I → Set (Fin n → K))
+    (branch : Fin (n+1) → I → J → (Fin n → K) → R)
+    (graph : Fin (n+1) → I → J → (Fin n → R) → R)
+    (enum : ∀ i (a : Fin n → K) t,
+      t ∈ rvBoundary p {v | i.insertNth v a ∈ A} →
+      ∃ j, a ∈ domain i j ∧ ∃ k, t = branch i j k a)
+    (descend : ∀ i j k a, a ∈ domain i j →
+      (p ∘ a) ∈ rvInterior (fun b => p ∘ b) (domain i j) →
+      branch i j k a = graph i j k (p ∘ a))
+    {t : Fin (n+1) → R} (ht : t ∈ rvBoundary (fun a => p ∘ a) A) :
+    ∃ i j, i.removeNth t ∈ rvBoundary (fun a => p ∘ a) (domain i j) ∨
+      (i.removeNth t ∈ rvInterior (fun a => p ∘ a) (domain i j) ∧
+        ∃ k, t i = graph i j k (i.removeNth t)) := by
+  obtain ⟨i,z,w,hz,hw,hzt,hwt,hsame⟩ := boundary_witness_in_coordinate_slice p A ht
+  let a := i.removeNth z
+  have hwa : a = i.removeNth w := funext fun j =>
+    hsame _ (i.succAbove_ne j)
+  have hp : p ∘ a = i.removeNth t := funext fun j => congrFun hzt (i.succAbove j)
+  have hc : t i ∈ rvBoundary p {v | i.insertNth v a ∈ A} := by
+    refine ⟨⟨z i,?_,congrFun hzt i⟩,w i,congrFun hwt i,?_⟩
+    · simpa only [a, Set.mem_ofPred_eq, Fin.insertNth_self_removeNth] using hz
+    · simpa only [Set.mem_ofPred_eq,hwa,Fin.insertNth_self_removeNth] using hw
+  obtain ⟨j,hj,k,hk⟩ := enum i a _ hc
+  have him : p ∘ a ∈ (fun b => p ∘ b) '' domain i j := mem_image_of_mem _ hj
+  rw [image_eq_interior_union_boundary] at him
+  refine ⟨i,j,?_⟩
+  rw [←hp]
+  exact him.elim (fun h => Or.inr ⟨h,k,hk.trans (descend _ _ _ _ hj h)⟩) Or.inl
+
 /-- A finite last-coordinate fiber cannot contain an open interval.
 Thus the RV-interior in 3.31 has empty ordinary interior. -/
 theorem empty_interior_of_finite_last_fibers {X : Type*} [TopologicalSpace X]

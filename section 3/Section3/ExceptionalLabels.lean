@@ -1,7 +1,7 @@
 module
 
 public import Section3.Contraction
-public import Section2.Dimension
+public import Section2.DimensionWithBot
 public import Mathlib.Topology.Homeomorph.Lemmas
 
 public section
@@ -41,6 +41,26 @@ theorem projectionDimension_lt_of_empty_interior (hn : 0 < n) {A : Set (Fin n �
   intro p hi
   have h := (has_full_projection_iff A).mp ⟨p, hi⟩
   simp [hA] at h
+
+/-- Empty interior is equivalent to dimension strictly less than the
+ambient arity, also in arity zero with the manuscript convention. -/
+theorem dimensionWithBot_lt_arity_iff {A : Set (Fin n → R)} :
+    projectionDimensionWithBot A < (n : WithBot ℕ) ↔ interior A = ∅ := by
+  rcases A.eq_empty_or_nonempty with rfl | hA
+  · simp [projectionDimensionWithBot]
+  rw [projectionDimensionWithBot, dimensionWithBot_of_nonempty hA]
+  refine (WithBot.coe_lt_coe (a := projectionDimension A) (b := n)).trans ?_
+  constructor
+  · intro h
+    by_contra hne
+    have hp := (has_full_projection_iff A).mpr (Set.nonempty_iff_ne_empty.mpr hne)
+    exact h.not_ge (le_projectionDimension hp)
+  · intro hi
+    cases n with
+    | zero =>
+      have h := (has_full_projection_iff A).mp (hasInteriorProjection_zero hA)
+      simp [hi] at h
+    | succ n => exact projectionDimension_lt_of_empty_interior (Nat.zero_lt_succ _) hi
 
 /-- The extra zero-coordinate hyperplanes of 3.28 form a closed locus
 whose complement is open dense. Adding them preserves empty interior. -/

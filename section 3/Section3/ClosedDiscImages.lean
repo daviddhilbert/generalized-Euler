@@ -11,6 +11,73 @@ open GeneralizedEuler.Section2 Set
 
 variable {K : Type*} [Field K] (O : ValuationSubring K)
 
+theorem DiscToDiscOn.symm {A B : Set K} {f g : K → K} (h : DiscToDiscOn O A B f g) :
+    DiscToDiscOn O B A g f :=
+  ⟨h.1.symm h.2.1.symm, ⟨h.2.1.2,h.2.1.1⟩,h.2.2.2,h.2.2.1⟩
+
+/-- Inside an ambient open disc, every open disc containing a and d
+also contains their closed hull. Separating an image point from that hull
+would pull back to an open disc separating the original point. -/
+theorem DiscToDiscOn.map_closed_hull {A B : Set K} {f g : K → K}
+    (h : DiscToDiscOn O A B f g) {c a d x : K} {r : O.ValueGroup} (hr : r ≠ 0)
+    (hD : openDisc O c r ⊆ A)
+    (ha : a ∈ openDisc O c r) (hd : d ∈ openDisc O c r) (hx : x ∈ openDisc O c r)
+    (hxd : O.valuation (x-a) ≤ O.valuation (d-a)) :
+    O.valuation (f x-f a) ≤ O.valuation (f d-f a) := by
+  obtain ⟨b,s,_,hs⟩ := h.2.2.1 c r hr hD
+  have hfa : f a ∈ openDisc O b s := hs ▸ mem_image_of_mem f ha
+  have hfx : f x ∈ openDisc O (f a) s := by
+    rw [openDisc_change_center O hfa, ← hs]
+    exact mem_image_of_mem f hx
+  by_contra! hgt
+  let v := O.valuation (f x-f a)
+  have hv : v ≠ 0 := (zero_le.trans_lt hgt).ne'
+  have hsub : openDisc O (f a) v ⊆ B := by
+    intro y hy
+    have hm : y ∈ openDisc O (f a) s :=
+      (show O.valuation (y - f a) < v from hy).trans hfx
+    rw [openDisc_change_center O hfa, ←hs] at hm
+    obtain ⟨w,hw,rfl⟩ := hm
+    exact h.1.mapsTo (hD hw)
+  obtain ⟨e,t,_,ht⟩ := h.2.2.2 (f a) v hv hsub
+  have ha' : a ∈ openDisc O e t := ht ▸ ⟨f a,mem_openDisc_center O hv _,h.2.1.1 (hD ha)⟩
+  have hd' : d ∈ openDisc O e t := ht ▸ ⟨f d,hgt,h.2.1.1 (hD hd)⟩
+  rw [← openDisc_change_center O ha'] at hd'
+  have hx' : x ∈ openDisc O a t := hxd.trans_lt hd'
+  rw [openDisc_change_center O ha',←ht] at hx'
+  obtain ⟨y,hy,hyx⟩ := hx'
+  have he : f x = y := hyx ▸ h.2.1.2 (hsub hy)
+  rw [←he] at hy
+  exact (lt_irrefl v) hy
+
+/-- Forward assertion after Definition 3.23. Every closed disc contained
+in an ambient open disc is the closed hull of two points there. -/
+theorem DiscToDiscOn.image_closed_inside_open {A B : Set K} {f g : K → K}
+    (h : DiscToDiscOn O A B f g) {c a : K} {r t : O.ValueGroup} (hr : r ≠ 0)
+    (hD : openDisc O c r ⊆ A) (hsub : closedDisc O a t ⊆ openDisc O c r) :
+    ∃ s, f '' closedDisc O a t = closedDisc O (f a) s := by
+  obtain ⟨w,hw⟩ := O.valuation_surjective t
+  let d := w+a
+  have hval : O.valuation (d-a) = t := by simpa [d] using hw
+  have ha := hsub (mem_closedDisc_center O t a)
+  have hd := hsub (show d ∈ closedDisc O a t from hval.le)
+  obtain ⟨b,s,hs,himage⟩ := h.2.2.1 c r hr hD
+  have hfa : f a ∈ openDisc O b s := himage ▸ mem_image_of_mem f ha
+  have hfd : f d ∈ openDisc O b s := himage ▸ mem_image_of_mem f hd
+  have hfb : openDisc O b s ⊆ B := himage ▸ image_subset_iff.mpr (fun _ hx => h.1.mapsTo (hD hx))
+  refine ⟨O.valuation (f d-f a),Set.Subset.antisymm ?_ ?_⟩
+  · rintro _ ⟨x,hx,rfl⟩
+    exact h.map_closed_hull O hr hD ha hd (hsub hx) (hval.symm ▸ hx)
+  · intro y hy
+    have hfd' := hfd
+    rw [← openDisc_change_center O hfa] at hfd'
+    have hy' : y ∈ openDisc O (f a) s :=
+      (show O.valuation (y-f a) ≤ O.valuation (f d-f a) from hy).trans_lt hfd'
+    rw [openDisc_change_center O hfa] at hy'
+    have hgy := (h.symm O).map_closed_hull O hs hfb hfa hfd hy' hy
+    rw [h.2.1.1 (hD ha),h.2.1.1 (hD hd),hval] at hgy
+    exact ⟨g y,hgy,h.2.1.2 (hfb hy')⟩
+
 theorem closedDisc_subset_iff_radius {a : K} {r s : O.ValueGroup} :
     closedDisc O a r ⊆ closedDisc O a s ↔ r ≤ s := by
   constructor
