@@ -74,6 +74,30 @@ theorem pulledValuations_agree_on_old_ring
   exact (mem_valuationRing_iff_of_sortedEmbedding O hO PO Q hQ PQ S σ
     minusOne c hminus hminus').symm
 
+include hp hq hRep hLeft hRight in
+/-- The prescribed representatives are new over the old field for
+both of the pulled-back leading-term quotients. -/
+theorem pulledLeadingTerms_are_new (a : J) (t : S.carrier .rv)
+    (ht : t.val ∉ rv O '' S.carrier .vf)
+    (ha : rv O (p a) = t.val) (hb : rv Q (q a) = σ.toEmbedding .rv t) :
+    rv I a ∉ rv I '' (A : Set J) ∧ rv R a ∉ rv R '' (A : Set J) := by
+  constructor
+  · rintro ⟨x, hx, h⟩
+    obtain ⟨c, rfl⟩ := hRep.symm ▸ hx
+    have he := congrArg (mapRV I O p hp) h
+    rw [mapRV_rv, mapRV_rv, hLeft, ha] at he
+    exact ht ⟨c.val, c.property, he⟩
+  · rintro ⟨x, hx, h⟩
+    obtain ⟨c, rfl⟩ := hRep.symm ▸ hx
+    have he := congrArg (mapRV R Q q hq) h
+    rw [mapRV_rv, mapRV_rv, hRight, hb] at he
+    let s := S.structureOn.rvMap c
+    have hσ := σ.map_rv c
+    rw [canonicalStructure_rvMap] at hσ
+    have hs : s = t := (σ.toEmbedding .rv).injective (hσ.trans he)
+    exact ht ⟨c.val, c.property,
+      (canonicalSubstructure_rvMap O hO PO S c).symm.trans (congrArg Subtype.val hs)⟩
+
 /-- A step for positive representatives suffices. A negative
 representative is recovered by adjoining its opposite. -/
 theorem exists_fixedRVExtension_of_positive_representative_step

@@ -101,3 +101,7 @@ public import Section2.PrescribedValueComparison
 public import Section2.WilkieRVStep
 public import Section2.FieldCellTransfer
 public import Section2.CommonValuedAdjunction
+public import Section2.AdjunctionPowers
+public import Section2.WilkieInequality
+public import Section2.GeneratedRVAdjunction
+public import Section2.CanonicalQuantifierElimination

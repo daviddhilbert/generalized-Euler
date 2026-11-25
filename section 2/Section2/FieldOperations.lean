@@ -45,6 +45,11 @@ def ringHomOfFieldEmbedding (hK : InterpretsOrderedFieldTerms (A := K) terms)
       _ = e x - e (0 - y) := mapsSub x (0 - y)
       _ = e x + e y := by rw [mapsSub, mapsZero, zero_sub, sub_neg_eq_add]
 
+@[simp]
+theorem ringHomOfFieldEmbedding_apply (hK : InterpretsOrderedFieldTerms (A := K) terms)
+    (hF : InterpretsOrderedFieldTerms (A := F) terms) (e : K ↪[L] F) (x : K) :
+    ringHomOfFieldEmbedding terms hK hF e x = e x := by rfl
+
 theorem strictMono_ringHomOfFieldEmbedding (hK : InterpretsOrderedFieldTerms (A := K) terms)
     (hF : InterpretsOrderedFieldTerms (A := F) terms) (e : K ↪[L] F) :
     StrictMono (ringHomOfFieldEmbedding terms hK hF e) := by
