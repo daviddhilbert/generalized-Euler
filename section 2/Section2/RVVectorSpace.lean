@@ -155,6 +155,15 @@ private theorem positiveValueMap_field (x : PositiveField K) :
     (rv_coe_unit O (Units.mk0 x x.property.ne')).symm
   rw [hrv, unsignedValue_rv]
 
+/-- The unsigned value of a positive field element, in additive
+coordinates on the value group. -/
+def positiveFieldValue (x : PositiveField K) : Additive (O.ValueGroupˣ) :=
+  Additive.ofMul (positiveValueMap O ((positiveRv O).rangeRestrict x))
+
+theorem positiveFieldValue_coe (x : PositiveField K) :
+    ((positiveFieldValue O x).toMul : O.ValueGroup) = O.valuation (x : K) :=
+  positiveValueMap_field O x
+
 theorem positiveValueMap_surjective : Function.Surjective (positiveValueMap O) := by
   intro γ
   obtain ⟨x, hx⟩ := O.valuation_surjective (γ : O.ValueGroup)
@@ -286,6 +295,16 @@ private theorem positiveRVPower_field (e : E) (x : PositiveField K) :
   simpa only [show ∀ y : PositiveField K,
     positiveRVToRV0 O ((positiveRv O).rangeRestrict y) = rv O (y : K) from
       fun y => (rv_coe_unit O (Units.mk0 y y.property.ne')).symm] using hP e x
+
+set_option linter.style.haveILetI false in
+theorem positiveFieldValue_power (e : E) (x : PositiveField K) :
+    letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+    positiveFieldValue O (g e x) = e • positiveFieldValue O x := by
+  letI := unsignedValueModule O g P hP hzero hone hadd hmul hunit
+  change positiveFieldValue O (g e x) = valueScalar O g e
+    (Additive.ofMul (positiveValueMap O ((positiveRv O).rangeRestrict x)))
+  rw [valueScalar_eq O g P hP hunit, positiveRVPower_field O g P hP]
+  rfl
 
 set_option linter.style.haveILetI false in
 /-- Coarsening a valuation commutes with the exponent action when both

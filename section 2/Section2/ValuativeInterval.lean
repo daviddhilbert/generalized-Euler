@@ -75,6 +75,36 @@ theorem valuativeInterval_ordConnected (lo hi : Option (ValuativeIntervalEnd (K 
   exact ⟨allowedAbove_upward lo hxz hx.1, allowedBelow_downward hi hzy hy.2⟩
 
 omit [Field K] in
+/-- The upward closure of a nonempty valuative interval is its left ray. -/
+theorem upperClosure_valuativeInterval {lo hi : Option (ValuativeIntervalEnd (K := K))}
+    (hne : (valuativeInterval lo hi).Nonempty) :
+    {x | ∃ y ∈ valuativeInterval lo hi, y ≤ x} = {x | allowedAbove lo x} := by
+  ext x
+  constructor
+  · rintro ⟨y, hy, hxy⟩
+    exact allowedAbove_upward lo hxy hy.1
+  · intro hx
+    obtain ⟨y, hy⟩ := hne
+    rcases le_total y x with h | h
+    · exact ⟨y, hy, h⟩
+    · exact ⟨x, ⟨hx, allowedBelow_downward hi h hy.2⟩, le_rfl⟩
+
+omit [Field K] in
+/-- The downward closure of a nonempty valuative interval is its right ray. -/
+theorem lowerClosure_valuativeInterval {lo hi : Option (ValuativeIntervalEnd (K := K))}
+    (hne : (valuativeInterval lo hi).Nonempty) :
+    {x | ∃ y ∈ valuativeInterval lo hi, x ≤ y} = {x | allowedBelow hi x} := by
+  ext x
+  constructor
+  · rintro ⟨y, hy, hxy⟩
+    exact allowedBelow_downward hi hxy hy.2
+  · intro hx
+    obtain ⟨y, hy⟩ := hne
+    rcases le_total x y with h | h
+    · exact ⟨y, hy, h⟩
+    · exact ⟨x, ⟨allowedAbove_upward lo h hy.1, hx⟩, le_rfl⟩
+
+omit [Field K] in
 theorem valuativeInterval_closed_singletons (a b : K) :
     valuativeInterval (some ⟨{a}, true⟩) (some ⟨{b}, true⟩) = Set.Icc a b := by
   ext x

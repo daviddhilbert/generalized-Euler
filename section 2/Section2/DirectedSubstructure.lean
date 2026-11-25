@@ -143,6 +143,12 @@ instance : Preorder (FixedRVLift M N R) where
 
 theorem le_iff_extends (A B : FixedRVLift M N R) : A ≤ B ↔ Extends A B := by rfl
 
+theorem le_of_compatible {A B : FixedRVLift M N R}
+    (h : ∀ s, A.source.carrier s ⊆ B.source.carrier s)
+    (he : ∀ s (x : A.source.carrier s),
+      A.embedding.toEmbedding s x = B.embedding.toEmbedding s ⟨x.val, h s x.property⟩) :
+    A ≤ B := ⟨h, he⟩
+
 private theorem bddAbove_of_chain (c : Set (FixedRVLift M N R))
     (hc : IsChain (· ≤ ·) c) (hne : c.Nonempty) : BddAbove c := by
   let : Nonempty c := hne.to_subtype

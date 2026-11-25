@@ -61,3 +61,7 @@ public import Section2.FieldReduct
 public import Section2.RVDefinableEquivalence
 public import Section2.ResidueClassification
 public import Section2.DefinableHolly
+public import Section2.FieldOperations
+public import Section2.ValueMonomials
+public import Section2.EndDiscs
+public import Section2.DefinableEndDiscs

@@ -2,6 +2,7 @@ module
 
 public import Section2.GeneratedSubstructure
 public import Section2.PrescribedLift
+public import Section2.DirectedSubstructure
 public import Mathlib.ModelTheory.Substructures
 public import Mathlib.Tactic.FinCases
 
@@ -316,5 +317,33 @@ theorem exists_prescribedLift_sameCut
     (e.toEmbedding .rv) hlt (e.toEmbedding .vf) (ha.symm ▸ ht) haW ?_ hW hcomm⟩
   have heq : (⟨rv O a, haW⟩ : S.carrier .rv) = t := Subtype.ext ha
   rw [heq, hb]
+
+/-- The compatible field extension is a step in the fixed-RV iteration.
+The resulting domain has precisely the specified field carrier. -/
+theorem exists_fixedRVExtension_of_compatible_field
+    {R : Set (RV0 O)} (A : FixedRVLift (canonicalStructure (L := L) O hO P)
+      (canonicalStructure (L := L) Q hQ PQ) R)
+    (B : L.Substructure K) (field : B ↪[L] F)
+    (hbase : A.source.carrier .vf ⊆ B)
+    (hB : ∀ x ∈ B, rv O x ∈ A.source.carrier .rv)
+    (hfield : ∀ x : A.source.carrier .vf,
+      field ⟨x.val, hbase x.property⟩ = A.embedding.toEmbedding .vf x)
+    (hRV : ∀ x : B, A.embedding.toEmbedding .rv ⟨rv O x.val, hB x x.property⟩ = rv Q (field x)) :
+    ∃ C : FixedRVLift (canonicalStructure (L := L) O hO P) (canonicalStructure (L := L) Q hQ PQ) R,
+      A ≤ C ∧ C.source.carrier .vf = (B : Set K) := by
+  let S := enlargeVF O hO P A.source B hB
+  let lift := liftVFEmbedding O hO P Q hQ PQ A.source B hB A.embedding field hRV
+  let C : FixedRVLift (canonicalStructure (L := L) O hO P) (canonicalStructure (L := L) Q hQ PQ) R :=
+    ⟨S, A.rv_eq, lift⟩
+  refine ⟨C, ?_, rfl⟩
+  have hm (s : TCsort) : A.source.carrier s ⊆ C.source.carrier s := by
+    cases s with
+    | vf => exact hbase
+    | rv => exact Set.Subset.rfl
+  apply FixedRVLift.le_of_compatible hm
+  intro s x
+  cases s with
+  | vf => exact (hfield x).symm
+  | rv => rfl
 
 end GeneralizedEuler.Section2

@@ -1,6 +1,7 @@
 module
 
 public import Section2.ConvexLanguage
+public import Section2.FieldGeneratedEmbedding
 public import Section2.QuotientInterpretation
 public import Section2.VFLiftSubstructure
 
@@ -70,6 +71,31 @@ def fieldEmbeddingOfSorted : vfReductOfSortedSubstructure O hO P S ↪[L] F wher
       homogeneousArgs_map (X := fun s => S.carrier s) (Y := CanonicalSort O)
         (fun _ z => z.val) as, homogeneousArgs_expand] at h
     exact h.trans (B.subtype.map_rel r x)
+
+/-- A new named leading term supplies a matching cut and thereby a field
+embedding of its simple extension, under the uniform unary cell descriptions. -/
+theorem exists_fieldEmbedding_of_prescribedRV_lift
+    (t : S.carrier .rv) (ht : t.val ∉ rv O '' S.carrier .vf) (a : K) (ha : rv O a = t.val) :
+    let A := vfReductOfSortedSubstructure O hO P S
+    let k := fieldEmbeddingOfSorted O Q hO hQ P PQ S e
+    (∀ b : F, rv Q b = e.toEmbedding .rv t → ∀ φ : L.Formula (A ⊕ Unit),
+      ∃ (n : ℕ) (cells : Fin n → UnaryCellCode A),
+        (φ.Realize (Sum.elim Subtype.val (fun _ => a)) ↔
+          a ∈ ⋃ i, (cells i).asSet (Subtype.val : A → K)) ∧
+        (φ.Realize (Sum.elim k (fun _ => b)) ↔ b ∈ ⋃ i, (cells i).asSet k)) →
+    ∃ b : F,
+      ∃ f : Substructure.closure L (Set.range (Sum.elim (Subtype.val : A → K)
+        (fun _ : Unit => a))) ↪[L] F,
+        rv Q b = e.toEmbedding .rv t ∧
+        f ⟨a, Substructure.subset_closure ⟨.inr (), rfl⟩⟩ = b ∧
+        ∀ c : A, f ⟨c.val, Substructure.subset_closure ⟨.inl c, rfl⟩⟩ = k c := by
+  let A := vfReductOfSortedSubstructure O hO P S
+  let k := fieldEmbeddingOfSorted O Q hO hQ P PQ S e
+  change _ → ∃ b : F, _
+  intro hcells
+  obtain ⟨b, hb, hcut⟩ := exists_prescribedLift_sameCut O hO P Q hQ PQ e t ht ha
+  obtain ⟨f, hf, hbase⟩ := exists_simpleFieldEmbedding_of_same_cut A k a b hcut (hcells b hb)
+  exact ⟨b, f, hb, hf, hbase⟩
 
 set_option linter.style.haveILetI false in
 /-- Adding the valuation-ring relation leaves the old field carrier and
