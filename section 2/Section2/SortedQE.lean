@@ -37,6 +37,14 @@ def conjunction (φ ψ : SortedFormula L E Var) : SortedFormula L E Var :=
 def disjunction (φ ψ : SortedFormula L E Var) : SortedFormula L E Var :=
   .imp φ.neg ψ
 
+theorem conjunction_isQF {φ ψ : SortedFormula L E Var} (hφ : φ.IsQF) (hψ : ψ.IsQF) :
+    (φ.conjunction ψ).IsQF :=
+  neg_isQF (.imp hφ (neg_isQF hψ))
+
+theorem disjunction_isQF {φ ψ : SortedFormula L E Var} (hφ : φ.IsQF) (hψ : ψ.IsQF) :
+    (φ.disjunction ψ).IsQF :=
+  .imp (neg_isQF hφ) hψ
+
 theorem realize_conjunction {X : TCsort → Type*} (M : SortedStructure L E X)
     (x : ∀ s, Var s → X s) (φ ψ : SortedFormula L E Var) :
     (φ.conjunction ψ).realize M x ↔ φ.realize M x ∧ ψ.realize M x := by

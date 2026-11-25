@@ -50,6 +50,15 @@ def expandHomogeneousArgs {X : TCsort → Type*} {s : TCsort} {n : ℕ}
   have h : (List.replicate n s).get j = s := by simp [List.get_eq_getElem]
   exact h.symm ▸ xs (Fin.cast List.length_replicate j)
 
+theorem expandHomogeneousArgs_map {X : TCsort → Type*} {Y : TCsort → Type*}
+    {s : TCsort} {n : ℕ} (f : ∀ t, X t → Y t) (xs : Fin n → X s) :
+    (fun i => f _ (expandHomogeneousArgs xs i)) =
+      expandHomogeneousArgs (f s ∘ xs) := by
+  have commute {a b : TCsort} (h : a = b) (x : X a) :
+      f b (h ▸ x) = (h ▸ f a x : Y b) := by cases h; rfl
+  funext i
+  exact commute _ _
+
 theorem homogeneousArgs_expand {X : TCsort → Type*} {s : TCsort} {n : ℕ}
     (xs : Fin n → X s) : homogeneousArgs (expandHomogeneousArgs xs) = xs := by
   have undo {t s : TCsort} (h : t = s) (x : X s) : h ▸ (h.symm ▸ x : X t) = x := by

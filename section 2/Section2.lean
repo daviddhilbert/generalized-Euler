@@ -92,3 +92,6 @@ public import Section2.RVClosure
 public import Section2.ContinuousDefinitions
 public import Section2.SmallBackAndForth
 public import Section2.SmallImmediateAdjunction
+public import Section2.RecoveredValuedField
+public import Section2.InterpretedValuedTheory
+public import Section2.InterpretedValuedQE

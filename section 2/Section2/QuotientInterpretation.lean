@@ -308,6 +308,51 @@ theorem sortedFormula_iff_of_common_field_representatives
   rw [← RM.realize_translate, ← RN.realize_translate]
   exact partialElementaryOfQE_anyVar hT p q (I.translate φ) representatives
 
+/-- Two realizations of the same quotient interpretation on a common
+field structure are isomorphic. The isomorphism sends each class of a
+representative to the class of that same representative. -/
+theorem exists_sortedIsomorphism_of_common_interpretation
+    {A : Type*} [J.Structure A] {X Y : TCsort → Type*}
+    {M : SortedStructure L E X} {N : SortedStructure L E Y}
+    (RM : RealizesQuotientInterpretation I (A := A) M)
+    (RN : RealizesQuotientInterpretation I (A := A) N) :
+    ∃ e : SortedIsomorphism M N, ∀ s a, e.toEmbedding s (RM.rep s a) = RN.rep s a := by
+  let pre (s : TCsort) (x : X s) : A := (RM.surjective s x).choose
+  have hpre (s : TCsort) (x : X s) : RM.rep s (pre s x) = x := (RM.surjective s x).choose_spec
+  have compare (s : TCsort) (a b : A) : RM.rep s a = RM.rep s b ↔ RN.rep s a = RN.rep s b :=
+    ((RM.equal s ![a, b]).symm.trans (RN.equal s ![a, b]))
+  let map (s : TCsort) (x : X s) := RN.rep s (pre s x)
+  have onRep (s : TCsort) (a : A) : map s (RM.rep s a) = RN.rep s a :=
+    (compare s _ a).mp (hpre s _)
+  have hInjective (s : TCsort) : Function.Injective (map s) := by
+    intro x y he
+    exact (hpre s x).symm.trans ((compare s _ _).mpr he |>.trans (hpre s y))
+  let e : SortedIsomorphism M N :=
+    { toEmbedding := fun s => ⟨map s, hInjective s⟩
+      map_fun := by
+        intro ss s f xs
+        let v : Option (Fin ss.length) → A := fun
+          | none => pre s (M.funMap f xs)
+          | some j => pre (ss.get j) (xs j)
+        have hRep : (fun j => RM.rep (ss.get j) (v (some j))) = xs :=
+          funext fun j => hpre (ss.get j) (xs j)
+        have h : (I.function f).Realize v := (RM.function f v).mpr (by
+          rw [hRep]
+          exact hpre s _)
+        exact (RN.function f v).mp h
+      map_rel := by
+        intro ss r xs
+        let v (i : Fin ss.length) := pre (ss.get i) (xs i)
+        have hRep : (fun j => RM.rep (ss.get j) (v j)) = xs :=
+          funext fun j => hpre (ss.get j) (xs j)
+        have h := (RN.relation r v).symm.trans (RM.relation r v)
+        rwa [hRep] at h
+      surjective := by
+        intro s y
+        obtain ⟨a, rfl⟩ := RN.surjective s y
+        exact ⟨RM.rep s a, onRep s a⟩ }
+  exact ⟨e, onRep⟩
+
 /-- Transport a substructure using common field representatives. The
 interpreting formulas and field QE give preservation of all primitives
 on the transported representatives, even when the common field

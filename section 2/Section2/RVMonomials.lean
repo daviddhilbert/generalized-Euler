@@ -17,6 +17,7 @@ universe u v w a z
 
 variable {L : Language.{u, v}} {E : Type w} {Var : TCsort → Type a}
 
+@[expose]
 def rvOneTerm : SortedTerm L E Var .rv :=
   .app .rvOne (fun i => i.elim0)
 
