@@ -22,7 +22,7 @@ projects. Import `Section2` for the public declarations.
 | §2.4, Definition 2.25, Lemma 2.26, Remark 2.27 and Lemma 2.28 | `WeakOminimal`, `Dimension`, `DefinableCharts`, `UniformCharts`, `DimensionFormulas`, `DimensionLower`, `ValueFiberTopology` | Projection dimension, the maximal fiber-rank calculation, and preservation of dimension on a signed value fiber. Nonempty interior of a projection is expressed by an open-box formula, so a fiber-dimension bound is first order. The cited pointwise charts yield a finite definable chart cover by compactness and a fixed-base definable injection with distinct RV numeral tags. An injective definable graph isolates each input over its image, giving the lower bound from exchange rank and the no-new-VF-points property. |
 | §2.4, Remark 2.27 | `SortedDefinability`, `RVReduct` | Fixed-base Boolean operations and projection. After QE, formulas on RV tuples reduce to RV formulas using only parameters already in the base RV sort. |
 | §2.4, Lemmas 2.23 and 2.29 | `RVSplitCoordinates`, `RVCoordinatePrimitives`, `RVFormulaSeparation`, `ValueResidueOrthogonality`, `AffineValueSelection`, `DefinableAffinePartitions`, `RVSignCharts` | Every canonical RV primitive separates over the two coordinate languages. Slicing gives value-language definitions and finite cross-sort images in both directions. A section taking old values to old leading terms keeps the normalized residues in the base. Lower-dimensional projection charts pad to the required arity. The cited affine graph decomposition refines those charts into definable pieces over the value base. Pulling the pieces back and dividing by their monomial lifts gives the positive-case trivialization. The sign changes and tagged unions preserve the original base. |
-| §2.4, Remark 2.30 and Theorem 2.31 | `ResidueFiber`, `DefinableResidueCharts`, `RVDefinableEquivalence`, `ResidueClassification` | A finite set of value fibers gives a definable bijection onto labeled residue tuples, including zero coordinates. Projection gives definability of the image, and inverse and composition of RV graphs transport bijections. With the induced residue structure and the cited classification of residue normal forms, the criterion transfers to the original RV sets. |
+| §2.4, Remark 2.30 and Theorem 2.31 | `ResidueFiber`, `DefinableResidueCharts`, `RVDefinableEquivalence`, `ResidueClassification`, `ResidueTopology`, `RVInvariants` | A finite set of value fibers gives a definable bijection onto labeled residue tuples, including zero coordinates. The positive and negative residue branches embed openly into RV. Every nonempty open projection meets the tuples with no zero coordinate, so the embedding preserves projection dimension. The o-minimal Euler characteristic of a residue normal form is independent of the choice of normalization, and the cited classification transfers to the original RV sets. |
 | §2.4, Definitions 2.32 and 2.36 and Notation 2.34 | `ValuativeDisc`, `HigherLeadingTerm`, `TorsorDerivative` | The higher leading-term quotients and their fibers. Maximality of the open children and the residue chart on their quotient, including its order, affine chart changes, and the entire central class. Uniqueness of derivatives and invariance of the normalized derivative under affine changes of charts. |
 | §2.4, valuative intervals and Holly normal form | `ValuativeInterval`, `EndDiscs`, `DefinableEndDiscs`, `HollyNormalForm`, `DefinableHolly` | Boolean closure of finite unions of valuative intervals. A nonempty interval is definable over a parameter set precisely when its end-discs are. Upward and downward closures give the endpoint rays, and their translation periods recover the end-discs. The representative interpretation gives definability of unary VF sets in the valued-field language. A unary Boolean description gives the unique interval decomposition, and naming a point in each component makes it definable. |
 
@@ -52,9 +52,12 @@ definability inputs used with Theorems A and B, including the graphs of the
 restricted exponent operations.
 `HasFixedBaseAffineGraphDecomposition` states the piecewise-affine
 part of Theorem B for a definable graph over a value subspace.
-`rvDefinablyEquivalent_iff_of_residue_classification` takes the
-classification of the residue normal forms from van den Dries (1998),
-§8.2.11 as a hypothesis.
+`rvDefinablyEquivalent_iff_projectionDimension_euler` uses the classification
+of residue normal forms from van den Dries (1998), §8.2.11, and
+definable-bijection invariance of RV dimension from Macpherson, Marker,
+and Steinhorn (2000), Theorem 4.7. Independence of the choice of residue
+normal form uses definable-bijection invariance of the o-minimal Euler
+characteristic from van den Dries (1998), §4.2.
 
 The canonical interpretation takes the continuous functional presentation
 and uniform defining graphs as inputs. The isomorphism with a presentation
@@ -67,7 +70,4 @@ forward use of the no-new-VF-points property from §3 as a premise.
 For Lemma 2.29 the checked selection uses the cited coordinate charts
 and piecewise-affine graph theorem. The signed assembly takes
 definability of the individual sign pullbacks as an input.
-For Theorem 2.31 the transport is checked with the invariants of the residue
-normal forms. Their identification with the manuscript's dimension and
-Euler characteristic still needs to be checked. The unary Boolean
-description used to obtain Holly normal form is a premise.
+The unary Boolean description used to obtain Holly normal form is a premise.

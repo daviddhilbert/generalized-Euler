@@ -82,7 +82,7 @@ private theorem bounds (hO : IsOrderConvex O) {x : K} (hx : x ≠ 0) :
   · exact positive_bounds O hO hp
 
 /-- The order topology of the signed RV order. -/
-@[instance_reducible]
+@[expose, instance_reducible]
 def rvOrderTopology (hO : IsOrderConvex O) : TopologicalSpace (RV0 O) :=
   letI := rvLinearOrder O hO
   Preorder.topology _

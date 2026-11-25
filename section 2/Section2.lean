@@ -84,3 +84,6 @@ public import Section2.DefinableAffinePartitions
 public import Section2.AffineValueSelection
 public import Section2.RVSignCharts
 public import Section2.ValueResidueOrthogonality
+public import Section2.RVInvariants
+public import Section2.ProjectionTopology
+public import Section2.ResidueTopology

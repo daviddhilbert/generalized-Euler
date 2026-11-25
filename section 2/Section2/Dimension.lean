@@ -20,10 +20,12 @@ variable {X : Type*} [TopologicalSpace X] {n : ℕ}
 def coordinateProjection {k : ℕ} (e : Fin k ↪ Fin n) (x : Fin n → X) : Fin k → X :=
   x ∘ e
 
+@[expose]
 def HasInteriorProjection {k : ℕ} (D : Set (Fin n → X)) : Prop :=
   ∃ e : Fin k ↪ Fin n, (interior (coordinateProjection e '' D)).Nonempty
 
 /-- Projection dimension, with zero also used for the empty set. -/
+@[expose]
 def projectionDimension (D : Set (Fin n → X)) : ℕ := by
   classical
   exact ((Finset.range (n + 1)).filter (fun k => HasInteriorProjection (k := k) D)).sup id

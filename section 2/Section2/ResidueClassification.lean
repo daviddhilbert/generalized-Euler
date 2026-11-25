@@ -26,6 +26,11 @@ theorem embedResidueCoordinates_injective :
 def embeddedResidueSet (D : Set (I → Residue O)) : Set (I → RV0 O) :=
   Set.range (fun x : D => embedResidueCoordinates O x.val)
 
+theorem embeddedResidueSet_eq_image (D : Set (I → Residue O)) :
+    embeddedResidueSet O D = (fun x : I → Residue O => residueRV O ∘ x) '' D := by
+  ext y
+  exact ⟨fun ⟨x, hx⟩ => ⟨x.val, x.property, hx⟩, fun ⟨x, hx, hy⟩ => ⟨⟨x, hx⟩, hy⟩⟩
+
 def equivEmbeddedResidueSet (D : Set (I → Residue O)) : D ≃ embeddedResidueSet O D :=
   Equiv.ofInjective _ (fun _ _ h => Subtype.ext (embedResidueCoordinates_injective O h))
 
