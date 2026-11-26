@@ -190,3 +190,12 @@ public import Section5.GradedLiftTotalBijections
 public import Section5.RelativeRVObjectRealization
 public import Section5.RelativeFiberClasses
 public import Section5.RelativeTotalClasses
+public import Section5.RelativePositiveBlowup
+public import Section5.RelativeSchemeDescent
+public import Section5.UnaryWitnessPreparation
+public import Section5.RVObjectFromGraph
+public import Section5.RelativeRVGluing
+public import Section5.RelativeGluedDeletion
+public import Section5.GluedRelativeBlowup
+public import Section5.HeadStartZeroPatterns
+public import Section5.DefinableUnaryShears

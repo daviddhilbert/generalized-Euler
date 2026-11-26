@@ -19,7 +19,7 @@ variable {L : Language} {E : Type*} {X : TCsort → Type z}
   {n : ℕ} {I J : Type}
 
 set_option linter.style.haveILetI false in
-theorem output_recovery_terms_of_exchange (i : Fin n)
+theorem output_recovery_terms_among_moving_coordinates (I₀ : Finset (Fin n)) (i : Fin n) (hi : i ∈ I₀)
     (a : SortedAssignment X (MixedVariables n I)) (b : SortedAssignment X (MixedVariables n J))
     (exchange : letI := valuedStructureOfSorted M ∅
       ∀ (D : Set (X .vf)) (x y : X .vf),
@@ -28,9 +28,11 @@ theorem output_recovery_terms_of_exchange (i : Fin n)
         x ∈ Substructure.closure (convexLanguage L) (insert y D))
     (output : letI := valuedStructureOfSorted M ∅
       ∀ k, b .vf k ∈ Substructure.closure (convexLanguage L) (S.carrier .vf ∪ Set.range (a .vf))) :
-    ∃ (j : Fin n) (T : FieldTermTuple M S (MixedVariables n Empty) n),
+    (∀ k, k ∉ I₀ → b .vf k = a .vf k) →
+    ∃ (j : Fin n) (T : FieldTermTuple M S (MixedVariables n Empty) n), j ∈ I₀ ∧
       (realizeFieldTuple T (recoveryInput i j a b)) .vf = b .vf := by
   classical
+  intro fixes
   letI := valuedStructureOfSorted M ∅
   let C := Substructure.closure (convexLanguage L) (M := X .vf)
   let kept := S.carrier .vf ∪ {x | ∃ k : Fin n, k ≠ i ∧ a .vf k = x}
@@ -41,10 +43,16 @@ theorem output_recovery_terms_of_exchange (i : Fin n)
       · subst k
         exact Set.mem_insert _ _
       · exact Set.mem_insert_of_mem _ (Or.inr ⟨k,hi,rfl⟩)
-  have found : ∃ j : Fin n, ∀ k, b .vf k ∈ C (insert (b .vf j) kept) := by
+  have found : ∃ j : Fin n, j ∈ I₀ ∧ ∀ k, b .vf k ∈ C (insert (b .vf j) kept) := by
     by_cases all : ∀ k, b .vf k ∈ C kept
-    · exact ⟨i,fun k => Substructure.closure_mono (Set.subset_insert _ _) (all k)⟩
+    · exact ⟨i,hi,fun k => Substructure.closure_mono (Set.subset_insert _ _) (all k)⟩
     · obtain ⟨j,hj⟩ := not_forall.mp all
+      have hMove : j ∈ I₀ := by
+        by_contra hjOut
+        have hjNe : j ≠ i := fun e => hjOut (e ▸ hi)
+        apply hj
+        rw [fixes j hjOut]
+        exact Substructure.subset_closure (Or.inr ⟨j,hjNe,rfl⟩)
       let T := C (insert (b .vf j) kept)
       have hJ : b .vf j ∈ C (insert (a .vf i) kept) := Substructure.closure_mono orig (output j)
       have hA : a .vf i ∈ T := exchange kept (a .vf i) (b .vf j) hJ hj
@@ -53,8 +61,8 @@ theorem output_recovery_terms_of_exchange (i : Fin n)
         rcases Set.mem_insert_iff.1 hx with rfl | h
         · exact hA
         · exact Substructure.subset_closure (Set.mem_insert_of_mem _ h)
-      exact ⟨j,fun k => (Substructure.closure_le.2 sub) (Substructure.closure_mono orig (output k))⟩
-  obtain ⟨j,hj⟩ := found
+      exact ⟨j,hMove,fun k => (Substructure.closure_le.2 sub) (Substructure.closure_mono orig (output k))⟩
+  obtain ⟨j,hMove,hj⟩ := found
   let p := recoveryInput i j a b
   let Names := WithBase S.carrier (MixedVariables n Empty)
   let values : ∀ s, Names s → X s := fun s => Sum.elim Subtype.val (p s)
@@ -73,11 +81,27 @@ theorem output_recovery_terms_of_exchange (i : Fin n)
     refine ⟨t.relabel pick,?_⟩
     rwa [Term.realize_relabel,show values .vf ∘ pick = Subtype.val from funext fun x => x.property.choose_spec]
   choose term eq using terms
-  refine ⟨j,fun k => liftValuedTerm SortedTerm.var (term k),?_⟩
+  refine ⟨j,fun k => liftValuedTerm SortedTerm.var (term k),hMove,?_⟩
   funext k
   change (liftValuedTerm SortedTerm.var (term k)).realize M values = b .vf k
   rw [realize_liftValuedTerm M (∅ : Set (X .vf))]
   exact eq k
+
+set_option linter.style.haveILetI false in
+theorem output_recovery_terms_of_exchange (i : Fin n)
+    (a : SortedAssignment X (MixedVariables n I)) (b : SortedAssignment X (MixedVariables n J))
+    (exchange : letI := valuedStructureOfSorted M ∅
+      ∀ (D : Set (X .vf)) (x y : X .vf),
+        y ∈ Substructure.closure (convexLanguage L) (insert x D) →
+        y ∉ Substructure.closure (convexLanguage L) D →
+        x ∈ Substructure.closure (convexLanguage L) (insert y D))
+    (output : letI := valuedStructureOfSorted M ∅
+      ∀ k, b .vf k ∈ Substructure.closure (convexLanguage L) (S.carrier .vf ∪ Set.range (a .vf))) :
+    ∃ (j : Fin n) (T : FieldTermTuple M S (MixedVariables n Empty) n),
+      (realizeFieldTuple T (recoveryInput i j a b)) .vf = b .vf := by
+  obtain ⟨j,T,_,e⟩ := output_recovery_terms_among_moving_coordinates Finset.univ i (Finset.mem_univ i)
+    a b exchange output (fun k nk => (nk (Finset.mem_univ k)).elim)
+  exact ⟨j,T,e⟩
 
 theorem output_field_closure_of_immediate_movers
     (A : Set (SortedAssignment X (MixedVariables n I)))

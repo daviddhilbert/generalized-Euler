@@ -64,6 +64,45 @@ theorem recovery_terms_definable (i j : Fin n) (T : FieldTermTuple M S F n)
   exact exists_congr fun b => and_congr_right fun _ =>
     ⟨fun h k => (congrFun h k).symm,fun h => funext fun k => (h k).symm⟩
 
+theorem finite_recovered_output_partition_among {C₀ : Type} (chooseCoordinate : C₀ → Fin n)
+    (i : Fin n) (A : Set (SortedAssignment X U)) (B : Set (SortedAssignment X V)) (f : A ≃ B)
+    (sat : RealizesFinitelySatisfiableTypes M (WithBase S.carrier U) (BaseAssignments S.carrier U))
+    (ha : SortedDefinableOver M S.carrier A)
+    (hf : DefinableRelation M S.carrier (fun a b => ∃ h : a ∈ A, (f ⟨a,h⟩).val = b))
+    (recover : ∀ a : A, ∃ (j : C₀) (T : FieldTermTuple M S F n),
+      (realizeFieldTuple T (recoveryInput i (chooseCoordinate j) a.val (f a).val)) .vf = (f a).val .vf) :
+    ∃ (C : Finset (C₀ × FieldTermTuple M S F n)) (pieces : {q // q ∈ C} → Set (SortedAssignment X U)),
+      (∀ q, SortedDefinableOver M S.carrier (pieces q)) ∧ (∀ q, pieces q ⊆ A) ∧
+      Pairwise (fun q q' => Disjoint (pieces q) (pieces q')) ∧ (⋃ q, pieces q) = A ∧
+      ∀ q (x y : A), x.val ∈ pieces q → y.val ∈ pieces q →
+        (∀ k, k ≠ i → x.val .vf k = y.val .vf k) →
+        (f x).val .vf (chooseCoordinate q.val.1) = (f y).val .vf (chooseCoordinate q.val.1) →
+        (f x).val .vf = (f y).val .vf := by
+  let Test := C₀ × FieldTermTuple M S F n
+  let D (q : Test) := {a | ∃ b, (∃ h : a ∈ A, (f ⟨a,h⟩).val = b) ∧
+    (realizeFieldTuple q.2 (recoveryInput i (chooseCoordinate q.1) a b)) .vf = b .vf}
+  have hd (q : Test) : SortedDefinableOver M S.carrier (D q) := recovery_terms_definable i (chooseCoordinate q.1) q.2 _ hf
+  obtain ⟨C,pieces,hp,sub,disj,cover⟩ := finite_definable_partition_of_cover sat A ha D hd (by
+    intro a h
+    obtain ⟨j,T,eq⟩ := recover ⟨a,h⟩
+    exact ⟨(j,T),_,⟨h,rfl⟩,eq⟩)
+  refine ⟨C,pieces,hp,fun q a h => ?_,disj,cover,?_⟩
+  · obtain ⟨_,⟨hA,_⟩,_⟩ := sub q h
+    exact hA
+  · intro q x y hx hy hhead hlead
+    obtain ⟨_,⟨_,rfl⟩,tx⟩ := sub q hx
+    obtain ⟨_,⟨_,rfl⟩,ty⟩ := sub q hy
+    have same : recoveryInput i (chooseCoordinate q.val.1) x.val (f x).val =
+        recoveryInput i (chooseCoordinate q.val.1) y.val (f y).val := by
+      funext s k
+      cases s
+      · by_cases h : k = i
+        · subst k
+          simpa only [recoveryInput,Function.update_self] using hlead
+        · simpa only [recoveryInput,Function.update_of_ne h] using hhead k h
+      · exact k.elim
+    exact tx.symm.trans ((congrArg (fun w => (realizeFieldTuple q.val.2 w) .vf) same).trans ty)
+
 theorem finite_recovered_output_partition
     (i : Fin n) (A : Set (SortedAssignment X U)) (B : Set (SortedAssignment X V)) (f : A ≃ B)
     (sat : RealizesFinitelySatisfiableTypes M (WithBase S.carrier U) (BaseAssignments S.carrier U))
@@ -76,29 +115,7 @@ theorem finite_recovered_output_partition
       Pairwise (fun q q' => Disjoint (pieces q) (pieces q')) ∧ (⋃ q, pieces q) = A ∧
       ∀ q (x y : A), x.val ∈ pieces q → y.val ∈ pieces q →
         (∀ k, k ≠ i → x.val .vf k = y.val .vf k) →
-        (f x).val .vf q.val.1 = (f y).val .vf q.val.1 → (f x).val .vf = (f y).val .vf := by
-  let Test := Fin n × FieldTermTuple M S F n
-  let D (q : Test) := {a | ∃ b, (∃ h : a ∈ A, (f ⟨a,h⟩).val = b) ∧
-    (realizeFieldTuple q.2 (recoveryInput i q.1 a b)) .vf = b .vf}
-  have hd (q : Test) : SortedDefinableOver M S.carrier (D q) := recovery_terms_definable i q.1 q.2 _ hf
-  obtain ⟨C,pieces,hp,sub,disj,cover⟩ := finite_definable_partition_of_cover sat A ha D hd (by
-    intro a h
-    obtain ⟨j,T,eq⟩ := recover ⟨a,h⟩
-    exact ⟨(j,T),_,⟨h,rfl⟩,eq⟩)
-  refine ⟨C,pieces,hp,fun q a h => ?_,disj,cover,?_⟩
-  · obtain ⟨_,⟨hA,_⟩,_⟩ := sub q h
-    exact hA
-  · intro q x y hx hy hhead hlead
-    obtain ⟨_,⟨_,rfl⟩,tx⟩ := sub q hx
-    obtain ⟨_,⟨_,rfl⟩,ty⟩ := sub q hy
-    have same : recoveryInput i q.val.1 x.val (f x).val = recoveryInput i q.val.1 y.val (f y).val := by
-      funext s k
-      cases s
-      · by_cases h : k = i
-        · subst k
-          simpa only [recoveryInput,Function.update_self] using hlead
-        · simpa only [recoveryInput,Function.update_of_ne h] using hhead k h
-      · exact k.elim
-    exact tx.symm.trans ((congrArg (fun w => (realizeFieldTuple q.val.2 w) .vf) same).trans ty)
+        (f x).val .vf q.val.1 = (f y).val .vf q.val.1 → (f x).val .vf = (f y).val .vf :=
+  finite_recovered_output_partition_among id i A B f sat ha hf recover
 
 end GeneralizedEuler.Section5
