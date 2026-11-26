@@ -287,3 +287,16 @@ public import Section5.TerminalTagReindexing
 public import Section5.FieldwiseContractionInduction
 public import Section5.RelativelyUnaryContractions
 public import Section5.SameOrderContractions
+public import Section5.TerminalSelectedEquivalence
+public import Section5.UnaryProductContractions
+public import Section5.ProductTerminalTags
+public import Section5.ProductTerminalClasses
+public import Section5.FirstTwoFieldSlices
+public import Section5.FirstTwoOrderReduction
+public import Section5.TranslationHeadContractions
+public import Section5.PureFieldFamilies
+public import Section5.NamedFieldFunctions
+public import Section5.TerminalGradedIsomorphism
+public import Section5.FieldPairTranslationRuns
+public import Section5.ScaledPairLabels
+public import Section5.BalancedCellRuns
