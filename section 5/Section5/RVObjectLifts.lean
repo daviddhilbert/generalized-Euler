@@ -102,6 +102,19 @@ theorem ext {U : RVObject M S k} {x y : carrier U}
     have h := ((tag_val U x).symm.trans (congrArg Subtype.val rv)).trans (tag_val U y)
     exact congrFun h i
 
+/-- For a fixed field tuple the tags inject into one fiber of the RV
+structure map. Thus a lift is an object of the finite-fiber VF category. -/
+theorem finite_field_fiber (U : RVObject M S k) (a : Fin k → X .vf) :
+    {x : carrier U | x.val .vf = a}.Finite := by
+  have inj : Set.InjOn (tag U) {x : carrier U | x.val .vf = a} := by
+    intro x hx y hy he
+    exact ext (hx.trans hy.symm) he
+  apply (U.finiteFibers (M.rvMap ∘ a)).of_injOn (f := tag U) ?_ inj
+  intro x hx
+  change U.label (tag U x) = M.rvMap ∘ a
+  rw [tag_label U x]
+  exact congrArg (M.rvMap ∘ ·) hx
+
 end ObjectLift
 
 end GeneralizedEuler.Section5

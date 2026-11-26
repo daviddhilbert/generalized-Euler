@@ -99,3 +99,6 @@ public import Section5.DefinablePartitionBijection
 public import Section5.FiniteProjectionElementaryLift
 public import Section5.ElementaryLiftStrata
 public import Section5.BlowupOverlapClasses
+public import Section5.MixedLiftPresentation
+public import Section5.BlowupLocusTransport
+public import Section5.OneStepBlowupComparison
