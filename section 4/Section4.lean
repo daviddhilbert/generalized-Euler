@@ -66,6 +66,7 @@ public import Section4.GraphProjectionSums
 public import Section4.GroupifiedRectangle
 public import Section4.HeightDrop
 public import Section4.HomogeneousValueLift
+public import Section4.IndependentRectangleMatches
 public import Section4.IntervalCutScissors
 public import Section4.IntervalScaleBijection
 public import Section4.IntervalScaleCuts
@@ -75,11 +76,15 @@ public import Section4.LiftQuotientProfiles
 public import Section4.LocalRVMeasure
 public import Section4.LocalizedEuler
 public import Section4.LostCoordinates
+public import Section4.MatchedFactorClasses
 public import Section4.MatchingRectangles
 public import Section4.MatrixPreimages
 public import Section4.MaximalBoxComparison
 public import Section4.MaximalBoxVectors
+public import Section4.MaximalRectangleRemainders
 public import Section4.MeasurableCharts
+public import Section4.MixedMatchFactors
+public import Section4.MixedRectangleSeparation
 public import Section4.MultiplicativeDescent
 public import Section4.NoAdditiveValueRetraction
 public import Section4.NormalRectangleCover
@@ -116,8 +121,10 @@ public import Section4.RVTaggedEquivalence
 public import Section4.RaySquareScissors
 public import Section4.RectangleClasses
 public import Section4.RectangleDecomposition
+public import Section4.RectangleFiberFamilies
 public import Section4.RectangleGeneration
 public import Section4.RectangleMap
+public import Section4.RectangleMatchGraph
 public import Section4.RectangleMultiplicativity
 public import Section4.RectangleProducts
 public import Section4.RectangleRange
@@ -126,6 +133,7 @@ public import Section4.RefinedChartTest
 public import Section4.RefinementCoordinates
 public import Section4.ReindexUnits
 public import Section4.RelativeResidues
+public import Section4.RepresentedFiberMatches
 public import Section4.ResidueAssignmentPartition
 public import Section4.ResidueBaseValues
 public import Section4.ResidueCancellation
@@ -175,6 +183,7 @@ public import Section4.UnaryFiberMatching
 public import Section4.UnaryRemainders
 public import Section4.UnaryTaggedComparison
 public import Section4.UnitFiberNormalization
+public import Section4.UnmatchedValueProjection
 public import Section4.ValueBoxProducts
 public import Section4.ValueBoxes
 public import Section4.ValueDegrees
@@ -195,3 +204,4 @@ public import Section4.ValueStratification
 public import Section4.ValueSubdivisionSum
 public import Section4.ValueTagComparison
 public import Section4.WholeFiberRelation
+public import Section4.WholeMatchRectangles
