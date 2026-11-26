@@ -1,7 +1,7 @@
 module
 
 public import Section5.PreparedHeadFamilies
-public import Section5.PullbackHeadContractions
+public import Section5.IdentityOnHead
 
 /-! After preparation an identity head removes the normalized field
 coordinate. Its additional RV coordinate duplicates the recorded
@@ -32,8 +32,7 @@ variable {A : RetainedFieldFamily (canonicalStructure (L := L) O hO power) S (n+
     (zero : S.carrier .vf) (hz : zero.val = 0)
 
 @[expose] def preparedIdentity : HeadContractionData H.preparedFamily :=
-  .ofTranslation O hO power S H.preparedFamily F minusOne hm hF (fun _ => zero.val) (named_field_value_graph zero)
-    (fun b x y q e => H.prepared_head_stable b x y q (by simpa only [hz,sub_zero] using e))
+  .identityOnHead O hO power S H.preparedFamily F minusOne hm hF zero hz H.prepared_head_stable
 
 local notation "J" => preparedIdentity O hO power S H F minusOne hm hF zero hz
 

@@ -176,6 +176,19 @@ theorem taggedHeadTranslation_range_mem (a : SortedAssignment Z (MixedVariables 
   (Set.ext fun _ => A.taggedHeadTranslation_range_mem O hO power S c _ ) ▸
     A.taggedHeadTranslationIso O hO power S c F minusOne hm hF defC
 
+theorem taggedTranslatedHead_iso_apply (finite : ∀ b, (Set.range (c b)).Finite)
+    (a : {a : SortedAssignment Z (MixedVariables (n+1) A.tags) | mixedTuple a ∈ A.carrier}) :
+    ((A.taggedTranslatedHead_iso O hO power S c F minusOne hm hF defC finite).equiv a).val =
+      A.translateHeadAssignment O hO power S c a.val := by
+  let e := A.taggedHeadTranslationIso O hO power S c F minusOne hm hF defC
+  have eval (D : Set (SortedAssignment Z (MixedVariables (n+1) A.tags)))
+      (he : Set.range (fun u : {u : SortedAssignment Z (MixedVariables (n+1) A.tags) | mixedTuple u ∈ A.carrier} =>
+        A.translateHeadAssignment O hO power S c u.val) = D) :
+      ((he ▸ e : MixedGraphIso 𝓜 S _ D).equiv a).val = A.translateHeadAssignment O hO power S c a.val := by
+    cases he
+    rfl
+  exact eval _ _
+
 end RetainedFieldFamily
 
 end GeneralizedEuler.Section5

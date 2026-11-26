@@ -32,7 +32,7 @@ local notation "𝓜" => canonicalStructure (L := L) O hO power
 /-- The derivative is constant only in leading term. An equal branch tag
 allows the mean-value equality, and order-convexity keeps its witness on
 the same disc where the leading term has been prepared. -/
-theorem unary_affine_after_preparation
+theorem unary_affine_on_injective_prepared_fibers
     (minusOne : L.Term Empty) (hm : minusOne.realize (Empty.elim : Empty → K) = -1)
     (F : FieldTerms (convexLanguage L))
     (hF : letI := convexStructure O L; InterpretsFieldTerms (K := K) F)
@@ -42,7 +42,7 @@ theorem unary_affine_after_preparation
     (immediate : ∀ x y : K, (∀ c : S.carrier .vf, rv O (x - c.val) = rv O (y - c.val)) →
       ∃ e : SortedIsomorphism 𝓜 𝓜, e.toEmbedding .vf x = y ∧
         (∀ c ∈ S.carrier .vf, e.toEmbedding .vf c = c) ∧ ∀ t, e.toEmbedding .rv t = t)
-    (A : Set K) (f d : K → K) (code : K → RV0 O) (inj : Set.InjOn f A)
+    (A : Set K) (f d : K → K) (code : K → RV0 O)
     (dataDef : SortedDefinableOver 𝓜 S.carrier
       {w : SortedAssignment (CanonicalSort O) (MixedVariables 1 (Empty ⊕ Bool)) |
         w .vf 0 ∈ A ∧ w .rv ∘ Sum.inr = affineData O code d (w .vf 0)})
@@ -56,7 +56,7 @@ theorem unary_affine_after_preparation
       (P.map '' A = {p | rv O p.1 = P.lead p.2 ∧ ∃ x ∈ A, P.label x = p.2}) ∧
       ∀ x ∈ A, let C := P.label ⁻¹' {P.label x}
         C ⊆ A ∧ (∀ y ∈ C, affineData O code d y = affineData O code d x) ∧
-        (C.Nontrivial → ∃ t : RV O, (t : RV0 O) = rv O (d x) ∧ RVAffineOn O C f t) := by
+        (Set.InjOn f C → C.Nontrivial → ∃ t : RV O, (t : RV0 O) = rv O (d x) ∧ RVAffineOn O C f t) := by
   let G : Set ((K × (Empty → RV0 O)) × (Bool → RV0 O)) :=
     {p | p.1.1 ∈ A ∧ p.2 = affineData O code d p.1.1}
   obtain ⟨cs,same,mapDef⟩ := unary_graph_preparation O hO power S minusOne hm F hF sat immediate G dataDef
@@ -90,7 +90,7 @@ theorem unary_affine_after_preparation
     have tags (y : K) (hy : y ∈ C) : affineData O code d y = affineData O code d x :=
       (const hx (show P.label y = P.label x from hy).symm).2
     refine ⟨inside,tags,?_⟩
-    intro hC
+    intro inj hC
     change C.Nontrivial at hC
     have nonzero : P.lead (P.label x) ≠ 0 := by
       intro h
@@ -114,9 +114,41 @@ theorem unary_affine_after_preparation
     have dc : d c ≠ 0 := by
       intro h
       rw [h,zero_mul] at he
-      exact hn (inj (inside ha) (inside hb) (sub_eq_zero.mp he))
+      exact hn (inj ha hb (sub_eq_zero.mp he))
     have dt : rv O (d x) ≠ 0 := (hDerivative c hc) ▸ (rv_eq_zero_iff O).not.mpr dc
     obtain ⟨t,ht⟩ := WithZero.ne_zero_iff_exists.mp dt
     exact ⟨t,ht,rvAffine_of_mean_value O (fun y hy => (hDerivative y hy).trans ht.symm) hMvt⟩
+
+theorem unary_affine_after_preparation
+    (minusOne : L.Term Empty) (hm : minusOne.realize (Empty.elim : Empty → K) = -1)
+    (F : FieldTerms (convexLanguage L))
+    (hF : letI := convexStructure O L; InterpretsFieldTerms (K := K) F)
+    (sat : RealizesFinitelySatisfiableTypes 𝓜
+      (CenterTestVariables S.carrier (Empty ⊕ Bool))
+      (CenterTestAssignments S.carrier (Empty ⊕ Bool)))
+    (immediate : ∀ x y : K, (∀ c : S.carrier .vf, rv O (x - c.val) = rv O (y - c.val)) →
+      ∃ e : SortedIsomorphism 𝓜 𝓜, e.toEmbedding .vf x = y ∧
+        (∀ c ∈ S.carrier .vf, e.toEmbedding .vf c = c) ∧ ∀ t, e.toEmbedding .rv t = t)
+    (A : Set K) (f d : K → K) (code : K → RV0 O) (inj : Set.InjOn f A)
+    (dataDef : SortedDefinableOver 𝓜 S.carrier
+      {w : SortedAssignment (CanonicalSort O) (MixedVariables 1 (Empty ⊕ Bool)) |
+        w .vf 0 ∈ A ∧ w .rv ∘ Sum.inr = affineData O code d (w .vf 0)})
+    (mvt : ∀ a ∈ A, ∀ b ∈ A, code a = code b → a ≠ b →
+      ∃ c ∈ Set.uIcc a b, f a - f b = d c * (a - b)) :
+    ∃ cs : List (S.carrier .vf),
+      let P := (UnaryPreparation.regularize (O := O)).prepare Subtype.val cs
+      SortedDefinableOver 𝓜 S.carrier
+        {v : SortedAssignment (CanonicalSort O) (MixedVariables 2 (HistoryIndex cs.length)) |
+          P.map (v .vf 0) = (v .vf 1, decodeHistory O cs.length (v .rv))} ∧
+      (P.map '' A = {p | rv O p.1 = P.lead p.2 ∧ ∃ x ∈ A, P.label x = p.2}) ∧
+      ∀ x ∈ A, let C := P.label ⁻¹' {P.label x}
+        C ⊆ A ∧ (∀ y ∈ C, affineData O code d y = affineData O code d x) ∧
+        (C.Nontrivial → ∃ t : RV O, (t : RV0 O) = rv O (d x) ∧ RVAffineOn O C f t) := by
+  obtain ⟨cs,hgraph,himage,leaves⟩ := unary_affine_on_injective_prepared_fibers O hO power S
+    minusOne hm F hF sat immediate A f d code dataDef mvt
+  refine ⟨cs,hgraph,himage,?_⟩
+  intro x hx
+  obtain ⟨sub,tag,affine⟩ := leaves x hx
+  exact ⟨sub,tag,affine (inj.mono sub)⟩
 
 end GeneralizedEuler.Section5

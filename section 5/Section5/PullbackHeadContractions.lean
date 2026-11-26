@@ -1,7 +1,6 @@
 module
 
-public import Section5.TranslationHeadContractions
-public import Section5.NamedFieldFunctions
+public import Section5.IdentityOnHead
 public import Section5.HeadContractionIteration
 
 /-! An identity head on a pullback records the original leading term.
@@ -44,13 +43,12 @@ variable (A : RetainedFieldFamily (canonicalStructure (L := L) O hO power) S (n+
     (pullback : A.IsFieldPullback O hO power S)
 
 @[expose] def identityHead : HeadContractionData A :=
-  .ofTranslation O hO power S A F minusOne hm hF (fun _ => zero.val) (named_field_value_graph zero) (by
+  .identityOnHead O hO power S A F minusOne hm hF zero hz (by
     intro b x y t e
     apply pullback
     funext j
     refine Fin.cases ?_ (fun _ => rfl) j
-    change rv O x = rv O y
-    simpa only [hz,sub_zero] using e)
+    exact e)
 
 local notation "H" => identityHead O hO power S A F minusOne hm hF zero hz pullback
 

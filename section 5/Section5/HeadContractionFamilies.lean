@@ -103,6 +103,16 @@ term of the coordinate just removed is the final selected label. -/
   definable := contractedVerticalSet_definable O H.preparation A.verticalCarrier A.verticalCarrier_definable H.historyGraph
   finiteFibers := H.target_finite
 
+theorem target_select_last : H.target.select (Fin.last k) = .inl (lastIndex H.length) := by
+  change Fin.lastCases (motive := fun _ => HistoryIndex H.length ⊕ A.tags)
+    (.inl (lastIndex H.length)) (Sum.inr ∘ A.select) (Fin.last k) = _
+  exact Fin.lastCases_last
+
+theorem target_select_castSucc (i : Fin k) : H.target.select (Fin.castSucc i) = .inr (A.select i) := by
+  change Fin.lastCases (motive := fun _ => HistoryIndex H.length ⊕ A.tags)
+    (.inl (lastIndex H.length)) (Sum.inr ∘ A.select) (Fin.castSucc i) = _
+  exact Fin.lastCases_castSucc i
+
 end HeadContractionData
 
 section Canonical
