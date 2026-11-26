@@ -8,7 +8,7 @@ public section
 noncomputable section
 namespace GeneralizedEuler.Section4
 
-private def graphEquiv {A B : Type*} (R : A → B → Prop)
+def matchingGraphEquiv {A B : Type*} (R : A → B → Prop)
     (single : ∀ {x y z}, R x y → R x z → y = z)
     (inj : ∀ {x y z}, R x z → R y z → x = y) :
     {x // ∃ y, R x y} ≃ {y // ∃ x, R x y} where
@@ -20,6 +20,13 @@ private def graphEquiv {A B : Type*} (R : A → B → Prop)
   right_inv y := by
     let h : ∃ t, R y.property.choose t := ⟨y.val,y.property.choose_spec⟩
     exact Subtype.ext (single h.choose_spec y.property.choose_spec)
+
+theorem matchingGraphEquiv_iff {A B : Type*} (R : A → B → Prop)
+    (single : ∀ {x y z}, R x y → R x z → y = z)
+    (inj : ∀ {x y z}, R x z → R y z → x = y)
+    (a : {x // ∃ y, R x y}) (b : B) :
+    (matchingGraphEquiv R single inj a).val = b ↔ R a.val b :=
+  ⟨fun eq => eq ▸ a.property.choose_spec,fun h => single a.property.choose_spec h⟩
 
 /-- Separation of whole-fiber matches gives independent residue and value
 maps on the projections of each nonempty matching rectangle. -/
@@ -36,7 +43,7 @@ theorem factor_matching_rectangle {A B C D : Type*} (R : A → B → Prop) (V : 
   have ir : ∀ {x y z}, R x z → R y z → x = y := fun h h' => (inj h hv h' hv).1
   have sv : ∀ {x y z}, V x y → V x z → y = z := fun h h' => (single hr h hr h').2
   have iv : ∀ {x y z}, V x z → V y z → x = y := fun h h' => (inj hr h hr h').2
-  refine ⟨graphEquiv R sr ir,graphEquiv V sv iv,fun a c b d => ?_⟩
+  refine ⟨matchingGraphEquiv R sr ir,matchingGraphEquiv V sv iv,fun a c b d => ?_⟩
   constructor
   · rintro ⟨ha,hc⟩
     exact ⟨Subtype.ext (sr a.property.choose_spec ha),Subtype.ext (sv c.property.choose_spec hc)⟩

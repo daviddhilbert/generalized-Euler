@@ -50,18 +50,19 @@ theorem wholeMatch_injective (ha : Function.Surjective a) {i j k}
   obtain ⟨y,hy,eq⟩ := mem
   exact hx.symm.trans (f.injective eq ▸ hy)
 
+theorem wholeMatch_preserves_matched (x : X) : (∃ j, WholeMatch a b f (a x) j) ↔ ∃ i, WholeMatch a b f i (b (f x)) := by
+  constructor
+  · rintro ⟨j,h⟩
+    have eq : b (f x) = j := (congrArg (f x ∈ ·) h).mp (Set.mem_image_of_mem f (show x ∈ a ⁻¹' {a x} from rfl))
+    exact ⟨a x,eq.symm ▸ h⟩
+  · rintro ⟨i,h⟩
+    have mem : f x ∈ f '' (a ⁻¹' {i}) := h.symm ▸ (show f x ∈ b ⁻¹' {b (f x)} from rfl)
+    obtain ⟨u,hu,eq⟩ := mem
+    exact ⟨_,(f.injective eq ▸ hu : a x = i).symm ▸ h⟩
+
 def unmatchedFibers :
     {x : X // ¬ ∃ j, WholeMatch a b f (a x) j} ≃ {y : Y // ¬ ∃ i, WholeMatch a b f i (b y)} := by
-  have iff (x : X) : (∃ j, WholeMatch a b f (a x) j) ↔ ∃ i, WholeMatch a b f i (b (f x)) := by
-    constructor
-    · rintro ⟨j,h⟩
-      have eq : b (f x) = j := (congrArg (f x ∈ ·) h).mp (Set.mem_image_of_mem f (show x ∈ a ⁻¹' {a x} from rfl))
-      exact ⟨a x,eq.symm ▸ h⟩
-    · rintro ⟨i,h⟩
-      have mem : f x ∈ f '' (a ⁻¹' {i}) := h.symm ▸ (show f x ∈ b ⁻¹' {b (f x)} from rfl)
-      obtain ⟨u,hu,eq⟩ := mem
-      exact ⟨_,(f.injective eq ▸ hu : a x = i).symm ▸ h⟩
-  exact f.subtypeEquiv (fun x => not_congr (iff x))
+  exact f.subtypeEquiv (fun x => not_congr (wholeMatch_preserves_matched a b f x))
 
 end Matching
 end GeneralizedEuler.Section4
