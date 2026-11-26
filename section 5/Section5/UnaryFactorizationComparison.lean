@@ -20,9 +20,9 @@ variable {L : Language} {E : Type*} {X : TCsort → Type z}
   {n : ℕ}
 
 theorem MixedGraphIso.rangeOver_partition
-    {I J : Type} {A : MixedCarrier X n I} {B : MixedCarrier X n J}
-    (f : MixedGraphIso M S A B) {q : ℕ}
-    (D : Fin q → MixedCarrier X n I) (sub : ∀ i, D i ⊆ A)
+    {U V : TCsort → Type} {A : Set (SortedAssignment X U)} {B : Set (SortedAssignment X V)}
+    (f : MixedGraphIso M S A B) {I : Type}
+    (D : I → Set (SortedAssignment X U)) (sub : ∀ i, D i ⊆ A)
     (disj : Pairwise (fun i j => Disjoint (D i) (D j))) (cover : (⋃ i, D i) = A) :
     Pairwise (fun i j => Disjoint (f.rangeOver (sub i)) (f.rangeOver (sub j))) ∧
       (⋃ i, f.rangeOver (sub i)) = B := by

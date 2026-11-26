@@ -83,11 +83,47 @@ def groupifyRingEquiv {A B : Type*} [CommSemiring A] [CommSemiring B] (e : A ≃
     (SemiringGroupification.hom_ext (fun b => by simp [RingHom.comp_apply]))
     (SemiringGroupification.hom_ext (fun a => by simp [RingHom.comp_apply]))
 
+theorem groupifyRingEquiv_of {A B : Type*} [CommSemiring A] [CommSemiring B] (e : A ≃+* B) (x : A) :
+    groupifyRingEquiv e (SemiringGroupification.of A x) = SemiringGroupification.of B (e x) := by
+  unfold groupifyRingEquiv
+  exact SemiringGroupification.map_of e.toRingHom x
+
 def ringIntegrationEquiv (H : IntegrationHypotheses S neg) :
     GeneralizedEuler.Section4.SemiringGroupification.Ring (VFSemiring 𝓜 S) ≃+*
       (GeneralizedEuler.Section4.SemiringGroupification.Ring (RVSemiring 𝓜 S) ⧸
       elementaryBlowupIdeal O hO power S neg) :=
   (groupifyRingEquiv (positiveLiftEquiv S neg H).symm).trans
     (groupifiedBlowupQuotientEquiv O hO power S neg).symm
+
+theorem ringIntegrationEquiv_lift (H : IntegrationHypotheses S neg) (a : RVSemiring 𝓜 S) :
+    ringIntegrationEquiv S neg H (SemiringGroupification.of (VFSemiring 𝓜 S) (liftClassHom H.liftIso a)) =
+      Ideal.Quotient.mk (elementaryBlowupIdeal O hO power S neg) (SemiringGroupification.of (RVSemiring 𝓜 S) a) := by
+  let d := groupifiedBlowupQuotientEquiv O hO power S neg
+  apply d.injective
+  have g := groupifyRingEquiv_of (A := VFSemiring 𝓜 S) (B := (Q).Quotient)
+    (positiveLiftEquiv S neg H).symm (liftClassHom H.liftIso a)
+  change d (d.symm (groupifyRingEquiv (positiveLiftEquiv S neg H).symm _)) = _
+  rw [d.apply_symm_apply,g,positiveIntegral_lift]
+  exact (groupifiedBlowupQuotientEquiv_mk O hO power S neg a).symm
+
+theorem groupified_lift_kernel (H : IntegrationHypotheses S neg) :
+    RingHom.ker (SemiringGroupification.map (liftClassHom H.liftIso)) =
+      elementaryBlowupIdeal O hO power S neg := by
+  let e := ringIntegrationEquiv S neg H
+  let f := SemiringGroupification.map (liftClassHom H.liftIso)
+  let q := Ideal.Quotient.mk (elementaryBlowupIdeal O hO power S neg)
+  have eq : e.toRingHom.comp f = q := by
+    apply SemiringGroupification.hom_ext (R := RVSemiring 𝓜 S)
+      (T := SemiringGroupification.Ring (RVSemiring 𝓜 S) ⧸ elementaryBlowupIdeal O hO power S neg)
+      (f := e.toRingHom.comp f) (g := q)
+    intro a
+    change e (f (SemiringGroupification.of _ a)) = q (SemiringGroupification.of _ a)
+    rw [SemiringGroupification.map_of]
+    exact ringIntegrationEquiv_lift S neg H a
+  ext x
+  change f x = 0 ↔ x ∈ elementaryBlowupIdeal O hO power S neg
+  have efx : e (f x) = q x := DFunLike.congr_fun eq x
+  rw [← Ideal.Quotient.eq_zero_iff_mem,← efx]
+  exact ⟨fun h => h ▸ e.map_zero,fun h => e.injective (h.trans e.map_zero.symm)⟩
 
 end GeneralizedEuler.Section5

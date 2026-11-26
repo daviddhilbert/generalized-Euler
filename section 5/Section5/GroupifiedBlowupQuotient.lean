@@ -94,4 +94,11 @@ def groupifiedBlowupQuotientEquiv :
     obtain ⟨x,rfl⟩ := Ideal.Quotient.mk_surjective y
     exact DFunLike.congr_fun onTop x
 
+theorem groupifiedBlowupQuotientEquiv_mk (x : ℛ) :
+    groupifiedBlowupQuotientEquiv O hO power S hneg
+      (Ideal.Quotient.mk (elementaryBlowupIdeal O hO power S hneg) (of ℛ x)) =
+      of (C).Quotient ((C).mk' x) := by
+  unfold groupifiedBlowupQuotientEquiv
+  exact SemiringGroupification.map_of (R := ℛ) (V := (C).Quotient) ((C).mk') x
+
 end GeneralizedEuler.Section5
