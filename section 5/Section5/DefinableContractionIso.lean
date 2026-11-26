@@ -25,7 +25,7 @@ variable {L : Language} {E : Type*} {X : TCsort → Type z}
 
 /-- The induced map is defined by existentially quantifying the mixed
 representatives in the two label graphs and the original bijection. -/
-theorem definable_iso_of_mutually_contractible
+theorem definable_label_iso_of_mutually_contractible
     (e : A ≃ B)
     (eDef : DefinableRelation M S.carrier (fun a b => ∃ ha : a ∈ A, (e ⟨a,ha⟩).val = b))
     (p : SortedAssignment X V → I → X .rv) (q : SortedAssignment X W → J → X .rv)
@@ -35,7 +35,9 @@ theorem definable_iso_of_mutually_contractible
       (fun b (c : SortedAssignment X (RVVariables J)) => q b = c .rv))
     (forward : Contractible (p ∘ Subtype.val) (q ∘ Subtype.val) e)
     (backward : Contractible (q ∘ Subtype.val) (p ∘ Subtype.val) e.symm) :
-    RVDefinablyEquivalent M S.carrier (p '' A) (q '' B) := by
+    ∃ f : (p '' A) ≃ (q '' B),
+      SortedDefinableOver M S.carrier (rvGraph fun x => (f x).val) ∧
+      ∀ x : A, (f ⟨p x.val,⟨x.val,x.property,rfl⟩⟩).val = q (e x).val := by
   have rng (R : TCsort → Type) (D : Set (SortedAssignment X R)) {H : Type}
       (f : SortedAssignment X R → H → X .rv) :
       Set.range (f ∘ (Subtype.val : D → SortedAssignment X R)) = f '' D := by
@@ -44,7 +46,7 @@ theorem definable_iso_of_mutually_contractible
   obtain ⟨g,hg⟩ := equiv_of_mutual_contraction e (p ∘ Subtype.val) (q ∘ Subtype.val) forward backward
   let f := (Set.equivOfEq (rng V A p).symm).trans (g.trans (Set.equivOfEq (rng W B q)))
   have hf (x : A) : (f ⟨p x.val,⟨x.val,x.property,rfl⟩⟩).val = q (e x).val := hg x
-  refine ⟨f,?_⟩
+  refine ⟨f,?_,hf⟩
   have raw := (pDef.transpose.comp eDef).comp qDef
   apply rvGraph_of_relation (raw.congr ?_)
   intro x y
@@ -60,5 +62,19 @@ theorem definable_iso_of_mutually_contractible
     change (f ⟨p a,⟨a,ha,rfl⟩⟩).val = _ at hval
     rw [ht'] at hval
     exact ⟨(e ⟨a,ha⟩).val,⟨a,hp.trans ht,ha,rfl⟩,hval.symm.trans hy⟩
+
+theorem definable_iso_of_mutually_contractible
+    (e : A ≃ B)
+    (eDef : DefinableRelation M S.carrier (fun a b => ∃ ha : a ∈ A, (e ⟨a,ha⟩).val = b))
+    (p : SortedAssignment X V → I → X .rv) (q : SortedAssignment X W → J → X .rv)
+    (pDef : DefinableRelation M S.carrier
+      (fun a (b : SortedAssignment X (RVVariables I)) => p a = b .rv))
+    (qDef : DefinableRelation M S.carrier
+      (fun b (c : SortedAssignment X (RVVariables J)) => q b = c .rv))
+    (forward : Contractible (p ∘ Subtype.val) (q ∘ Subtype.val) e)
+    (backward : Contractible (q ∘ Subtype.val) (p ∘ Subtype.val) e.symm) :
+    RVDefinablyEquivalent M S.carrier (p '' A) (q '' B) := by
+  obtain ⟨f,hf,_⟩ := definable_label_iso_of_mutually_contractible e eDef p q pDef qDef forward backward
+  exact ⟨f,hf⟩
 
 end GeneralizedEuler.Section5
