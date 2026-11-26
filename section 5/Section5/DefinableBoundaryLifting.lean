@@ -28,7 +28,7 @@ variable {L : Language} {E : Type*} {X : TCsort → Type z}
 @[expose] def rvPreimage (e : U ≃ V) (C : Set (labelAssignment n X)) : Set (labelAssignment n X) :=
   {a | ∃ ha : a ∈ U, (e ⟨a,ha⟩).val ∈ C}
 
-private theorem rvPreimage_definable (e : U ≃ V) {C : Set (labelAssignment n X)}
+theorem rvPreimage_definable (e : U ≃ V) {C : Set (labelAssignment n X)}
     (hE : DefinableRelation M S.carrier (fun a b => ∃ ha : a ∈ U, (e ⟨a,ha⟩).val = b))
     (hC : SortedDefinableOver M S.carrier C) :
     SortedDefinableOver M S.carrier (rvPreimage e C) := by
@@ -54,7 +54,8 @@ theorem definable_full_arity_lift_from_boundary
     (surj : Function.Surjective M.rvMap)
     {D : Type*} [LinearOrder D] (dim : Set (labelAssignment n X) → D) (d : D)
     (dimMono : Monotone dim)
-    (dimUnion : ∀ A B, dim (A ∪ B) ≤ max (dim A) (dim B))
+    (dimUnion : ∀ A B, SortedDefinableOver M S.carrier A → SortedDefinableOver M S.carrier B →
+      dim (A ∪ B) ≤ max (dim A) (dim B))
     (dimPreimage : ∀ C, SortedDefinableOver M S.carrier C → dim (rvPreimage e C) ≤ dim C)
     (boundarySmall : ∀ A, SortedDefinableOver M S.carrier A → dim (rvBoundary (fieldLead M) A) < d)
     (lower : ∀ A : Set U, SortedDefinableOver M S.carrier (Subtype.val '' A) →
@@ -96,7 +97,7 @@ theorem definable_full_arity_lift_from_boundary
     exact (rvPreimage_definable e hE bDef).union (hU.inter cDef)
   have badDim : dim (Subtype.val '' Aᶜ) < d := by
     rw [hBad]
-    apply (dimUnion _ _).trans_lt
+    apply (dimUnion _ _ (rvPreimage_definable e hE bDef) (hU.inter cDef)).trans_lt
     exact max_lt ((dimPreimage B bDef).trans_lt (boundarySmall _ hRange))
       ((dimMono Set.inter_subset_right).trans_lt (boundarySmall _ gRange))
   obtain ⟨f,hF,fDef⟩ := lower Aᶜ badDef badDim

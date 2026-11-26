@@ -66,6 +66,17 @@ theorem labelProjectionDimension_mono [TopologicalSpace (X .rv)] :
       dimensionWithBot_of_nonempty h, dimensionWithBot_of_nonempty (h.mono hs)]
     exact WithBot.coe_le_coe.mpr (projectionDimension_mono hs)
 
+theorem labelProjectionDimension_le_arity [TopologicalSpace (X .rv)]
+    (A : Set (labelAssignment n X)) : labelProjectionDimension A ≤ (n : WithBot ℕ) := by
+  let T := rvTupleAssignment ⁻¹' A
+  change projectionDimensionWithBot T ≤ _
+  rcases T.eq_empty_or_nonempty with h | h
+  · simp [h]
+  · rw [projectionDimensionWithBot, dimensionWithBot_of_nonempty h]
+    apply WithBot.coe_le_coe.mpr
+    refine projectionDimension_le_iff.2 (fun m _ hm => ?_)
+    exact False.elim (Nat.not_lt_of_ge (Nat.le_of_lt_succ m.isLt) hm)
+
 theorem fieldLead_boundary_eq_block (A : Set (fieldAssignment n X)) :
     rvTupleAssignment ⁻¹' rvBoundary (fieldLead M) A =
       rvBoundary (fun a : Fin n → X .vf => M.rvMap ∘ a) (fieldTupleAssignment ⁻¹' A) := by

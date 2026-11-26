@@ -54,3 +54,14 @@ public import Section5.FiniteLabelLifting
 public import Section5.FiniteBaseLabels
 public import Section5.LabelProjection
 public import Section5.ZeroDimensionalLabels
+public import Section5.DefinableCovers
+public import Section5.ProjectionPartitions
+public import Section5.ProjectedLiftGraph
+public import Section5.ProjectedFieldChoice
+public import Section5.ProjectedFieldSplitting
+public import Section5.ProjectedScaling
+public import Section5.DefinableProjectedScaling
+public import Section5.RestrictedFieldLifts
+public import Section5.FieldLiftPartitions
+public import Section5.PairedProjectionPartitions
+public import Section5.LiftDimensionInduction
