@@ -1,21 +1,28 @@
 module
 
 public import Section4.AffineLifts
+public import Section4.AlphabetRankProfiles
 public import Section4.AnnulusRingExample
 public import Section4.AnnulusWidths
+public import Section4.ArbitraryBoxUnions
 public import Section4.ArbitraryRectangleWeight
 public import Section4.AssignedScissors
 public import Section4.BaseAndDimension
 public import Section4.BoundedIntervalScissors
 public import Section4.BoundedRVAnnuli
 public import Section4.BoundedValueBoxes
+public import Section4.BoxClassComparison
+public import Section4.BoxFaces
 public import Section4.BoxFactorMatching
 public import Section4.BoxMultiplicity
+public import Section4.BoxPresentations
 public import Section4.BoxProductCuts
 public import Section4.BoxRanks
 public import Section4.BoxRanksFromLifts
+public import Section4.BoxResidueCancellation
 public import Section4.BoxScaleProfiles
 public import Section4.BoxUnionComparison
+public import Section4.BoxValueInclusion
 public import Section4.CanonicalChartCover
 public import Section4.CanonicalChartMaps
 public import Section4.CanonicalObjectWeights
@@ -43,6 +50,7 @@ public import Section4.Factors
 public import Section4.FiberMatching
 public import Section4.FiniteBaseFibers
 public import Section4.FiniteFiberEuler
+public import Section4.FiniteScaleAlphabet
 public import Section4.FiniteScissors
 public import Section4.FixedBasePartitions
 public import Section4.FixedParameterSpans
@@ -76,9 +84,11 @@ public import Section4.MultiplicativeDescent
 public import Section4.NoAdditiveValueRetraction
 public import Section4.NormalRectangleCover
 public import Section4.NormalRectangles
+public import Section4.NormalizedBoxes
 public import Section4.ObjectTensorWeights
 public import Section4.Objects
 public import Section4.OldValueCharts
+public import Section4.OrderedBoxCuts
 public import Section4.PackedGraph
 public import Section4.PositiveAdditivity
 public import Section4.PositiveObjectCover
@@ -150,6 +160,7 @@ public import Section4.SliceWeights
 public import Section4.StandardFrame
 public import Section4.StandardRectangleWeight
 public import Section4.SubframeCarrier
+public import Section4.TaggedBoxComparison
 public import Section4.TaggedFiberMatching
 public import Section4.TaggedLiftRealization
 public import Section4.TaggedMatchGraph
@@ -164,6 +175,7 @@ public import Section4.UnaryFiberMatching
 public import Section4.UnaryRemainders
 public import Section4.UnaryTaggedComparison
 public import Section4.UnitFiberNormalization
+public import Section4.ValueBoxProducts
 public import Section4.ValueBoxes
 public import Section4.ValueDegrees
 public import Section4.ValueDescent
@@ -177,6 +189,7 @@ public import Section4.ValuePresentation
 public import Section4.ValuePullback
 public import Section4.ValueRefinement
 public import Section4.ValueRingInclusion
+public import Section4.ValueScaleAlphabet
 public import Section4.ValueScissors
 public import Section4.ValueStratification
 public import Section4.ValueSubdivisionSum
