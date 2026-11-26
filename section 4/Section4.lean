@@ -2,6 +2,7 @@ module
 
 public import Section4.AffineLifts
 public import Section4.BaseAndDimension
+public import Section4.CanonicalChartCover
 public import Section4.CanonicalChartMaps
 public import Section4.CanonicalRectangles
 public import Section4.CanonicalSurjectivity
@@ -10,6 +11,7 @@ public import Section4.ChartIndependence
 public import Section4.ChartRefinement
 public import Section4.ChartTensorWeights
 public import Section4.ChartTransitions
+public import Section4.CombinePartitions
 public import Section4.CommonValueRefinement
 public import Section4.CoordinateChanges
 public import Section4.DefinableLifts
@@ -23,17 +25,27 @@ public import Section4.FiniteScissors
 public import Section4.FixedBasePartitions
 public import Section4.FrameComparison
 public import Section4.GradedValues
+public import Section4.GraphChartBasis
 public import Section4.GraphCharts
+public import Section4.GraphPieceTensors
 public import Section4.GraphProjection
+public import Section4.GraphProjectionSums
 public import Section4.HeightDrop
 public import Section4.LexicographicTags
+public import Section4.LocalRVMeasure
 public import Section4.LocalizedEuler
 public import Section4.LostCoordinates
 public import Section4.MatchingRectangles
 public import Section4.MatrixPreimages
+public import Section4.MeasurableCharts
+public import Section4.ObjectTensorWeights
 public import Section4.Objects
+public import Section4.PackedGraph
+public import Section4.PositiveAdditivity
+public import Section4.PositiveObjectCover
 public import Section4.PositivePresentations
 public import Section4.PositiveRectangles
+public import Section4.PositiveValuation
 public import Section4.ProjectedFrame
 public import Section4.ProjectedPieceWeights
 public import Section4.ProjectedRVChart
@@ -55,6 +67,7 @@ public import Section4.ResidueProducts
 public import Section4.ResidueRefinement
 public import Section4.ResidueScissors
 public import Section4.ResidueWeights
+public import Section4.RestrictedBijections
 public import Section4.Scissors
 public import Section4.SignPieces
 public import Section4.SignedRectangleFactors

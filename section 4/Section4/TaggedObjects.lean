@@ -143,19 +143,14 @@ theorem labelImage_class (inj : Function.Injective U.label) :
   apply RVRelation.iso
   exact ⟨Equiv.ofInjective U.label inj,U.graph⟩
 
-theorem tagged_presentation (transitive : ∀ {x y z}, lt x y → lt y z → lt x z) (irrefl : ∀ x, ¬lt x x)
-    (total : ∀ x y, x ≠ y → lt x y ∨ lt y x)
-    (hlt : isRVSet M S {t : Fin U.arity ⊕ Fin U.arity → Z .rv | lt (t ∘ Sum.inr) (t ∘ Sum.inl)})
+theorem tag_partition
     (sat : ∀ D : ℕ → Set (Fin k → Z .rv), (∀ i, isRVSet M S (D i)) → Antitone D →
       (∀ i, (D i).Nonempty) → ∃ y, ∀ i, y ∈ D i) :
-    ∃ (N : ℕ) (V : Fin N → RVObject M S k), (∀ i, (V i).arity = k) ∧
-      (∀ i, ∃ h : (V i).arity = k, ∀ x : (V i).carrier, (V i).label x = fun j => x.val (Fin.cast h.symm j)) ∧
-      objectClass M S ⟨k,U⟩ = ∑ i, objectClass M S ⟨k,V i⟩ := by
+    ∃ N : ℕ, Pairwise (fun i j : Fin N => Disjoint (U.tagPiece lt i.val) (U.tagPiece lt j.val)) ∧
+      (⋃ i : Fin N, U.tagPiece lt i.val) = U.carrier := by
   obtain ⟨N,hN⟩ := U.uniform_fiber_bound sat
   let A (i : Fin (N+1)) := U.tagPiece lt i.val
   have sub (i) : A i ⊆ U.carrier := fun _ h => h.1
-  let R (i : Fin (N+1)) := U.restrict (sub i) (U.tagPiece_definable lt hlt i.val)
-  refine ⟨N+1,fun i => (R i).labelImage,fun _ => rfl,fun _ => ⟨rfl,fun _ => rfl⟩,?_⟩
   have cover : ⋃ i, A i = U.carrier := by
     ext x; rw [Set.mem_iUnion]; constructor
     · rintro ⟨i,h⟩; exact sub i h
@@ -167,6 +162,21 @@ theorem tagged_presentation (transitive : ∀ {x y z}, lt x y → lt y z → lt 
       exact ⟨⟨_,Nat.lt_succ_of_le le⟩,hx,rfl⟩
   have disj : Pairwise (fun i j => Disjoint (A i) (A j)) := fun _ _ h =>
     Set.disjoint_left.mpr fun _ a b => h (Fin.ext (a.2.symm.trans b.2))
+  exact ⟨N+1,disj,cover⟩
+
+theorem tagged_presentation (transitive : ∀ {x y z}, lt x y → lt y z → lt x z) (irrefl : ∀ x, ¬lt x x)
+    (total : ∀ x y, x ≠ y → lt x y ∨ lt y x)
+    (hlt : isRVSet M S {t : Fin U.arity ⊕ Fin U.arity → Z .rv | lt (t ∘ Sum.inr) (t ∘ Sum.inl)})
+    (sat : ∀ D : ℕ → Set (Fin k → Z .rv), (∀ i, isRVSet M S (D i)) → Antitone D →
+      (∀ i, (D i).Nonempty) → ∃ y, ∀ i, y ∈ D i) :
+    ∃ (N : ℕ) (V : Fin N → RVObject M S k), (∀ i, (V i).arity = k) ∧
+      (∀ i, ∃ h : (V i).arity = k, ∀ x : (V i).carrier, (V i).label x = fun j => x.val (Fin.cast h.symm j)) ∧
+      objectClass M S ⟨k,U⟩ = ∑ i, objectClass M S ⟨k,V i⟩ := by
+  obtain ⟨N,disj,cover⟩ := U.tag_partition lt sat
+  let A (i : Fin N) := U.tagPiece lt i.val
+  have sub (i) : A i ⊆ U.carrier := fun _ h => h.1
+  let R (i : Fin N) := U.restrict (sub i) (U.tagPiece_definable lt hlt i.val)
+  refine ⟨N,fun i => (R i).labelImage,fun _ => rfl,fun _ => ⟨rfl,fun _ => rfl⟩,?_⟩
   apply (objectClass_partition U A (fun i => U.tagPiece_definable lt hlt i.val) disj cover).trans
   exact Finset.sum_congr rfl fun i _ => (R i).labelImage_class (U.tagPiece_injective lt transitive irrefl total i.val)
 
