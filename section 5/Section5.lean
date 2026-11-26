@@ -116,3 +116,17 @@ public import Section5.FocusDeletionFiniteness
 public import Section5.TranslatedBlowupLabels
 public import Section5.TranslatedBlowupObjects
 public import Section5.FocusTranslationImage
+public import Section5.FieldScissors
+public import Section5.MixedRelabeling
+public import Section5.LiftFieldObjects
+public import Section5.LiftClassHom
+public import Section5.PaddedFieldLift
+public import Section5.FieldClassPartitions
+public import Section5.FieldClassPreparation
+public import Section5.ElementaryStratumIsomorphisms
+public import Section5.CanonicalObjectLift
+public import Section5.BlowupLiftClass
+public import Section5.DefinableContractionIso
+public import Section5.PairedMixedFocus
+public import Section5.GroupifiedBlowupQuotient
+public import Section5.PairedSourceTranslation

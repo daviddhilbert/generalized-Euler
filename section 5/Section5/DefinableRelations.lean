@@ -103,6 +103,14 @@ theorem image [Finite (U .vf)] [Finite (U .rv)]
   have hright := hD.pullback_relabel (fun s => (Sum.inr : U s → SumVariables V U s))
   exact definable_project_mixed (hright.inter hleft)
 
+/-- The preimage of a definable set under a definable relation. -/
+theorem preimage [Finite (V .vf)] [Finite (V .rv)]
+    {R : SortedAssignment X U → SortedAssignment X V → Prop}
+    {D : Set (SortedAssignment X V)}
+    (hR : DefinableRelation M A R) (hD : SortedDefinableOver M A D) :
+    SortedDefinableOver M A {x | ∃ y ∈ D, R x y} :=
+  hR.transpose.image hD
+
 end DefinableRelation
 
 end GeneralizedEuler.Section5
