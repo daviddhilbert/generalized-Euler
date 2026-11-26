@@ -1,6 +1,6 @@
 module
 
-public import Section5.UniformRelativeRVLifts
+public import Section5.RelativeLabelSchemes
 
 /-! An RV object and lift isomorphism over an individual generated
 base provide a witness scheme over the original base. -/
@@ -60,59 +60,12 @@ theorem relativeRVLiftScheme_of_object {k : ℕ}
     (bound : ℕ) (fibers : ∀ (x : Fin k → X .rv) (a : Fin (bound+1) → B.carrier),
       (∀ i, B.label (a i) = x) → ¬ Function.Injective a) :
     ∃ i : RelativeRVLiftScheme M S P U, i.valid A zero p := by
-  let R := RVVariables (Fin B.arity)
-  let V := RVVariables (Fin k)
   let W := ObjectLift.Vars B
-  let D := {a : SortedAssignment X R | a .rv ∈ B.carrier}
-  let label (a : SortedAssignment X R) (b : SortedAssignment X V) :=
-    ∃ ha : a .rv ∈ B.carrier, B.label ⟨a .rv,ha⟩ = b .rv
-  let N := (M.termGenerated (namedTuple S p)).carrier
-  let relabel (s : TCsort) : RVVariables (Fin B.arity ⊕ Fin k) s → SumVariables R V s :=
-    match s with
-    | .vf => PEmpty.elim
-    | .rv => id
-  have hd : SortedDefinableOver M N D := B.definable
-  have hg : DefinableRelation M N label := by
-    unfold DefinableRelation
-    convert B.graph.pullback_relabel relabel using 1
-    ext w
-    change (∃ ha : w .rv ∘ Sum.inl ∈ B.carrier,
-      B.label ⟨w .rv ∘ Sum.inl,ha⟩ = w .rv ∘ Sum.inr) ↔
-      ∃ b : B.carrier, b.val = w .rv ∘ Sum.inl ∧ B.label b = w .rv ∘ Sum.inr
-    constructor
-    · rintro ⟨ha,hb⟩
-      exact ⟨⟨_,ha⟩,rfl,hb⟩
-    · rintro ⟨b,hb,hl⟩
-      have mem : w .rv ∘ Sum.inl ∈ B.carrier := hb ▸ b.property
-      exact ⟨mem,(congrArg B.label (Subtype.ext hb.symm)).trans hl⟩
-  obtain ⟨D',hd',dEq⟩ := definable_fiber_as_scheme p D hd
-  obtain ⟨G',hg',enc⟩ := definable_relation_fiber_as_scheme p label hg
+  obtain ⟨D',G',hd',hg',dEq,enc⟩ := relative_rv_labels_of_object p B
   obtain ⟨J',hj',graph⟩ := definable_relation_fiber_as_scheme p _ defF
   let i : RelativeRVLiftScheme M S P U := ⟨B.arity,k,bound,D',G',J',hd',hg',hj'⟩
   refine ⟨i,?_,?_⟩
-  · unfold RelativeRVWitness
-    simp only [i,dEq,enc]
-    refine ⟨?_,?_,?_,?_⟩
-    · intro a
-      exact ⟨fun ha => ⟨rvTupleAssignment (B.label ⟨a .rv,ha⟩),ha,rfl⟩,
-        fun ⟨_,ha,_⟩ => ha⟩
-    · rintro a v w ⟨ha,hv⟩ ⟨_,hw⟩
-      funext s j
-      cases s
-      · exact j.elim
-      · exact congrFun (hv.symm.trans hw) j
-    · rintro a v ⟨ha,hv⟩ j
-      rw [← hv,hzero]
-      exact B.nonzero ⟨a .rv,ha⟩ j
-    · intro v a h inj
-      let f (j : Fin (bound+1)) : B.carrier := ⟨(a j) .rv,(h j).choose⟩
-      apply fibers (v .rv) f (fun j => (h j).choose_spec)
-      intro j j' eq
-      apply inj
-      funext s l
-      cases s
-      · exact l.elim
-      · exact congrFun (congrArg Subtype.val eq) l
+  · exact relativeRVWitness_of_labelRelation p B dEq enc zero.val hzero bound fibers
   · have image (b : SortedAssignment X W) :
         appendAssignments p b ∈ relativeRVLift (M := M) G' ↔ b ∈ ObjectLift.carrier B := by
       change appendAssignments (appendAssignments p (rvTupleAssignment (b .rv)))
