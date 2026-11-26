@@ -46,21 +46,24 @@ theorem valid_definable :
 
 end RelativeElementaryScheme
 
-theorem relative_elementary_scheme_of_object
+theorem relative_elementary_bounds_of_named_object
     (p : SortedAssignment X P)
     (zero : S.carrier .rv) (hzero : zero.val = M.funMap .rvZero (fun i => i.elim0))
     (B : RVObject M (M.termGenerated (namedTuple S p)) (k+1)) (j : Fin (k+1))
     (finiteDelete : ∀ t : Fin k → X .rv, {u ∈ Set.range B.label | u ∘ j.succAbove = t}.Finite)
+    {D : Set (SortedAssignment X (SumVariables P (RVVariables (Fin B.arity))))}
+    {G : Set (SortedAssignment X (SumVariables (SumVariables P (RVVariables (Fin B.arity))) (RVVariables (Fin (k+1)))))}
+    (matchD : ∀ a, appendAssignments p a ∈ D ↔ a .rv ∈ B.carrier)
+    (matchG : ∀ a b, appendAssignments (appendAssignments p a) b ∈ G ↔ RVObject.LabelRelation B a b)
     (sat : ∀ k, let T := M.termGenerated (namedTuple S p)
       RealizesFinitelySatisfiableTypes M (WithBase T.carrier (RVVariables (Fin k)))
         (BaseAssignments T.carrier (RVVariables (Fin k)))) :
-    ∃ W : RelativeElementaryScheme M S P k, W.arity = B.arity ∧ W.slot = j ∧ W.valid zero p := by
-  obtain ⟨D,G,defD,defG,matchD,matchG⟩ := relative_rv_labels_of_object p B
+    ∃ b c, RelativeRVWitness D G zero.val b p ∧
+      RelativeRVWitness D (relativeDeleteLabelGraph j G) zero.val c p := by
   let Z := zeroBlowupObject B j finiteDelete
   obtain ⟨b,hb⟩ := rvObject_uniform_label_bound B (sat (k+1))
   obtain ⟨c,hc⟩ := rvObject_uniform_label_bound Z (sat k)
-  let W : RelativeElementaryScheme M S P k := ⟨B.arity,b,c,j,D,G,defD,defG⟩
-  refine ⟨W,rfl,rfl,relativeRVWitness_of_labelRelation p B matchD matchG zero.val hzero b hb,?_⟩
+  refine ⟨b,c,relativeRVWitness_of_labelRelation p B matchD matchG zero.val hzero b hb,?_⟩
   have deletion (a : SortedAssignment X (RVVariables (Fin B.arity))) (v : SortedAssignment X (RVVariables (Fin k))) :
       appendAssignments (appendAssignments p a) v ∈ relativeDeleteLabelGraph j G ↔ RVObject.LabelRelation Z a v := by
     rw [relativeDeleteLabelGraph_iff]
@@ -75,6 +78,19 @@ theorem relative_elementary_scheme_of_object
       · exact i.elim
       · exact congrFun eq i
   exact relativeRVWitness_of_labelRelation p Z matchD deletion zero.val hzero c hc
+
+theorem relative_elementary_scheme_of_object
+    (p : SortedAssignment X P)
+    (zero : S.carrier .rv) (hzero : zero.val = M.funMap .rvZero (fun i => i.elim0))
+    (B : RVObject M (M.termGenerated (namedTuple S p)) (k+1)) (j : Fin (k+1))
+    (finiteDelete : ∀ t : Fin k → X .rv, {u ∈ Set.range B.label | u ∘ j.succAbove = t}.Finite)
+    (sat : ∀ d, let T := M.termGenerated (namedTuple S p)
+      RealizesFinitelySatisfiableTypes M (WithBase T.carrier (RVVariables (Fin d)))
+        (BaseAssignments T.carrier (RVVariables (Fin d)))) :
+    ∃ W : RelativeElementaryScheme M S P k, W.arity = B.arity ∧ W.slot = j ∧ W.valid zero p := by
+  obtain ⟨D,G,defD,defG,matchD,matchG⟩ := relative_rv_labels_of_object p B
+  obtain ⟨b,c,hb,hc⟩ := relative_elementary_bounds_of_named_object p zero hzero B j finiteDelete matchD matchG sat
+  exact ⟨⟨B.arity,b,c,j,D,G,defD,defG⟩,rfl,rfl,hb,hc⟩
 
 theorem uniform_relative_elementary_schemes
     (sat : RealizesFinitelySatisfiableTypes M (WithBase S.carrier P) (BaseAssignments S.carrier P))

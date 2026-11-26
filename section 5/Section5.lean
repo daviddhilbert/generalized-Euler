@@ -230,3 +230,13 @@ public import Section5.MonotonePositioningSchemes
 public import Section5.PreparedRelativeFibers
 public import Section5.VerticalContractionFiniteness
 public import Section5.VerticalContraction
+public import Section5.HeadContractionFamilies
+public import Section5.HeadContractionIteration
+public import Section5.HeadContractionEndpoints
+public import Section5.StandardHeadContractions
+public import Section5.RelativeFiberPartitions
+public import Section5.GluedRowPartitions
+public import Section5.RelativeTaggedIsomorphisms
+public import Section5.RelativeRVGraphNaming
+public import Section5.RelativeTaggedIsoNaming
+public import Section5.GluedTaggedIsomorphisms
