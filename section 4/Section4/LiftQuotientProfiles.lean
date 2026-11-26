@@ -38,18 +38,17 @@ local notation "val" => signedLabel O hO
 local notation "sh" => taggedSharp (S := S) val A defSharp
 
 include hv hs agrees units clamp powers in
-theorem quotient_profiles_of_lift_equality
+theorem quotient_profiles_of_lift_iso
     (base : ∀ t : S.carrier .rv, ((linearValueSection v hv s hs).encode t.val).1 ∈ G)
     (qe : ∀ {I : Type} [Finite I] (φ : SortedFormula J F (FullRVVariables S I)),
       ∃ q : SortedFormula J F (FullRVVariables S I), q.IsQF ∧ ∀ x, q.realize M x ↔ φ.realize M x)
-    {k : ℕ} (U W : Over (J := JS) A k)
-    (eq : valueFactorHom M S val A defSharp liftIso (taggedValueClass A U) =
-      valueFactorHom M S val A defSharp liftIso (taggedValueClass A W))
+    {k l : ℕ} (U : Over (J := JS) A k) (W : Over (J := JS) A l)
+    (iso : (sh U).Iso (sh W))
     {I : Type*} (H : I → Submodule F (Additive O.ValueGroupˣ)) (extendsBase : ∀ i, G ≤ H i) :
     Set.range (fun a : U.points A => fun i => quotientTupleSpan (H i) (unsignedPoint O A U a)) =
     Set.range (fun b : W.points A => fun i => quotientTupleSpan (H i) (unsignedPoint O A W b)) := by
-  obtain ⟨f,hf⟩ := tagged_lift_iso_of_class_eq (S := S) val A defSharp liftIso U W eq
-  have cover (D E : Over (J := JS) A k) (q : (sh D).Points ≃ (sh E).Points)
+  obtain ⟨f,hf⟩ := iso
+  have cover {m n : ℕ} (D : Over (J := JS) A m) (E : Over (J := JS) A n) (q : (sh D).Points ≃ (sh E).Points)
       (graph : ∀ i j, isRVSet M S (RVFamily.graphPiece _ _ q i j)) (a : D.points A) :
       ∃ b : E.points A, ∀ i, quotientTupleSpan (H i) (unsignedPoint O A D a) =
         quotientTupleSpan (H i) (unsignedPoint O A E b) := by
@@ -65,5 +64,19 @@ theorem quotient_profiles_of_lift_equality
   · rintro _ ⟨b,rfl⟩
     obtain ⟨a,h⟩ := cover W U f.symm (RVFamily.inverse_graph _ _ f hf) b
     exact ⟨a,(funext h).symm⟩
+
+include hv hs agrees units clamp powers in
+theorem quotient_profiles_of_lift_equality
+    (base : ∀ t : S.carrier .rv, ((linearValueSection v hv s hs).encode t.val).1 ∈ G)
+    (qe : ∀ {I : Type} [Finite I] (φ : SortedFormula J F (FullRVVariables S I)),
+      ∃ q : SortedFormula J F (FullRVVariables S I), q.IsQF ∧ ∀ x, q.realize M x ↔ φ.realize M x)
+    {k : ℕ} (U W : Over (J := JS) A k)
+    (eq : valueFactorHom M S val A defSharp liftIso (taggedValueClass A U) =
+      valueFactorHom M S val A defSharp liftIso (taggedValueClass A W))
+    {I : Type*} (H : I → Submodule F (Additive O.ValueGroupˣ)) (extendsBase : ∀ i, G ≤ H i) :
+    Set.range (fun a : U.points A => fun i => quotientTupleSpan (H i) (unsignedPoint O A U a)) =
+    Set.range (fun b : W.points A => fun i => quotientTupleSpan (H i) (unsignedPoint O A W b)) := by
+  exact quotient_profiles_of_lift_iso O v hv s hs G hO P g agrees units clamp powers S A defSharp
+    base qe U W (tagged_lift_iso_of_class_eq (S := S) val A defSharp liftIso U W eq) H extendsBase
 
 end GeneralizedEuler.Section4

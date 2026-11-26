@@ -59,8 +59,10 @@ local notation "liftLabel" => FiberFamily.label (F := F) (T := Additive (Positiv
 
 def signedLiftEquiv := Equiv.ofBijective (code U) (signedFamilyCode_bijective O hO v hv P S A defSharp U)
 
+section UnequalArities
+variable {l : ℕ} (W : Over (J := H) A l)
 variable (f : (taggedSharp (S := S) (signedLabel O hO) A defSharp U).Points ≃ (taggedSharp (S := S) (signedLabel O hO) A defSharp W).Points)
-  (action : ∀ i j L (w : Fin k ⊕ Fin k → RV0 O), w ∈ RVFamily.graphPiece _ _ f i j →
+  (action : ∀ i j L (w : Fin k ⊕ Fin l → RV0 O), w ∈ RVFamily.graphPiece _ _ f i j →
     signedShear v hv s hs G L ∘ w ∈ RVFamily.graphPiece _ _ f i j)
 local notation "eU" => signedLiftEquiv O hO v hv P S A defSharp U
 local notation "eW" => signedLiftEquiv O hO v hv P S A defSharp W
@@ -84,6 +86,14 @@ theorem signed_conjugate_commutes (L : (Additive O.ValueGroupˣ ⧸ G) →ₗ[F]
   have l : (⟨a.1,u⟩ : (sh U).Points) = code U (move (fam U) L x) := Sigma.ext rfl (heq_of_eq leftEq)
   have r : (⟨b.1,w⟩ : (sh W).Points) = code W (move (fam W) L y) := Sigma.ext rfl (heq_of_eq rightEq)
   exact (congrArg f l).symm.trans (graph.trans r)
+
+end UnequalArities
+
+variable (f : (taggedSharp (S := S) (signedLabel O hO) A defSharp U).Points ≃ (taggedSharp (S := S) (signedLabel O hO) A defSharp W).Points)
+  (action : ∀ i j L (w : Fin k ⊕ Fin k → RV0 O), w ∈ RVFamily.graphPiece _ _ f i j →
+    signedShear v hv s hs G L ∘ w ∈ RVFamily.graphPiece _ _ f i j)
+local notation "eU" => signedLiftEquiv O hO v hv P S A defSharp U
+local notation "eW" => signedLiftEquiv O hO v hv P S A defSharp W
 
 include action in
 theorem independent_signed_match (a : U.points A)

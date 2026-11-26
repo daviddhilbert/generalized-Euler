@@ -59,7 +59,11 @@ The approved manuscript adds Corollary 4.22a on cancellation by a residue object
 
 `no_additive_value_retraction` proves the degree-one obstruction for the actual homogeneous value and RV semigroups. In `PositiveResidueLineCut` the two residue-field term maps send a positive residue `x` to `1+x` and its reciprocal. Their images are disjoint and lie in the original fiber. The scissor identity and value-point cardinality then contradict any additive map sending that fiber back to a singleton. This proof uses the residue-field terms and the fixed-base value lift and requires no Euler characteristic.
 
-For Corollary 4.22a, `ResidueClass.double_eq_iff_euler_zero` gives the doubling criterion for the dimension–Euler classes of Remark 4.8. The box-rank theorem and interval map also apply to the annuli. The full cancellation criterion and annulus classification still require additional formalization.
+For Corollary 4.22a, `euler_zero_residue_not_injective` distinguishes a singleton from its tagged double in every value degree. It uses the dimension–Euler classification of Remark 4.8 to show that their products with an Euler-zero residue object coincide. For the converse, `cancel_residue_euler` proves equality of both integer Euler invariants when the nonzero residue factor is cancelled. The rank argument for residue products and reconstruction of arbitrary box unions are still needed.
+
+`bounded_rv_annuli_iff_same_scales` proves the classification of products of bounded positive RV annuli over the fixed base. A definable bijection forces equal arities and a permutation matching every interval width by scale. Reading the attained quotient ranks at consecutive cutoffs gives the multiplicity of each scale. The converse lifts a coordinate permutation and the interval bijections of Lemma 4.12. This includes the empty product.
+
+`two_annuli_distinct_before_groupification` proves the accompanying example for widths with `c • a < b` for every positive scalar `c`. The boxes of widths `(a,b)` and `(b,b)` lift to distinct RV scissor classes. In the value Grothendieck ring the open-ray cut identifies each bounded interval with minus the unary point, so both rectangle classes map to the square of the lifted point. `objectClass_eq_iff_definably_equivalent` realizes an equality of concrete RV object classes in the same degree by a definable bijection between the two original carriers.
 
 ## Remaining geometric steps
 

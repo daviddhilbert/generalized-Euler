@@ -43,7 +43,7 @@ variable {K : Type*} [Field K] [LinearOrder K] [IsStrictOrderedRing K]
   (A : Set (SignedValueGroup O))
   (defSharp : ∀ {k} {D : Set (Fin k → SignedValueGroup O)}, A.Definable H D →
     isRVSet _ S (sharp (canonicalStructure (L := J) O hO P) (signedLabel O hO) D))
-  {k : ℕ} (U W : Over (J := H) A k)
+  {k l : ℕ} (U : Over (J := H) A k) (W : Over (J := H) A l)
 
 local notation "fam" => signedFamily O A
 local notation "sh" => taggedSharp (S := S) (signedLabel O hO) A defSharp
@@ -55,7 +55,7 @@ def unsignedPoint (a : U.points A) : Fin k → Additive O.ValueGroupˣ :=
 
 theorem signed_label_quotient_spans
     (f : (sh U).Points ≃ (sh W).Points)
-    (action : ∀ i j L (w : Fin k ⊕ Fin k → RV0 O), w ∈ RVFamily.graphPiece _ _ f i j →
+    (action : ∀ i j L (w : Fin k ⊕ Fin l → RV0 O), w ∈ RVFamily.graphPiece _ _ f i j →
       signedShear v hv s hs G L ∘ w ∈ RVFamily.graphPiece _ _ f i j)
     (a : U.points A) : ∃ b : W.points A, ∀ H' : Submodule F (Additive O.ValueGroupˣ), G ≤ H' →
       quotientTupleSpan H' (unsignedPoint O A U a) = quotientTupleSpan H' (unsignedPoint O A W b) := by

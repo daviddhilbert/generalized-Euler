@@ -31,6 +31,30 @@ theorem definable_embedded_set {I : Type} [Fintype I] (D : Set (I → V)) (hd : 
   · rintro ⟨x,hx,eq⟩
     exact ⟨x ∘ e,hx,funext fun i => by simpa [mapTuples] using congrFun eq (e i)⟩
 
+include defMap in
+theorem embedded_value_bijection {k l : ℕ} (D : Set (Fin k → V)) (B : Set (Fin l → V)) (e : D ≃ B)
+    (graph : G.Definable J {w : Fin k ⊕ Fin l → V | ∃ x : D, x.val = w ∘ Sum.inl ∧ (e x).val = w ∘ Sum.inr}) :
+    ∃ f : (mapTuples ι '' D) ≃ (mapTuples ι '' B), A.Definable H
+      {w : Fin k ⊕ Fin l → W | ∃ x : mapTuples ι '' D, x.val = w ∘ Sum.inl ∧ (f x).val = w ∘ Sum.inr} := by
+  let d := Equiv.Set.imageOfInjOn _ D (mapTuples_injective ι).injOn
+  let b := Equiv.Set.imageOfInjOn _ B (mapTuples_injective ι).injOn
+  let f := d.symm.trans (e.trans b)
+  refine ⟨f,?_⟩
+  convert definable_embedded_set G A ι defMap _ graph using 1
+  ext w; constructor
+  · rintro ⟨x,hx,hy⟩
+    obtain ⟨z,rfl⟩ := d.surjective x
+    refine ⟨Sum.elim z.val (e z).val,⟨z,rfl,rfl⟩,funext fun i => ?_⟩
+    cases i with
+    | inl i => exact congrFun hx i
+    | inr j =>
+      change (b (e (d.symm (d z)))).val = _ at hy
+      rw [d.symm_apply_apply] at hy; exact congrFun hy j
+  · rintro ⟨x,⟨z,hz,he⟩,rfl⟩
+    refine ⟨d z,congrArg (mapTuples ι) hz,?_⟩
+    change (b (e (d.symm (d z)))).val = _
+    rw [d.symm_apply_apply]; exact congrArg (mapTuples ι) he
+
 private theorem piece_eq {k} {D B : Set (Fin k → W)} (eq : D = B) (hd : A.Definable H D) (hb : A.Definable H B) :
     pieceClass D hd = pieceClass B hb := by subst B; rfl
 
@@ -48,24 +72,8 @@ def embeddingMeasure : PieceMeasure J G (SemiringOfSets (J := H) A) where
     have h := pieceClass_cut (defMap hd) (defMap hb) (Set.disjoint_image_of_injective (mapTuples_injective ι) disj)
     exact (piece_eq A (Set.image_union ..) _ _).trans h
   iso D B hd hb e graph := by
-    let d := Equiv.Set.imageOfInjOn _ D (mapTuples_injective ι).injOn
-    let b := Equiv.Set.imageOfInjOn _ B (mapTuples_injective ι).injOn
-    let f := d.symm.trans (e.trans b)
-    apply pieceClass_iso _ _ f
-    convert definable_embedded_set G A ι defMap _ graph using 1
-    ext w; constructor
-    · rintro ⟨x,hx,hy⟩
-      obtain ⟨z,rfl⟩ := d.surjective x
-      refine ⟨Sum.elim z.val (e z).val,⟨z,rfl,rfl⟩,funext fun i => ?_⟩
-      cases i with
-      | inl i => exact congrFun hx i
-      | inr j =>
-        change (b (e (d.symm (d z)))).val = _ at hy
-        rw [d.symm_apply_apply] at hy; exact congrFun hy j
-    · rintro ⟨x,⟨z,hz,he⟩,rfl⟩
-      refine ⟨d z,congrArg (mapTuples ι) hz,?_⟩
-      change (b (e (d.symm (d z)))).val = _
-      rw [d.symm_apply_apply]; exact congrArg (mapTuples ι) he
+    obtain ⟨f,hf⟩ := embedded_value_bijection G A ι defMap D B e graph
+    exact pieceClass_iso _ _ f hf
   prod D B hd hb := by
     have eq : mapTuples ι '' cartesian D B = cartesian (mapTuples ι '' D) (mapTuples ι '' B) := by
       ext w; constructor

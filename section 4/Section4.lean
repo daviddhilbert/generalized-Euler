@@ -1,9 +1,14 @@
 module
 
 public import Section4.AffineLifts
+public import Section4.AnnulusRingExample
+public import Section4.AnnulusWidths
 public import Section4.ArbitraryRectangleWeight
 public import Section4.AssignedScissors
 public import Section4.BaseAndDimension
+public import Section4.BoundedIntervalScissors
+public import Section4.BoundedRVAnnuli
+public import Section4.BoundedValueBoxes
 public import Section4.BoxRanks
 public import Section4.BoxRanksFromLifts
 public import Section4.BoxScaleProfiles
@@ -86,6 +91,7 @@ public import Section4.QuotientSpanProfiles
 public import Section4.RVFamilyOperations
 public import Section4.RVFamilySemiring
 public import Section4.RVLineCut
+public import Section4.RVObjectClassEquality
 public import Section4.RVProducts
 public import Section4.RVScissorRealization
 public import Section4.RVTaggedEquivalence
@@ -103,6 +109,7 @@ public import Section4.ReindexUnits
 public import Section4.RelativeResidues
 public import Section4.ResidueAssignmentPartition
 public import Section4.ResidueBaseValues
+public import Section4.ResidueCancellation
 public import Section4.ResidueClasses
 public import Section4.ResidueEulerMeasure
 public import Section4.ResidueFactorAssignment
@@ -140,6 +147,7 @@ public import Section4.TaggedValueClasses
 public import Section4.TensorComparison
 public import Section4.TensorDescent
 public import Section4.TupleFibers
+public import Section4.TwoAnnulusClasses
 public import Section4.UnaryFiberMatching
 public import Section4.UnaryRemainders
 public import Section4.UnaryTaggedComparison
