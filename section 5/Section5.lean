@@ -180,3 +180,13 @@ public import Section5.UnaryInitialPreparation
 public import Section5.UnaryChartAfterPreparation
 public import Section5.UnaryNormalization
 public import Section5.UnaryDiscPartitionBridge
+public import Section5.UnaryObjectLiftPresentation
+public import Section5.UnaryLiftClassComparison
+public import Section5.RelativeLabelDeletion
+public import Section5.UnaryZeroLift
+public import Section5.RelativeGradedLiftSchemes
+public import Section5.UniformGradedLiftPresentations
+public import Section5.GradedLiftTotalBijections
+public import Section5.RelativeRVObjectRealization
+public import Section5.RelativeFiberClasses
+public import Section5.RelativeTotalClasses

@@ -44,36 +44,20 @@ private def fiberedEquiv (D : Set (SortedAssignment X P))
     rintro ⟨p,u⟩
     rfl
 
-theorem uniform_total_bijection_of_generated_fibers
-    [Finite (P .vf)] [Finite (P .rv)] [Finite (U .vf)] [Finite (U .rv)]
-    [Finite (V .vf)] [Finite (V .rv)]
-    (sat : RealizesFinitelySatisfiableTypes M (WithBase S.carrier P) (BaseAssignments S.carrier P))
+/-- A single valid family of graphs glues without changing the retained tuple. -/
+theorem total_bijection_of_fiber_scheme [Finite (P .vf)] [Finite (P .rv)]
     (D : Set (SortedAssignment X P)) (hD : SortedDefinableOver M S.carrier D)
-    (A : Set (SortedAssignment X (SumVariables P U))) (ha : SortedDefinableOver M S.carrier A)
-    (B : Set (SortedAssignment X (SumVariables P V))) (hb : SortedDefinableOver M S.carrier B)
+    (A : Set (SortedAssignment X (SumVariables P U)))
+    (B : Set (SortedAssignment X (SumVariables P V)))
+    (G' : Set (SortedAssignment X (SumVariables (SumVariables P U) V)))
+    (hg : SortedDefinableOver M S.carrier G')
     (supportA : ∀ a ∈ A, (fun s => a s ∘ Sum.inl) ∈ D)
     (supportB : ∀ b ∈ B, (fun s => b s ∘ Sum.inl) ∈ D)
-    (fibers : ∀ p ∈ D, ∃ e : {u : SortedAssignment X U | appendAssignments p u ∈ A} ≃
-        {v : SortedAssignment X V | appendAssignments p v ∈ B},
-      DefinableRelation M (M.termGenerated (namedTuple S p)).carrier
-        (fun u v => ∃ hu : appendAssignments p u ∈ A, (e ⟨u,hu⟩).val = v)) :
+    (valid : ∀ p : D, FiberBijectionScheme A B G' p.val) :
     ∃ e : A ≃ B,
       (∀ a : A, (fun s => (e a).val s ∘ Sum.inl) = (fun s => a.val s ∘ Sum.inl)) ∧
       DefinableRelation M S.carrier (fun a b => ∃ h : a ∈ A, (e ⟨a,h⟩).val = b) := by
   let W := SumVariables (SumVariables P U) V
-  let I := {G : Set (SortedAssignment X W) // SortedDefinableOver M S.carrier G}
-  have univ : SortedDefinableOver M S.carrier (Set.univ : Set (SortedAssignment X P)) :=
-    ⟨.imp .falsum .falsum,fun _ => ⟨fun _ h => h,fun _ => Set.mem_univ _⟩⟩
-  obtain ⟨B',G',_,hg,hChoice⟩ := uniform_fiber_bijection_schemes sat D A
-    (fun _ : I => B) Subtype.val (fun _ => Set.univ) hD ha (fun _ => hb)
-    Subtype.property (fun _ => univ) (by
-      intro p hp
-      obtain ⟨e,he⟩ := fibers p hp
-      obtain ⟨H,hH,h⟩ := definable_relation_fiber_as_scheme p _ he
-      exact ⟨⟨H,hH⟩,Set.mem_univ _,fiberBijectionScheme_of_equiv p e h⟩)
-  have valid (p : D) : FiberBijectionScheme A B G' p.val := by
-    obtain ⟨h,_,_,hb',_⟩ := hChoice p.val p.property
-    simpa only [FiberBijectionScheme,hb'] using h
   let E₁ := fiberedEquiv D A supportA
   let E₂ := fiberedEquiv D B supportB
   let e := E₁.trans ((Equiv.sigmaCongrRight (fun p : D => (valid p).equiv)).trans E₂.symm)
@@ -128,5 +112,37 @@ theorem uniform_total_bijection_of_generated_fibers
       have he := ((valid (E₁ ⟨a,hm⟩).1).equiv_graph (E₁ ⟨a,hm⟩).2 _).2 rfl
       have hpa : appendAssignments (E₁ ⟨a,hm⟩).1.val (E₁ ⟨a,hm⟩).2.val = a := append_split a
       rwa [hpa] at he
+
+theorem uniform_total_bijection_of_generated_fibers
+    [Finite (P .vf)] [Finite (P .rv)] [Finite (U .vf)] [Finite (U .rv)]
+    [Finite (V .vf)] [Finite (V .rv)]
+    (sat : RealizesFinitelySatisfiableTypes M (WithBase S.carrier P) (BaseAssignments S.carrier P))
+    (D : Set (SortedAssignment X P)) (hD : SortedDefinableOver M S.carrier D)
+    (A : Set (SortedAssignment X (SumVariables P U))) (ha : SortedDefinableOver M S.carrier A)
+    (B : Set (SortedAssignment X (SumVariables P V))) (hb : SortedDefinableOver M S.carrier B)
+    (supportA : ∀ a ∈ A, (fun s => a s ∘ Sum.inl) ∈ D)
+    (supportB : ∀ b ∈ B, (fun s => b s ∘ Sum.inl) ∈ D)
+    (fibers : ∀ p ∈ D, ∃ e : {u : SortedAssignment X U | appendAssignments p u ∈ A} ≃
+        {v : SortedAssignment X V | appendAssignments p v ∈ B},
+      DefinableRelation M (M.termGenerated (namedTuple S p)).carrier
+        (fun u v => ∃ hu : appendAssignments p u ∈ A, (e ⟨u,hu⟩).val = v)) :
+    ∃ e : A ≃ B,
+      (∀ a : A, (fun s => (e a).val s ∘ Sum.inl) = (fun s => a.val s ∘ Sum.inl)) ∧
+      DefinableRelation M S.carrier (fun a b => ∃ h : a ∈ A, (e ⟨a,h⟩).val = b) := by
+  let W := SumVariables (SumVariables P U) V
+  let I := {G : Set (SortedAssignment X W) // SortedDefinableOver M S.carrier G}
+  have univ : SortedDefinableOver M S.carrier (Set.univ : Set (SortedAssignment X P)) :=
+    ⟨.imp .falsum .falsum,fun _ => ⟨fun _ h => h,fun _ => Set.mem_univ _⟩⟩
+  obtain ⟨B',G',_,hg,hChoice⟩ := uniform_fiber_bijection_schemes sat D A
+    (fun _ : I => B) Subtype.val (fun _ => Set.univ) hD ha (fun _ => hb)
+    Subtype.property (fun _ => univ) (by
+      intro p hp
+      obtain ⟨e,he⟩ := fibers p hp
+      obtain ⟨H,hH,h⟩ := definable_relation_fiber_as_scheme p _ he
+      exact ⟨⟨H,hH⟩,Set.mem_univ _,fiberBijectionScheme_of_equiv p e h⟩)
+  have valid (p : D) : FiberBijectionScheme A B G' p.val := by
+    obtain ⟨h,_,_,hb',_⟩ := hChoice p.val p.property
+    simpa only [FiberBijectionScheme,hb'] using h
+  exact total_bijection_of_fiber_scheme D hD A B G' hg supportA supportB valid
 
 end GeneralizedEuler.Section5

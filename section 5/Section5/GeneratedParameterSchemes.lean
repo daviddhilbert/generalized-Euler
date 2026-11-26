@@ -139,4 +139,23 @@ theorem definable_relation_fiber_as_scheme {V : TCsort → Type} (p : SortedAssi
   rw [eq,he]
   rfl
 
+theorem definable_relation_scheme_at_fiber {V : TCsort → Type} (p : SortedAssignment X P)
+    (G : Set (SortedAssignment X (SumVariables (SumVariables P U) V)))
+    (hg : SortedDefinableOver M S.carrier G) :
+    DefinableRelation M (M.termGenerated (namedTuple S p)).carrier
+      (fun u v => appendAssignments (appendAssignments p u) v ∈ G) := by
+  let r : ∀ s, SumVariables (SumVariables P U) V s → SumVariables P (SumVariables U V) s :=
+    fun _ => Sum.elim (Sum.elim Sum.inl (Sum.inr ∘ Sum.inl)) (Sum.inr ∘ Sum.inr)
+  have hz := definable_scheme_at_fiber p _ (hg.pullback_relabel r)
+  unfold DefinableRelation
+  convert hz using 1
+  ext x
+  have eq : (fun s => appendAssignments p x s ∘ r s) =
+      appendAssignments (appendAssignments p (fun s => x s ∘ Sum.inl)) (fun s => x s ∘ Sum.inr) := by
+    funext s i
+    rcases i with (i | i) | i <;> rfl
+  change _ ↔ (fun s => appendAssignments p x s ∘ r s) ∈ G
+  rw [eq]
+  rfl
+
 end GeneralizedEuler.Section5

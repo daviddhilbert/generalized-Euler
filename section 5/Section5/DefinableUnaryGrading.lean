@@ -50,7 +50,7 @@ theorem unaryLabelSet_definable {H : Type} [Finite H] {A : Set (K × (H → RV0 
     exact ⟨a,ha,congrFun eq .rv⟩
 
 omit [LinearOrder K] [IsStrictOrderedRing K] in
-private def unaryAssignmentEquiv {H : Type} (A : Set (K × (H → RV0 O))) :
+@[expose] def unaryAssignmentEquiv {H : Type} (A : Set (K × (H → RV0 O))) :
     {a : SortedAssignment (CanonicalSort O) (MixedVariables 1 H) | unaryPair O a ∈ A} ≃ A where
   toFun a := ⟨unaryPair O a.val,a.property⟩
   invFun x := ⟨(fun | .vf => fun _ => x.val.1 | .rv => x.val.2),x.property⟩
