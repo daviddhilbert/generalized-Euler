@@ -49,3 +49,8 @@ public import Section5.PullbackBoundary
 public import Section5.RelativeLiftChoices
 public import Section5.DefinableBoundaryLifting
 public import Section5.LiftBoundaryDimension
+public import Section5.ScaleTerms
+public import Section5.FiniteLabelLifting
+public import Section5.FiniteBaseLabels
+public import Section5.LabelProjection
+public import Section5.ZeroDimensionalLabels

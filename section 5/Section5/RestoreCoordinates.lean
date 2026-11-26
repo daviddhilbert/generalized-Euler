@@ -35,6 +35,13 @@ def scaleFibers {I : Type*} (a b : I → K) (ha : ∀ i, a i ≠ 0) (hb : ∀ i,
     change b i * (a i * y.val i / b i) / a i = y.val i
     field_simp [ha i, hb i]
 
+theorem scaleFibers_apply {I : Type*} (a b : I → K)
+    (ha : ∀ i, a i ≠ 0) (hb : ∀ i, b i ≠ 0)
+    (x : {x : I → K // ∀ i, rv O (x i) = rv O (a i)}) (i : I) :
+    (scaleFibers O a b ha hb x).val i = b i * x.val i / a i := by
+  unfold scaleFibers
+  rfl
+
 /-- The two families of representatives depend on the *retained field
 tuples*. Only the projected lift runs on the first component. -/
 def restoreCoordinates {X Y I : Type*} (e : X ≃ Y) (a : X → I → K) (b : Y → I → K)
