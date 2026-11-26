@@ -35,6 +35,7 @@ public import Section4.ChartTensorWeights
 public import Section4.ChartTransitions
 public import Section4.CombinePartitions
 public import Section4.CommonValueRefinement
+public import Section4.ConcreteMatchingSlices
 public import Section4.CoordinateChanges
 public import Section4.DefinableLifts
 public import Section4.DefinableResidueMatrices
@@ -65,6 +66,8 @@ public import Section4.GraphProjection
 public import Section4.GraphProjectionSums
 public import Section4.GroupifiedRectangle
 public import Section4.HeightDrop
+public import Section4.HeightDropSharp
+public import Section4.HomogeneousMatchedPieces
 public import Section4.HomogeneousValueLift
 public import Section4.IndependentRectangleMatches
 public import Section4.IntervalCutScissors
@@ -77,7 +80,11 @@ public import Section4.LocalRVMeasure
 public import Section4.LocalizedEuler
 public import Section4.LostCoordinates
 public import Section4.MatchedFactorClasses
+public import Section4.MatchedRectangleWeights
+public import Section4.MatchedResidueClasses
+public import Section4.MatchedResidueGraphs
 public import Section4.MatchingRectangles
+public import Section4.MatchingSlices
 public import Section4.MatrixPreimages
 public import Section4.MaximalBoxComparison
 public import Section4.MaximalBoxVectors
@@ -90,9 +97,11 @@ public import Section4.NoAdditiveValueRetraction
 public import Section4.NormalRectangleCover
 public import Section4.NormalRectangles
 public import Section4.NormalizedBoxes
+public import Section4.NormalizedRemainderRectangles
 public import Section4.ObjectTensorWeights
 public import Section4.Objects
 public import Section4.OldValueCharts
+public import Section4.OldValuePair
 public import Section4.OrderedBoxCuts
 public import Section4.PackedGraph
 public import Section4.PositiveAdditivity
@@ -115,6 +124,7 @@ public import Section4.RVFamilyOperations
 public import Section4.RVFamilySemiring
 public import Section4.RVLineCut
 public import Section4.RVObjectClassEquality
+public import Section4.RVParameterSlices
 public import Section4.RVProducts
 public import Section4.RVScissorRealization
 public import Section4.RVTaggedEquivalence
@@ -123,13 +133,18 @@ public import Section4.RectangleClasses
 public import Section4.RectangleDecomposition
 public import Section4.RectangleFiberFamilies
 public import Section4.RectangleGeneration
+public import Section4.RectangleHeightCut
+public import Section4.RectangleLabelMatching
 public import Section4.RectangleMap
 public import Section4.RectangleMatchGraph
 public import Section4.RectangleMultiplicativity
+public import Section4.RectanglePartitionWeights
 public import Section4.RectangleProducts
 public import Section4.RectangleRange
+public import Section4.RectangleRemainderGrid
 public import Section4.ReductInvariance
 public import Section4.RefinedChartTest
+public import Section4.RefinedFamilyBijection
 public import Section4.RefinementCoordinates
 public import Section4.ReindexUnits
 public import Section4.RelativeResidues
@@ -168,6 +183,7 @@ public import Section4.SliceWeights
 public import Section4.StandardFrame
 public import Section4.StandardRectangleWeight
 public import Section4.SubframeCarrier
+public import Section4.Subrectangles
 public import Section4.TaggedBoxComparison
 public import Section4.TaggedFiberMatching
 public import Section4.TaggedLiftRealization
