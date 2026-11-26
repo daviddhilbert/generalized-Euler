@@ -27,6 +27,13 @@ variable {L : Language} {E : Type*} {X : TCsort → Type z}
   | .vf => PEmpty.elim
   | .rv => b
 
+theorem fieldAssignment_ext {a b : fieldAssignment n X}
+    (h : ∀ j, a .vf j = b .vf j) : a = b := by
+  funext s i
+  cases s with
+  | vf => exact h i
+  | rv => exact i.elim
+
 theorem fieldAssignment_blockDefinable {A : Set (fieldAssignment n X)}
     (hA : SortedDefinableOver M S.carrier A) :
     BlockDefinable M (fun s (a : S.carrier s) => a.val) .vf (fieldTupleAssignment ⁻¹' A) := by

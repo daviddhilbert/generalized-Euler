@@ -65,3 +65,10 @@ public import Section5.RestrictedFieldLifts
 public import Section5.FieldLiftPartitions
 public import Section5.PairedProjectionPartitions
 public import Section5.LiftDimensionInduction
+public import Section5.RVObjectLifts
+public import Section5.CompatibleObjectLifts
+public import Section5.InjectiveObjectLifts
+public import Section5.ObjectLiftRestrictions
+public import Section5.ObjectLiftPartitions
+public import Section5.RVObjectLiftTheorem
+public import Section5.UnaryAffinePreparation

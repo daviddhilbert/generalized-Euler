@@ -28,13 +28,6 @@ variable {L : Language} {E : Type*} {X : TCsort → Type z}
 /-- The omitted coordinates in the original coordinate order. -/
 abbrev Omitted (p : Fin k ↪ Fin n) := ((Set.range p)ᶜ : Set (Fin n))
 
-theorem fieldAssignment_ext {a b : fieldAssignment n X}
-    (h : ∀ j, a .vf j = b .vf j) : a = b := by
-  funext s i
-  cases s with
-  | vf => exact h i
-  | rv => exact i.elim
-
 variable (p : Fin k ↪ Fin n)
   (rep : fieldLiftDomain M (projectLabels p '' U) → fieldLiftDomain M U)
 

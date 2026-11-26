@@ -15,7 +15,7 @@ open GeneralizedEuler.Section2 FirstOrder
 
 universe z
 
-private def partitionEquiv {I Z : Type*} (A : I → Set Z)
+def equivOfSetPartition {I Z : Type*} (A : I → Set Z)
     (disj : Pairwise (fun i j => Disjoint (A i) (A j))) (cover : ∀ x, ∃ i, x ∈ A i) :
     (Σ i, A i) ≃ Z := by
   classical
@@ -29,6 +29,12 @@ private def partitionEquiv {I Z : Type*} (A : I → Set Z)
   · intro x
     obtain ⟨i,hi⟩ := cover x
     exact ⟨⟨i,⟨x,hi⟩⟩,rfl⟩
+
+theorem equivOfSetPartition_apply {I Z : Type*} (A : I → Set Z)
+    (disj : Pairwise (fun i j => Disjoint (A i) (A j))) (cover : ∀ x, ∃ i, x ∈ A i)
+    (x : Σ i, A i) : equivOfSetPartition A disj cover x = x.2.val := by
+  unfold equivOfSetPartition
+  rfl
 
 variable {L : Language} {E : Type*} {X : TCsort → Type z}
   {M : SortedStructure L E X} {S : SortedSubstructure M}
@@ -58,8 +64,8 @@ theorem definable_lift_of_label_partition {I : Type*} [Finite I]
   have cCover (y : fieldLiftDomain M V) : ∃ i, y ∈ C i := by
     obtain ⟨i,hi⟩ := cover (e.symm (q y))
     exact ⟨i,e.symm (q y),hi,e.apply_symm_apply (q y)⟩
-  let P := partitionEquiv D dDisj dCover
-  let Q := partitionEquiv C cDisj cCover
+  let P := equivOfSetPartition D dDisj dCover
+  let Q := equivOfSetPartition C cDisj cCover
   let lift := P.symm.trans ((Equiv.sigmaCongrRight f).trans Q)
   have agrees (i : I) (x : D i) : lift x.val = (f i x).val := by
     have he := P.symm_apply_apply ⟨i,x⟩
