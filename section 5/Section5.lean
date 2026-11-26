@@ -39,3 +39,13 @@ public import Section5.PullbackLabels
 public import Section5.DefinablePullbackLabels
 public import Section5.RVPatternObjects
 public import Section5.GradedLiftPresentation
+public import Section5.FieldTermWitnesses
+public import Section5.DefinableFieldChoice
+public import Section5.ElementaryFieldChoice
+public import Section5.BoundaryLiftGluing
+public import Section5.DefinableLiftLabels
+public import Section5.FieldLiftChoices
+public import Section5.PullbackBoundary
+public import Section5.RelativeLiftChoices
+public import Section5.DefinableBoundaryLifting
+public import Section5.LiftBoundaryDimension

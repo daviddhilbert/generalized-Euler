@@ -71,6 +71,18 @@ theorem comp [Finite (V .vf)] [Finite (V .rv)]
   have hh := (hR.pullback_relabel left).inter (hS.pullback_relabel right)
   exact definable_project_mixed hh
 
+theorem inter_left
+    {R : SortedAssignment X U → SortedAssignment X V → Prop} {D : Set (SortedAssignment X U)}
+    (hR : DefinableRelation M A R) (hD : SortedDefinableOver M A D) :
+    DefinableRelation M A (fun x y => R x y ∧ x ∈ D) := by
+  unfold DefinableRelation at hR ⊢
+  exact hR.inter (hD.pullback_relabel (fun _ => Sum.inl))
+
+theorem union {R S : SortedAssignment X U → SortedAssignment X V → Prop}
+    (hR : DefinableRelation M A R) (hS : DefinableRelation M A S) :
+    DefinableRelation M A (fun x y => R x y ∨ S x y) := by
+  exact SortedDefinableOver.union hR hS
+
 /-- Transport a family of tests by a definable graph. This also tracks
 the image of a partial graph when the transformation is only defined
 on the earlier preparation's image. -/
