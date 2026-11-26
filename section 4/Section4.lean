@@ -58,6 +58,7 @@ public import Section4.FixedParameterSpans
 public import Section4.FixedResidueImages
 public import Section4.FrameComparison
 public import Section4.GeometricValueInclusion
+public import Section4.GlobalRectangleMatches
 public import Section4.GradedValues
 public import Section4.GraphChartBasis
 public import Section4.GraphCharts
@@ -97,6 +98,7 @@ public import Section4.NoAdditiveValueRetraction
 public import Section4.NormalRectangleCover
 public import Section4.NormalRectangles
 public import Section4.NormalizedBoxes
+public import Section4.NormalizedRemainderBijection
 public import Section4.NormalizedRemainderRectangles
 public import Section4.ObjectTensorWeights
 public import Section4.Objects
@@ -118,6 +120,7 @@ public import Section4.ProjectedResidues
 public import Section4.ProjectedValuePiece
 public import Section4.ProjectionMinor
 public import Section4.Proposition421
+public import Section4.Proposition421ByHeight
 public import Section4.PureFactorAssignments
 public import Section4.QuotientSpanProfiles
 public import Section4.RVFamilyOperations
@@ -134,14 +137,21 @@ public import Section4.RectangleDecomposition
 public import Section4.RectangleFiberFamilies
 public import Section4.RectangleGeneration
 public import Section4.RectangleHeightCut
+public import Section4.RectangleHeightDescent
+public import Section4.RectangleHeightFactors
+public import Section4.RectangleHeightInduction
+public import Section4.RectangleHeightStep
 public import Section4.RectangleLabelMatching
 public import Section4.RectangleMap
 public import Section4.RectangleMatchGraph
 public import Section4.RectangleMultiplicativity
+public import Section4.RectanglePairCuts
 public import Section4.RectanglePartitionWeights
 public import Section4.RectangleProducts
 public import Section4.RectangleRange
 public import Section4.RectangleRemainderGrid
+public import Section4.RectangleWeightFamilies
+public import Section4.RectangleWeightPresentations
 public import Section4.ReductInvariance
 public import Section4.RefinedChartTest
 public import Section4.RefinedFamilyBijection
@@ -149,6 +159,7 @@ public import Section4.RefinementCoordinates
 public import Section4.ReindexUnits
 public import Section4.RelativeResidues
 public import Section4.RepresentedFiberMatches
+public import Section4.ResidualRectangleFamilies
 public import Section4.ResidueAssignmentPartition
 public import Section4.ResidueBaseValues
 public import Section4.ResidueCancellation

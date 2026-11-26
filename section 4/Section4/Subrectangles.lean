@@ -43,6 +43,10 @@ def rect : NormalRectangle (JG := JG) (G := G) O v hO P S k :=
 def labels := p.units ×ˢ p.values
 def points := productSet (unitSet O v (Equiv.refl _) p.units) (positiveSharp O v p.values)
 
+theorem definable_points (pull : ∀ {r} {D : Set (Fin r → Additive O.ValueGroupˣ)},
+    (G : Set (Additive O.ValueGroupˣ)).Definable JG D → isRVSet _ S (positiveSharp O v D)) :
+    isRVSet _ S p.points := rv_product_definable p.unitsDef (pull p.valuesDef)
+
 theorem points_sub : p.points ⊆ c.points :=
   fun _ ⟨⟨u,h,eu⟩,⟨x,a,ex⟩⟩ => ⟨⟨u,p.unitsSub h,eu⟩,⟨x,p.valuesSub a,ex⟩⟩
 

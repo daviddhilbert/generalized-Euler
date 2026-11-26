@@ -26,14 +26,14 @@ private def singlePoints {I : Type} [Finite I] (D : Set (I → Z .rv)) (hd : isR
   left_inv := fun ⟨(),_⟩ => rfl
   right_inv _ := rfl
 
-private theorem single_empty {I : Type} [Finite I] {D : Set (I → Z .rv)} (hd : isRVSet M S D)
+theorem single_empty {I : Type} [Finite I] {D : Set (I → Z .rv)} (hd : isRVSet M S D)
     (empty : D = ∅) : (single D hd).Iso (emptyFamily M S) := by
   subst D
   let h : IsEmpty (single (∅ : Set (I → Z .rv)) hd).Points := ⟨fun x => x.2.property⟩
   let h' : IsEmpty (emptyFamily M S).Points := ⟨fun x => x.1.elim⟩
   exact ⟨Equiv.equivOfIsEmpty _ _,fun _ j => j.elim⟩
 
-private theorem single_unit {I : Type} [Finite I] {D : Set (I → Z .rv)} (hd : isRVSet M S D)
+theorem single_unit {I : Type} [Finite I] {D : Set (I → Z .rv)} (hd : isRVSet M S D)
     (one : ∃ x, D={x}) : (single D hd).Iso (unitFamily M S) := by
   obtain ⟨x,rfl⟩ := one
   apply iso_retag _ _ (Equiv.refl Unit)
@@ -51,7 +51,7 @@ private theorem single_unit {I : Type} [Finite I] {D : Set (I → Z .rv)} (hd : 
   apply Set.ext; intro w
   exact ⟨fun ⟨y,hy,_⟩ => (congrArg (· ∈ ({x} : Set _)) hy).mp y.property, fun h => ⟨⟨_,h⟩,rfl,Subsingleton.elim _ _⟩⟩
 
-private theorem single_cut {I : Type} [Finite I] {A B : Set (I → Z .rv)}
+theorem single_cut {I : Type} [Finite I] {A B : Set (I → Z .rv)}
     (ha : isRVSet M S A) (hb : isRVSet M S B) (disj : Disjoint A B) :
     ((single A ha).append (single B hb)).Iso (single (A ∪ B) (ha.union hb)) := by
   classical
