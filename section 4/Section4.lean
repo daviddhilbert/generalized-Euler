@@ -9,9 +9,13 @@ public import Section4.BaseAndDimension
 public import Section4.BoundedIntervalScissors
 public import Section4.BoundedRVAnnuli
 public import Section4.BoundedValueBoxes
+public import Section4.BoxFactorMatching
+public import Section4.BoxMultiplicity
+public import Section4.BoxProductCuts
 public import Section4.BoxRanks
 public import Section4.BoxRanksFromLifts
 public import Section4.BoxScaleProfiles
+public import Section4.BoxUnionComparison
 public import Section4.CanonicalChartCover
 public import Section4.CanonicalChartMaps
 public import Section4.CanonicalObjectWeights
@@ -41,6 +45,7 @@ public import Section4.FiniteBaseFibers
 public import Section4.FiniteFiberEuler
 public import Section4.FiniteScissors
 public import Section4.FixedBasePartitions
+public import Section4.FixedParameterSpans
 public import Section4.FixedResidueImages
 public import Section4.FrameComparison
 public import Section4.GeometricValueInclusion
@@ -53,7 +58,9 @@ public import Section4.GraphProjectionSums
 public import Section4.GroupifiedRectangle
 public import Section4.HeightDrop
 public import Section4.HomogeneousValueLift
+public import Section4.IntervalCutScissors
 public import Section4.IntervalScaleBijection
+public import Section4.IntervalScaleCuts
 public import Section4.IntervalScales
 public import Section4.LexicographicTags
 public import Section4.LiftQuotientProfiles
@@ -62,6 +69,7 @@ public import Section4.LocalizedEuler
 public import Section4.LostCoordinates
 public import Section4.MatchingRectangles
 public import Section4.MatrixPreimages
+public import Section4.MaximalBoxComparison
 public import Section4.MaximalBoxVectors
 public import Section4.MeasurableCharts
 public import Section4.MultiplicativeDescent
@@ -95,6 +103,7 @@ public import Section4.RVObjectClassEquality
 public import Section4.RVProducts
 public import Section4.RVScissorRealization
 public import Section4.RVTaggedEquivalence
+public import Section4.RaySquareScissors
 public import Section4.RectangleClasses
 public import Section4.RectangleDecomposition
 public import Section4.RectangleGeneration
@@ -114,6 +123,8 @@ public import Section4.ResidueClasses
 public import Section4.ResidueEulerMeasure
 public import Section4.ResidueFactorAssignment
 public import Section4.ResidueMatrices
+public import Section4.ResidueProductBoxRanks
+public import Section4.ResidueProductProfiles
 public import Section4.ResidueProducts
 public import Section4.ResidueRefinement
 public import Section4.ResidueScissors
@@ -132,6 +143,7 @@ public import Section4.SignedTensorFactors
 public import Section4.SignedValueGeneration
 public import Section4.SignedValueReflection
 public import Section4.SignedWholeMatches
+public import Section4.SimplexBox
 public import Section4.SimultaneousBoxRanks
 public import Section4.SliceComparison
 public import Section4.SliceWeights
