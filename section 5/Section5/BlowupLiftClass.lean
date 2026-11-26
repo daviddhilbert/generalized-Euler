@@ -130,6 +130,11 @@ def quotientLiftClassHom (pointRelation : lift p = lift (1+q)) :
     rintro _ _ ⟨rfl,rfl⟩
     exact pointRelation)
 
+theorem quotientLiftClassHom_mk (pointRelation : lift p = lift (1+q)) (a : RVSemiring 𝓜 S) :
+    quotientLiftClassHom O hO power S hneg liftIso pointRelation ((d).mk' a) = lift a := by
+  unfold quotientLiftClassHom
+  exact RingCon.lift_mk' _ _
+
 theorem quotientLiftClassHom_surjective (pointRelation : lift p = lift (1+q))
     (surj : Function.Surjective lift) :
     Function.Surjective (quotientLiftClassHom O hO power S hneg liftIso pointRelation) := by

@@ -366,3 +366,15 @@ public import Section5.TaggedPositioningInverses
 public import Section5.TaggedTwoCellGeometry
 public import Section5.TaggedTwoCellOrderComparison
 public import Section5.TwoCoordinateOrderComparison
+public import Section5.FieldScissorRealization
+public import Section5.FixedBaseContractionInvariance
+public import Section5.IntegrationIsomorphism
+public import Section5.MixedContractionValues
+public import Section5.MixedTaggedEquivalence
+public import Section5.MixedTaggedGraphCuts
+public import Section5.MixedTaggedOperations
+public import Section5.MixedTaggedScissors
+public import Section5.MixedTaggedSemiring
+public import Section5.PaddedLiftKernel
+public import Section5.PositiveLiftKernel
+public import Section5.TaggedContractionValues
