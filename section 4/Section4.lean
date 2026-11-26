@@ -4,6 +4,9 @@ public import Section4.AffineLifts
 public import Section4.ArbitraryRectangleWeight
 public import Section4.AssignedScissors
 public import Section4.BaseAndDimension
+public import Section4.BoxRanks
+public import Section4.BoxRanksFromLifts
+public import Section4.BoxScaleProfiles
 public import Section4.CanonicalChartCover
 public import Section4.CanonicalChartMaps
 public import Section4.CanonicalObjectWeights
@@ -44,14 +47,20 @@ public import Section4.GraphProjection
 public import Section4.GraphProjectionSums
 public import Section4.GroupifiedRectangle
 public import Section4.HeightDrop
+public import Section4.HomogeneousValueLift
+public import Section4.IntervalScaleBijection
+public import Section4.IntervalScales
 public import Section4.LexicographicTags
+public import Section4.LiftQuotientProfiles
 public import Section4.LocalRVMeasure
 public import Section4.LocalizedEuler
 public import Section4.LostCoordinates
 public import Section4.MatchingRectangles
 public import Section4.MatrixPreimages
+public import Section4.MaximalBoxVectors
 public import Section4.MeasurableCharts
 public import Section4.MultiplicativeDescent
+public import Section4.NoAdditiveValueRetraction
 public import Section4.NormalRectangleCover
 public import Section4.NormalRectangles
 public import Section4.ObjectTensorWeights
@@ -62,6 +71,7 @@ public import Section4.PositiveAdditivity
 public import Section4.PositiveObjectCover
 public import Section4.PositivePresentations
 public import Section4.PositiveRectangles
+public import Section4.PositiveResidueLineCut
 public import Section4.PositiveValuation
 public import Section4.ProductAssignment
 public import Section4.ProjectedFrame
@@ -72,8 +82,10 @@ public import Section4.ProjectedValuePiece
 public import Section4.ProjectionMinor
 public import Section4.Proposition421
 public import Section4.PureFactorAssignments
+public import Section4.QuotientSpanProfiles
 public import Section4.RVFamilyOperations
 public import Section4.RVFamilySemiring
+public import Section4.RVLineCut
 public import Section4.RVProducts
 public import Section4.RVScissorRealization
 public import Section4.RVTaggedEquivalence
@@ -101,6 +113,7 @@ public import Section4.ResidueScissors
 public import Section4.ResidueUnitCover
 public import Section4.ResidueWeights
 public import Section4.RestrictedBijections
+public import Section4.ScaleAvoidance
 public import Section4.Scissors
 public import Section4.SelectedSharpFibers
 public import Section4.SemiringGroupification
@@ -112,6 +125,7 @@ public import Section4.SignedTensorFactors
 public import Section4.SignedValueGeneration
 public import Section4.SignedValueReflection
 public import Section4.SignedWholeMatches
+public import Section4.SimultaneousBoxRanks
 public import Section4.SliceComparison
 public import Section4.SliceWeights
 public import Section4.StandardFrame
@@ -130,6 +144,7 @@ public import Section4.UnaryFiberMatching
 public import Section4.UnaryRemainders
 public import Section4.UnaryTaggedComparison
 public import Section4.UnitFiberNormalization
+public import Section4.ValueBoxes
 public import Section4.ValueDegrees
 public import Section4.ValueDescent
 public import Section4.ValueEmbedding
@@ -137,6 +152,7 @@ public import Section4.ValueFactorMap
 public import Section4.ValueFrames
 public import Section4.ValueMembershipPartition
 public import Section4.ValuePadding
+public import Section4.ValuePointCardinality
 public import Section4.ValuePresentation
 public import Section4.ValuePullback
 public import Section4.ValueRefinement

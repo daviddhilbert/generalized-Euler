@@ -51,7 +51,15 @@ In degree one, `degree_one_value_injective` in `DegreeOneInclusion` proves that 
 
 `groupified_value_inclusion` in `GeometricValueInclusion` constructs a left inverse on the groupifications of the concrete RV and value semirings using Proposition 4.21 and the graded residue Euler polynomial of Lemma 4.22. On a residue class of degree `i` and Euler characteristic `a`, tensored with a value class `y`, the formula is `(-1)^i a [e]^i y`. The theorem also proves bijectivity after groupification when the residue Euler polynomial gives the classification in Remark 4.8.
 
-The manuscript’s proof of semiring injectivity in all degrees uses a decomposition into boxes, ranks modulo convex subspaces determined by interval lengths, and the two value Euler characteristics. The Lean results above cover the direct low-degree proofs and the groupified map.
+For tagged presentations by padded boxes, `maximal_box_vectors_of_lift_equality` starts with equality in the RV semiring and proves equality of the maximal vectors of scale counts. It applies to any finite list of nonnegative thresholds in the base. `IntervalScales` constructs the convex subspaces and `IntervalScaleBijection` gives the two-slope, fixed-base definable map between intervals of the same scale. `ScaleAvoidance` realizes a coordinate outside the sum of the parameter span and the preceding scale. Distinct scalar fractions of a larger width belong to distinct cosets. `ValueBoxes` uses these choices to attain all thresholds at a single tuple. The decomposition of arbitrary value sets into boxes and the comparison of box unions with matching vectors and Euler characteristics are still needed for the all-degree semiring theorem.
+
+## Consequences of Question 4.16
+
+The approved manuscript adds Corollary 4.22a on cancellation by a residue object, the degree-one obstruction to an additive retraction, and the classification of products of bounded open positive RV annuli by their multisets of width scales.
+
+`no_additive_value_retraction` proves the degree-one obstruction for the actual homogeneous value and RV semigroups. In `PositiveResidueLineCut` the two residue-field term maps send a positive residue `x` to `1+x` and its reciprocal. Their images are disjoint and lie in the original fiber. The scissor identity and value-point cardinality then contradict any additive map sending that fiber back to a singleton. This proof uses the residue-field terms and the fixed-base value lift and requires no Euler characteristic.
+
+For Corollary 4.22a, `ResidueClass.double_eq_iff_euler_zero` gives the doubling criterion for the dimension–Euler classes of Remark 4.8. The box-rank theorem and interval map also apply to the annuli. The full cancellation criterion and annulus classification still require additional formalization.
 
 ## Remaining geometric steps
 

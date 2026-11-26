@@ -12,7 +12,7 @@ import all Section4.Factors
 import all Section2.SortedStructure
 import all Section4.ValuePullback
 
-/-! Degree one of the partial answer to Question 4.16. Equality in the
+/-! Degree one of the answer to Question 4.16. Equality in the
 actual RV semiring implies equality of the original tagged value classes. -/
 public section
 noncomputable section

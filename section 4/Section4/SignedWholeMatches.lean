@@ -66,7 +66,7 @@ local notation "eU" => signedLiftEquiv O hO v hv P S A defSharp U
 local notation "eW" => signedLiftEquiv O hO v hv P S A defSharp W
 
 include action in
-private theorem conjugate_commutes (L : (Additive O.ValueGroupˣ ⧸ G) →ₗ[F] v.ker) (x) :
+theorem signed_conjugate_commutes (L : (Additive O.ValueGroupˣ ⧸ G) →ₗ[F] v.ker) (x) :
     ((eU).trans (f.trans (eW).symm)) (move (fam U) L x) =
       move (fam W) L (((eU).trans (f.trans (eW).symm)) x) := by
   let y := (eW).symm (f (eU x))
@@ -101,7 +101,7 @@ theorem independent_signed_match (a : U.points A)
     rw [eq]; exact ind
   obtain ⟨d,nd⟩ := positive_kernel_nonzero O hO v hv
   obtain ⟨_,whole⟩ := FiberFamily.maximal_whole_match (F := F) (T := Additive (PositiveRV O)) v G g
-    (conjugate_commutes O hO v hv s hs G P S A defSharp U W f action) d nd x ia le_rfl
+    (signed_conjugate_commutes O hO v hv s hs G P S A defSharp U W f action) d nd x ia le_rfl
   refine ⟨ew (liftLabel (fam W) (g x)),(wholeMatch_iff _ _ _ _ _).mpr ?_⟩
   intro z; obtain ⟨t,rfl⟩ := (eU).surjective z
   have aeq : eu (liftLabel (fam U) x) = a := (congrArg eu ex).trans (eu.apply_symm_apply a)
