@@ -1,5 +1,6 @@
 module
 
+public import Section4.PiecewiseValueLift
 public import Section4.ResidueEulerIsomorphism
 public import Section4.ResidueLocalizationFormulas
 public import Section4.SignedPuncturedIdeal
@@ -93,12 +94,19 @@ variable
       ∃ x : Fin m → Additive O.ValueGroupˣ, ∀ φ ∈ Δ, φ.Realize x)
     (rvSat : ∀ {n} (D : ℕ → Set (Fin n → RV0 O)), (∀ i, isRVSet _ S (D i)) → Antitone D →
       (∀ i, (D i).Nonempty) → ∃ y, ∀ i, y ∈ D i)
-    (χ : ResidueSemiring (canonicalStructure (L := J) O hO P) S (signedLabel O hO) →+* Polynomial ℤ) (line : χ (residueClass (sharpObject (canonicalStructure (L := J) O hO P) S (signedLabel O hO) {1} (defSharp he))
-  (sharp_residue (canonicalStructure (L := J) O hO P) S (signedLabel O hO) A defSharp {1} (Set.finite_singleton _) he)) = -Polynomial.X)
+    (χ : ResidueSemiring (canonicalStructure (L := J) O hO P) S (signedLabel O hO) →+* Polynomial ℤ)
+    (line : χ (residueClass
+      (sharpObject (canonicalStructure (L := J) O hO P) S (signedLabel O hO) {1} (defSharp he))
+      (sharp_residue (canonicalStructure (L := J) O hO P) S (signedLabel O hO) A defSharp {1}
+        (Set.finite_singleton _) he)) = -Polynomial.X)
     (order : (G : Set (Additive O.ValueGroupˣ)).Definable JG {x : Fin 2 → Additive O.ValueGroupˣ | x 0 ≤ x 1})
     (bounded geometric : SemiringOfSets (J := JS) A →+* ℤ)
-    (bp : bounded (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1) (br : bounded ((PieceMeasure.descend (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = 0)
-    (gp : geometric (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1) (gr : geometric ((PieceMeasure.descend (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = -1)
+    (bp : bounded (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1)
+    (br : bounded ((PieceMeasure.descend
+      (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = 0)
+    (gp : geometric (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1)
+    (gr : geometric ((PieceMeasure.descend
+      (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = -1)
     (semi : ∀ {k} (D : Set (Fin k → Additive O.ValueGroupˣ)), (G : Set _).Definable JG D → Polyhedral.SemilinearOver G D)
 
 
@@ -141,11 +149,9 @@ theorem geometric_rv_coordinates (classify : Function.Bijective (lift χ)) (sing
     ← includeResidue_class rvPoint (residuePoint_finite O hO P S lab),ei]
   simpa only [EulerCoordinates.specialClass] using c.special_image _ rcoord _ singleton
 
-include g agrees units clamp powers hv hs interpret liftIso witness primitives base reps minus qe sat rvSat
-  order bounded geometric bp br gp gr semi in
-theorem section_four_euler_maps (ordinary : ResidueSemiring model S lab →+* ℤ)
-    (classification : ResidueEulerClassification (M := model) (S := S) lab ordinary)
-    (unitLine : ordinary torus = -1) (singleton : ordinary resPt = 1) :
+/-- The special quotient, integer characters, and normalized homogeneous
+formulas for the two geometric residue localizations. -/
+abbrev SectionFourEulerFormulas (ordinary : ResidueSemiring model S lab →+* ℤ) : Prop :=
     ∃ di : A.Definable JS idealValues,
       let u := 1 + of _ (objectClass model S ⟨1,sharpObject model S lab idealValues (defSharp di)⟩) -
         of _ (objectClass model S ⟨1,rvPoint⟩)
@@ -157,7 +163,14 @@ theorem section_four_euler_maps (ordinary : ResidueSemiring model S lab →+* �
           Set.range f = Set.range (Int.castRingHom (Localization.Away d)) ∧ f u=0 ∧
           ∀ (x : SemiringGroupification.Ring (ResidueSemiring model S lab)) (k : ℕ) (a : ℤ),
             GradedEuler.residue model S lab ordinary x=Polynomial.C a*Polynomial.X^k →
-            f (SemiringGroupification.map res x)=algebraMap _ (Localization.Away d) x * (IsLocalization.Away.invSelf d)^k := by
+            f (SemiringGroupification.map res x)=algebraMap _ (Localization.Away d) x * (IsLocalization.Away.invSelf d)^k
+
+include g agrees units clamp powers hv hs interpret liftIso witness primitives base reps minus qe sat rvSat
+  order bounded geometric bp br gp gr semi in
+theorem section_four_euler_maps (ordinary : ResidueSemiring model S lab →+* ℤ)
+    (classification : ResidueEulerClassification (M := model) (S := S) lab ordinary)
+    (unitLine : ordinary torus = -1) (singleton : ordinary resPt = 1) :
+    SectionFourEulerFormulas O hO P S A @defSharp he ordinary := by
   let χ := GradedEuler.polynomialMeasure _ _ (GradedEuler.residue_homogeneous model S lab) ordinary
   have cls {k} (U : RVObject model S k) (hu : U.IsResidue model S lab) :
       χ (residueClass U hu)=Polynomial.C (ordinary (residueClass U hu))*Polynomial.X^k :=
@@ -171,5 +184,18 @@ theorem section_four_euler_maps (ordinary : ResidueSemiring model S lab →+* �
     bounded geometric bp br gp gr @semi bij hp
   exact ⟨di,⟨c.quotient _ specialEq,c.characters _ specialEq⟩,
     c.localized_formulas bij torus resPt ht hp _ specialEq⟩
+
+include g agrees units clamp powers hv hs interpret witness primitives base reps minus qe sat rvSat
+  order bounded geometric bp br gp gr semi in
+theorem section_four_euler_maps_from_affine_partitions
+    (affine : HasSignedAffinePartitions (JG := JG) (JS := JS) G A)
+    (ordinary : ResidueSemiring model S lab →+* ℤ)
+    (classification : ResidueEulerClassification (M := model) (S := S) lab ordinary)
+    (unitLine : ordinary torus = -1) (singleton : ordinary resPt = 1) :
+    SectionFourEulerFormulas O hO P S A @defSharp he ordinary :=
+  section_four_euler_maps O v hv s hs G B hO P g agrees units clamp powers S A defSharp
+    (fun {_} => value_morphism_lift O hO P S v hv s hs powers G A reps @interpret @defSharp @witness affine)
+    @interpret he L signedDef witness primitives base reps minus @qe sat rvSat order bounded geometric
+    bp br gp gr @semi ordinary classification unitLine singleton
 
 end GeneralizedEuler.Section4

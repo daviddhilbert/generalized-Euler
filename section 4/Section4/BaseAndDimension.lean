@@ -93,5 +93,29 @@ theorem fiber_dimension_le {D : Type*} [Preorder D] (d : D)
   rw [mixed_fiber_partition P Q f a F (fun x => (finiteImage a).mem_toFinset.mpr ⟨x,rfl⟩)]
   exact unionLaw F _ fun b _ => (embed a b).trans (bound b)
 
+/-- Lemma 4.2. The least upper bounds describing the two fiber dimensions
+coincide, also when one of the indexing families is empty. -/
+theorem fiber_dimension_eq {D : Type*} [PartialOrder D] (d d' : D)
+    (dimX : Set X → D) (dimY : Set Y → D) (f : (Σ a, P a) ≃ Σ b, Q b)
+    (finiteF : ∀ a, (Set.range fun x : P a => (f ⟨a,x⟩).1).Finite)
+    (finiteG : ∀ b, (Set.range fun y : Q b => (f.symm ⟨b,y⟩).1).Finite)
+    (unionX : ∀ (I : Finset B) (U : B → Set X), (∀ b ∈ I, dimX (U b) ≤ d') →
+      dimX (⋃ b ∈ I, U b) ≤ d')
+    (unionY : ∀ (I : Finset A) (U : A → Set Y), (∀ a ∈ I, dimY (U a) ≤ d) →
+      dimY (⋃ a ∈ I, U a) ≤ d)
+    (embedF : ∀ a b, dimX (mixedSlice P Q f a b) ≤ dimY (Q b))
+    (embedG : ∀ b a, dimY (mixedSlice Q P f.symm b a) ≤ dimX (P a))
+    (source : IsLUB (Set.range fun a => dimX (P a)) d)
+    (target : IsLUB (Set.range fun b => dimY (Q b)) d') : d = d' := by
+  apply le_antisymm
+  · apply source.2
+    rintro _ ⟨a,rfl⟩
+    exact fiber_dimension_le P Q d' dimX dimY f finiteF unionX embedF
+      (fun b => target.1 ⟨b,rfl⟩) a
+  · apply target.2
+    rintro _ ⟨b,rfl⟩
+    exact fiber_dimension_le Q P d dimY dimX f.symm finiteG unionY embedG
+      (fun a => source.1 ⟨a,rfl⟩) b
+
 end Dimension
 end GeneralizedEuler.Section4

@@ -2,6 +2,7 @@ module
 
 public import Section4.AdaptedParameterCones
 public import Section4.AffineLifts
+public import Section4.AffineRectangleIsomorphism
 public import Section4.AllDegreeValueInclusion
 public import Section4.AlphabetRankProfiles
 public import Section4.AnnulusRingExample
@@ -62,6 +63,9 @@ public import Section4.FiniteFiberEuler
 public import Section4.FiniteScaleAlphabet
 public import Section4.FiniteScissors
 public import Section4.FiniteSignSpecialization
+public import Section4.FiniteSignedValueClasses
+public import Section4.FiniteValuePolynomials
+public import Section4.FixedBaseAffineLift
 public import Section4.FixedBasePartitions
 public import Section4.FixedParameterSpans
 public import Section4.FixedResidueImages
@@ -71,6 +75,7 @@ public import Section4.GeometricResidueLocalizations
 public import Section4.GeometricValueInclusion
 public import Section4.GeometricValuePresentation
 public import Section4.GlobalRectangleMatches
+public import Section4.GlueRVEquivalences
 public import Section4.GradedEulerMaps
 public import Section4.GradedValueLift
 public import Section4.GradedValues
@@ -124,6 +129,7 @@ public import Section4.OldValuePair
 public import Section4.OrderedBoxCuts
 public import Section4.PackedGraph
 public import Section4.ParameterConeDirections
+public import Section4.PiecewiseValueLift
 public import Section4.PointedConeSubdivision
 public import Section4.PolyhedralGenerators
 public import Section4.PolyhedralProjectionTests
@@ -207,11 +213,13 @@ public import Section4.SelectedSharpFibers
 public import Section4.SemilinearBoxDecomposition
 public import Section4.SemiringGroupification
 public import Section4.SignPieces
+public import Section4.SignedAffineLift
 public import Section4.SignedFiberCoordinates
 public import Section4.SignedPuncturedIdeal
 public import Section4.SignedRectangleFactors
 public import Section4.SignedShears
 public import Section4.SignedTensorFactors
+public import Section4.SignedValueDegrees
 public import Section4.SignedValueGeneration
 public import Section4.SignedValueReflection
 public import Section4.SignedWholeMatches
@@ -235,6 +243,7 @@ public import Section4.TaggedMatchGraph
 public import Section4.TaggedMeasureComparison
 public import Section4.TaggedObjects
 public import Section4.TaggedValueClasses
+public import Section4.TaggedValueLift
 public import Section4.TensorComparison
 public import Section4.TensorDescent
 public import Section4.TupleFibers

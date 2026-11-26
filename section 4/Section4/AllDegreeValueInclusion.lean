@@ -1,5 +1,6 @@
 module
 
+public import Section4.PiecewiseValueLift
 public import Section4.ResidueEulerIsomorphism
 public import Section4.GradedValueLift
 public import Section4.BoxValueInclusion
@@ -81,14 +82,21 @@ variable
       ∃ x : Fin m → Additive O.ValueGroupˣ, ∀ φ ∈ Δ, φ.Realize x)
     (rvSat : ∀ {n} (D : ℕ → Set (Fin n → RV0 O)), (∀ i, isRVSet _ S (D i)) → Antitone D →
       (∀ i, (D i).Nonempty) → ∃ y, ∀ i, y ∈ D i)
-    (χ : ResidueSemiring (canonicalStructure (L := J) O hO P) S (signedLabel O hO) →+* Polynomial ℤ) (line : χ (residueClass (sharpObject (canonicalStructure (L := J) O hO P) S (signedLabel O hO) {1} (defSharp he))
-  (sharp_residue (canonicalStructure (L := J) O hO P) S (signedLabel O hO) A defSharp {1} (Set.finite_singleton _) he)) = -Polynomial.X)
+    (χ : ResidueSemiring (canonicalStructure (L := J) O hO P) S (signedLabel O hO) →+* Polynomial ℤ)
+    (line : χ (residueClass
+      (sharpObject (canonicalStructure (L := J) O hO P) S (signedLabel O hO) {1} (defSharp he))
+      (sharp_residue (canonicalStructure (L := J) O hO P) S (signedLabel O hO) A defSharp {1}
+        (Set.finite_singleton _) he)) = -Polynomial.X)
     (order : (G : Set (Additive O.ValueGroupˣ)).Definable JG {x : Fin 2 → Additive O.ValueGroupˣ | x 0 ≤ x 1})
     (step : Additive O.ValueGroupˣ) (positive : 0 < step)
     (satUnary : ∀ fs : Finset (Additive O.ValueGroupˣ), UnaryValueSaturation JG (↑(G ⊔ Submodule.span F (fs : Set (Additive O.ValueGroupˣ))) : Set (Additive O.ValueGroupˣ)))
     (bounded geometric : SemiringOfSets (J := JS) A →+* ℤ)
-    (bp : bounded (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1) (br : bounded ((PieceMeasure.descend (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = 0)
-    (gp : geometric (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1) (gr : geometric ((PieceMeasure.descend (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = -1)
+    (bp : bounded (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1)
+    (br : bounded ((PieceMeasure.descend
+      (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = 0)
+    (gp : geometric (pieceClass ({1} : Set (Fin 1 → SignedValueGroup O)) he) = 1)
+    (gr : geometric ((PieceMeasure.descend
+      (embeddingMeasure (G : Set (Additive O.ValueGroupˣ)) A (positiveValueEmb O) signedDef)) (pieceClass _ L.ray)) = -1)
     (oldStep : step ∈ G)
     (semi : ∀ {k} (D : Set (Fin k → Additive O.ValueGroupˣ)), (G : Set _).Definable JG D → Polyhedral.SemilinearOver G D)
 
@@ -157,5 +165,34 @@ theorem residue_cancellation_iff (ordinary : ResidueSemiring model S lab →+* �
     exact nonzero_euler_residue_cancellation O v hv s hs G B hO P g agrees units clamp powers S A defSharp liftIso
       @interpret he L signedDef witness primitives base reps minus @qe sat rvSat χ line order step positive
       satUnary bounded geometric bp br gp gr oldStep @semi R finite _ nz poly k
+
+variable (affine : HasSignedAffinePartitions (JG := JG) (JS := JS) G A)
+local notation "affineValueLift" => value_morphism_lift O hO P S v hv s hs powers G A reps
+  @interpret @defSharp @witness affine
+local notation "affineValueMap" => valueFactorHom model S lab A defSharp (fun {_} => affineValueLift)
+
+include g agrees units clamp primitives base minus qe sat rvSat order step positive satUnary
+  bounded geometric bp br gp gr oldStep semi in
+/-- Question 4.16 and Corollary 4.22a with the RV lift and the graded
+residue polynomial constructed from the geometric inputs. -/
+theorem section_four_value_injectivity_and_cancellation (ordinary : ResidueSemiring model S lab →+* ℤ)
+    (classify : ResidueEulerClassification (M := model) (S := S) lab ordinary) (unitLine : ordinary torus = -1) :
+    Function.Injective affineValueMap ∧
+    ∀ {i} (R : RVObject model S i) (finite : R.IsResidue model S lab) (k : ℕ),
+      Function.Injective (fun x : homogeneousValue (J := JS) A k => objectClass model S ⟨i,R⟩ * affineValueMap x.val) ↔
+        ordinary (residueClass R finite) ≠ 0 := by
+  let χ := GradedEuler.polynomialMeasure _ _ (GradedEuler.residue_homogeneous model S lab) ordinary
+  have homogeneous {i} (R : RVObject model S i) (h : R.IsResidue model S lab) :
+      χ (residueClass R h) = Polynomial.C (ordinary (residueClass R h)) * Polynomial.X^i :=
+    GradedEuler.polynomialMeasure_X _ _ (GradedEuler.residue_homogeneous model S lab) ordinary ⟨⟨i,R⟩,h⟩
+  have line : χ torus = -Polynomial.X := by rw [homogeneous,unitLine]; simp
+  refine ⟨value_semiring_injective O v hv s hs G B hO P g agrees units clamp powers S A defSharp
+    (fun {_} => affineValueLift) @interpret he L signedDef witness primitives base reps minus @qe sat
+    rvSat χ line order step positive satUnary bounded geometric bp br gp gr oldStep @semi,?_⟩
+  intro i R finite k
+  exact residue_cancellation_iff O v hv s hs G B hO P g agrees units clamp powers S A defSharp
+    (fun {_} => affineValueLift) @interpret he L signedDef witness primitives base reps minus @qe sat
+    rvSat χ line order step positive satUnary bounded geometric bp br gp gr oldStep @semi ordinary
+    classify R finite (homogeneous R finite) k
 
 end GeneralizedEuler.Section4

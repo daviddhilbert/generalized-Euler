@@ -85,4 +85,18 @@ theorem residueLocalization_homogeneous (x : Ring R) (z : ℤ) (k : ℕ) (hx : l
   change _ = awayCoordinates resClass choice d hd _ * (awayCoordinates resClass choice d hd _)^k
   rw [away_algebraMap,away_inverse,hx]
 
+/-- A degree-zero fraction has a homogeneous numerator in the same degree
+as its denominator. These fractions constitute the entire range. -/
+theorem residueLocalization_degree_zero (y : Localization.Away d) :
+    y ∈ Set.range (c.residueLocalization resClass choice d hd) ↔
+      ∃ (x : Ring R) (k : ℕ) (a : ℤ), lift χ x = C a * X^k ∧
+        algebraMap (Ring R) (Localization.Away d) x * (IsLocalization.Away.invSelf d)^k = y := by
+  constructor
+  · intro hy
+    rw [c.residueLocalization_range resClass choice d hd] at hy
+    obtain ⟨a,rfl⟩ := hy
+    exact ⟨a,0,a,by simp,by simp⟩
+  · rintro ⟨x,k,a,hx,rfl⟩
+    exact ⟨map r x,c.residueLocalization_homogeneous resClass choice d hd x a k hx⟩
+
 end GeneralizedEuler.Section4.SemiringGroupification.EulerCoordinates
