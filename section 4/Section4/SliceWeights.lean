@@ -33,6 +33,31 @@ def ChartPiece.measurable := isRVSet _ S (unitSet O v (residueIndex p.value.fram
 def ChartPiece.residueWeight (h : p.measurable O v hO P S) :=
   unitWeight O v hv hO P S (residueIndex p.value.frame) p.residue h
 
+local instance sliceKernelGroup : AddCommGroup v.ker := @Submodule.addCommGroup F (Additive (PositiveRV O)) _ _ _ v.ker
+local instance sliceKernelModule : Module F v.ker := @Submodule.module F (Additive (PositiveRV O)) _ _ _ v.ker
+
+include powers in
+theorem frame_slice_weight {r l} (A : ValueFrame G r n) (B : ValueFrame G l n)
+    (R : Set (A.dependent → v.ker)) (hR : isRVSet _ S (unitSet O v (residueIndex A) R))
+    (α : Fin l → Additive O.ValueGroupˣ) (hi : LinearIndependent F (G.mkQ ∘ α)) (hit : B.eval α ∈ Set.range A.eval) :
+    let res := {b : B.dependent → v.ker | A.residuePart (B.padResidue b) ∈ R}
+    ∃ h : isRVSet _ S (unitSet O v (residueIndex B) res),
+      unitWeight O v hv hO P S (residueIndex B) res h =
+        unitWeight O v hv hO P S (residueIndex A) R hR * entireUnitWeight O v hv hO P S 1 ^ (r-l) := by
+  dsimp only
+  let res := {b : B.dependent → v.ker | A.residuePart (B.padResidue b) ∈ R}
+  have le := A.refinement_rank B α hi hit
+  have bound := Fintype.card_le_of_injective A.free A.free.injective
+  simp only [Fintype.card_fin] at bound
+  have dims : n - r + (r - l) = n - l := by omega
+  have step {m} (idx : Fin m ≃ B.dependent) (dim : n-r + (r-l) = m) :
+      ∃ h : isRVSet _ S (unitSet O v idx res),
+        unitWeight O v hv hO P S idx res h =
+          unitWeight O v hv hO P S (residueIndex A) R hR * entireUnitWeight O v hv hO P S 1 ^ (r - l) := by
+    subst m
+    exact residue_refinement_class O v hv hO P powers S A B (residueIndex _) idx α hi hit R hR
+  exact step (residueIndex B) dims
+
 include powers in
 theorem chart_slice_weight (hp : p.measurable O v hO P S) (sub : c.support ⊆ p.value.support) :
     ∃ h : isRVSet _ S (unitSet O v (residueIndex c.frame) (p.onSlice c)),
@@ -40,16 +65,6 @@ theorem chart_slice_weight (hp : p.measurable O v hO P S) (sub : c.support ⊆ p
         p.residueWeight O v hv hO P S hp * entireUnitWeight O v hv hO P S 1 ^ (p.value.rank - c.rank) := by
   obtain ⟨α,hα,hi⟩ := c.independent
   have hit := Set.image_subset_range _ _ (sub (show c.frame.eval α ∈ c.support from ⟨α,hα,rfl⟩))
-  have le := p.value.frame.refinement_rank c.frame α hi hit
-  have bound := Fintype.card_le_of_injective p.value.frame.free p.value.frame.free.injective
-  simp only [Fintype.card_fin] at bound
-  have dims : n - p.value.rank + (p.value.rank - c.rank) = n - c.rank := by omega
-  have step {m} (idx : Fin m ≃ c.frame.dependent) (dim : n-p.value.rank + (p.value.rank-c.rank) = m) :
-      ∃ h : isRVSet _ S (unitSet O v idx (p.onSlice c)),
-        unitWeight O v hv hO P S idx (p.onSlice c) h =
-          p.residueWeight O v hv hO P S hp * entireUnitWeight O v hv hO P S 1 ^ (p.value.rank - c.rank) := by
-    subst m
-    exact residue_refinement_class O v hv hO P powers S p.value.frame c.frame (residueIndex _) idx α hi hit p.residue hp
-  exact step (residueIndex c.frame) dims
+  exact frame_slice_weight O v hv hO P powers S p.value.frame c.frame p.residue hp α hi hit
 
 end GeneralizedEuler.Section4

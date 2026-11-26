@@ -32,21 +32,18 @@ private theorem exists_code {n} (x : Fin n → RV0 O) (pos : ∀ i, IsPositiveRV
   choose z hz using fun i => exists_positiveRV_of_positive O (pos i)
   exact ⟨fun i => Additive.ofMul (z i),funext hz⟩
 
-include hs powers base lang pull in
-theorem positive_partition_class {n l} (U : Set (Fin n → RV0 O)) (hU : isRVSet _ S U)
+include lang pull in
+theorem positive_partition_sets {n l} (U : Set (Fin n → RV0 O)) (hU : isRVSet _ S U)
     (pos : ∀ x ∈ U, ∀ i, IsPositiveRV O (x i)) {Q : Set (Fin n → v.ker) → Prop}
     (p : Fin l → PositivePiece v G (fun _ D => (G : Set _).Definable JG D) Q)
     (supports : ∀ γ, ∃! i, γ ∈ (p i).value.support)
     (charts : ∀ i, ∃ e : (p i).rectangle ≃ (p i).carrier ((codeTuple O) ⁻¹' U), ∀ z,
       (e z).val = (p i).value.frame.assemble v s z.1.val z.2.val) :
-    ∃ (b : ∀ i, Set (Fin (n-(p i).value.rank) → RV0 O))
-      (hb : ∀ i, isRVSet _ S (b i)) (pb : ∀ i x, x ∈ b i → ∀ j, IsPositiveRV O (x j)),
-      (∀ i, ∃ e : Fin (n-(p i).value.rank) ≃ (p i).value.frame.dependent,
-        b i = codedResidues O v (p i).value.frame e (p i).residues) ∧
-      objectClass _ S ⟨n,positiveObject O hO P S U hU pos⟩ =
-        ∑ i, objectClass _ S ⟨_,positiveObject O hO P S _ (hb i) (pb i)⟩ *
-          objectClass _ S ⟨_,positiveObject O hO P S _ (pull (p i).value.definable)
-            (positiveSharp_pos O v (p i).value.domain)⟩ := by
+    ∃ C : Fin l → Set (Fin n → RV0 O), (∀ i, isRVSet _ S (C i)) ∧
+      (∀ i x, x ∈ C i → ∀ j, IsPositiveRV O (x j)) ∧
+      Pairwise (fun i j => Disjoint (C i) (C j)) ∧ (⋃ i, C i) = U ∧
+      ∀ i, C i = (fun w => codeTuple O ((p i).value.frame.assemble v s w.1 w.2)) ''
+        ({z | v ∘ z ∈ (p i).value.domain} ×ˢ (p i).residues) := by
   classical
   let M := canonicalStructure (L := J) O hO P
   let C i := U ∩ positiveSharp O v (p i).value.support
@@ -82,6 +79,26 @@ theorem positive_partition_class {n l} (U : Set (Fin n → RV0 O)) (hU : isRVSet
     · rintro ⟨⟨z,b⟩,⟨hz,hb⟩,rfl⟩
       let a : (p i).rectangle := (⟨z,hz⟩,⟨b,hb⟩)
       exact (precise i _).mpr (he a ▸ (e a).property)
+  exact ⟨C,hc,pc,disj,cover,images⟩
+
+include hs powers base lang pull in
+theorem positive_partition_class {n l} (U : Set (Fin n → RV0 O)) (hU : isRVSet _ S U)
+    (pos : ∀ x ∈ U, ∀ i, IsPositiveRV O (x i)) {Q : Set (Fin n → v.ker) → Prop}
+    (p : Fin l → PositivePiece v G (fun _ D => (G : Set _).Definable JG D) Q)
+    (supports : ∀ γ, ∃! i, γ ∈ (p i).value.support)
+    (charts : ∀ i, ∃ e : (p i).rectangle ≃ (p i).carrier ((codeTuple O) ⁻¹' U), ∀ z,
+      (e z).val = (p i).value.frame.assemble v s z.1.val z.2.val) :
+    ∃ (b : ∀ i, Set (Fin (n-(p i).value.rank) → RV0 O))
+      (hb : ∀ i, isRVSet _ S (b i)) (pb : ∀ i x, x ∈ b i → ∀ j, IsPositiveRV O (x j)),
+      (∀ i, ∃ e : Fin (n-(p i).value.rank) ≃ (p i).value.frame.dependent,
+        b i = codedResidues O v (p i).value.frame e (p i).residues) ∧
+      objectClass _ S ⟨n,positiveObject O hO P S U hU pos⟩ =
+        ∑ i, objectClass _ S ⟨_,positiveObject O hO P S _ (hb i) (pb i)⟩ *
+          objectClass _ S ⟨_,positiveObject O hO P S _ (pull (p i).value.definable)
+            (positiveSharp_pos O v (p i).value.domain)⟩ := by
+  classical
+  let M := canonicalStructure (L := J) O hO P
+  obtain ⟨C,hc,pc,disj,cover,images⟩ := positive_partition_sets O v s hO P S lang @pull U hU pos p supports charts
   let m (i) := n-(p i).value.rank
   let idx (i) : Fin (m i) ≃ (p i).value.frame.dependent :=
     (Fintype.equivFinOfCardEq (complement_count (p i).value.frame.free)).symm

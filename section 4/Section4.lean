@@ -1,9 +1,12 @@
 module
 
 public import Section4.AffineLifts
+public import Section4.ArbitraryRectangleWeight
+public import Section4.AssignedScissors
 public import Section4.BaseAndDimension
 public import Section4.CanonicalChartCover
 public import Section4.CanonicalChartMaps
+public import Section4.CanonicalObjectWeights
 public import Section4.CanonicalRectangles
 public import Section4.CanonicalSurjectivity
 public import Section4.CellProducts
@@ -17,6 +20,7 @@ public import Section4.CoordinateChanges
 public import Section4.DefinableLifts
 public import Section4.DefinableResidueMatrices
 public import Section4.DefinableValueFrames
+public import Section4.DegreeZeroInclusion
 public import Section4.EulerRetractions
 public import Section4.EulerRing
 public import Section4.Factors
@@ -38,6 +42,9 @@ public import Section4.LostCoordinates
 public import Section4.MatchingRectangles
 public import Section4.MatrixPreimages
 public import Section4.MeasurableCharts
+public import Section4.MultiplicativeDescent
+public import Section4.NormalRectangleCover
+public import Section4.NormalRectangles
 public import Section4.ObjectTensorWeights
 public import Section4.Objects
 public import Section4.PackedGraph
@@ -46,20 +53,25 @@ public import Section4.PositiveObjectCover
 public import Section4.PositivePresentations
 public import Section4.PositiveRectangles
 public import Section4.PositiveValuation
+public import Section4.ProductAssignment
 public import Section4.ProjectedFrame
 public import Section4.ProjectedPieceWeights
 public import Section4.ProjectedRVChart
 public import Section4.ProjectedResidues
 public import Section4.ProjectedValuePiece
 public import Section4.ProjectionMinor
+public import Section4.RVProducts
 public import Section4.RectangleClasses
 public import Section4.RectangleDecomposition
 public import Section4.RectangleGeneration
 public import Section4.RectangleMap
+public import Section4.RectangleMultiplicativity
+public import Section4.RectangleProducts
 public import Section4.RectangleRange
 public import Section4.ReductInvariance
 public import Section4.RefinedChartTest
 public import Section4.RefinementCoordinates
+public import Section4.ReindexUnits
 public import Section4.RelativeResidues
 public import Section4.ResidueClasses
 public import Section4.ResidueMatrices
@@ -72,11 +84,17 @@ public import Section4.Scissors
 public import Section4.SignPieces
 public import Section4.SignedRectangleFactors
 public import Section4.SignedShears
+public import Section4.SignedTensorFactors
 public import Section4.SliceComparison
 public import Section4.SliceWeights
+public import Section4.StandardFrame
+public import Section4.StandardRectangleWeight
+public import Section4.SubframeCarrier
 public import Section4.TaggedObjects
 public import Section4.TensorComparison
+public import Section4.TensorDescent
 public import Section4.TupleFibers
+public import Section4.UnaryFiberMatching
 public import Section4.ValueDegrees
 public import Section4.ValueDescent
 public import Section4.ValueEmbedding
@@ -87,6 +105,7 @@ public import Section4.ValuePadding
 public import Section4.ValuePresentation
 public import Section4.ValuePullback
 public import Section4.ValueRefinement
+public import Section4.ValueRingInclusion
 public import Section4.ValueScissors
 public import Section4.ValueStratification
 public import Section4.ValueSubdivisionSum
