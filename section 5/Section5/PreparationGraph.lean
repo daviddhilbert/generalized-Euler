@@ -25,11 +25,11 @@ def lastIndex : (n : ℕ) → HistoryIndex n
   | 0 => ()
   | _ + 1 => .inr ()
 
-def decodeHistory : (n : ℕ) → (HistoryIndex n → RV0 O) → PreparationLabels O (RV0 O) n
+@[expose] def decodeHistory : (n : ℕ) → (HistoryIndex n → RV0 O) → PreparationLabels O (RV0 O) n
   | 0, t => ⟨t ()⟩
   | n + 1, t => (decodeHistory n (t ∘ Sum.inl), t (.inr ()))
 
-def encodeHistory : (n : ℕ) → PreparationLabels O (RV0 O) n → HistoryIndex n → RV0 O
+@[expose] def encodeHistory : (n : ℕ) → PreparationLabels O (RV0 O) n → HistoryIndex n → RV0 O
   | 0, h => fun _ => h.down
   | n + 1, h => Sum.elim (encodeHistory n h.1) (fun _ => h.2)
 

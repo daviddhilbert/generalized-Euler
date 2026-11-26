@@ -26,6 +26,32 @@ definability predicate. -/
 
 namespace DefinableRelation
 
+theorem congr {R S : SortedAssignment X U → SortedAssignment X V → Prop}
+    (hR : DefinableRelation M A R) (h : ∀ x y, R x y ↔ S x y) :
+    DefinableRelation M A S := by
+  unfold DefinableRelation at hR ⊢
+  exact (Set.ext fun _ => h _ _) ▸ hR
+
+theorem diagonal [Finite (U .vf)] [Finite (U .rv)] :
+    DefinableRelation M A (fun x y : SortedAssignment X U => x = y) := by
+  let V := SumVariables U U
+  have hVF := SortedDefinableOver.iInter (fun i : U .vf =>
+    SortedDefinableOver.coordinate_eq (M := M) (A := A) (Var := V) .vf (.inl i) (.inr i))
+  have hRV := SortedDefinableOver.iInter (fun i : U .rv =>
+    SortedDefinableOver.coordinate_eq (M := M) (A := A) (Var := V) .rv (.inl i) (.inr i))
+  unfold DefinableRelation
+  convert hVF.inter hRV using 1
+  ext x
+  simp only [Set.mem_ofPred_eq, Set.mem_inter_iff, Set.mem_iInter]
+  constructor
+  · intro h
+    exact ⟨fun i => congrFun (congrFun h .vf) i, fun i => congrFun (congrFun h .rv) i⟩
+  · rintro ⟨hv,hr⟩
+    funext s i
+    cases s
+    · exact hv i
+    · exact hr i
+
 theorem transpose {R : SortedAssignment X U → SortedAssignment X V → Prop}
     (hR : DefinableRelation M A R) :
     DefinableRelation M A (fun y x => R x y) := by

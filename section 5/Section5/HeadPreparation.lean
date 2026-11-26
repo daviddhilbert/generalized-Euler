@@ -104,7 +104,7 @@ private theorem offset_eq_center (hzero : center none = 0) (cs : List I) :
     simp only [nextOffset, offsetIndex, ih]
     split <;> rfl
 
-private theorem lead_independent (other : Option I → K) (cs : List I) :
+theorem centerPreparation_lead_independent (other : Option I → K) (cs : List I) :
     (centerPreparation (O := O) center cs).lead = (centerPreparation (O := O) other cs).lead := by
   cases cs <;> rfl
 
@@ -116,7 +116,22 @@ private theorem offsetIndex_eq (other : Option I → K)
   | nil => intro t; rfl
   | cons c cs ih =>
     intro t
-    simp only [offsetIndex, ih, h, lead_independent (O := O) center other cs]
+    simp only [offsetIndex, ih, h, centerPreparation_lead_independent (O := O) center other cs]
+
+/-- A center is usable in precisely the same old histories whenever
+the ordered differences of centers agree. -/
+theorem centerStep_same_locus (other : Option I → K)
+    (hzero : center none = 0) (hzero' : other none = 0)
+    (h : ∀ i j, rv O (center i - center j) = rv O (other i - other j)) (cs : List I)
+    (i : I) (t : PreparationLabels O (RV0 O) cs.length) :
+    ((centerPreparation (O := O) center cs).lead t ≠ 0 ∧
+      rv O (center (some i) - (centerPreparation (O := O) center cs).offset t) =
+        (centerPreparation (O := O) center cs).lead t) ↔
+    ((centerPreparation (O := O) other cs).lead t ≠ 0 ∧
+      rv O (other (some i) - (centerPreparation (O := O) other cs).offset t) =
+        (centerPreparation (O := O) other cs).lead t) := by
+  rw [offset_eq_center (O := O) center hzero, offset_eq_center (O := O) other hzero',
+    offsetIndex_eq (O := O) center other h, h, centerPreparation_lead_independent (O := O) center other cs]
 
 /-- Equality of the leading terms of all ordered differences, including
 the differences with zero, gives the same output histories in the two
@@ -135,7 +150,7 @@ theorem label_ranges_of_center_differences (other : Option I → K)
       (s,u) ∈ Set.range ((centerPreparation (O := O) other cs).step (other (some c))).label
     rw [step_label_range, step_label_range, ih,
       offset_eq_center (O := O) center hzero, offset_eq_center (O := O) other hzero',
-      offsetIndex_eq (O := O) center other h, h, lead_independent (O := O) center other cs]
+      offsetIndex_eq (O := O) center other h, h, centerPreparation_lead_independent (O := O) center other cs]
 
 end IndexedCenters
 
