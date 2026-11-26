@@ -72,3 +72,16 @@ public import Section5.ObjectLiftRestrictions
 public import Section5.ObjectLiftPartitions
 public import Section5.RVObjectLiftTheorem
 public import Section5.UnaryAffinePreparation
+public import Section5.BalancedCells
+public import Section5.RelativeUnaryShears
+public import Section5.GradedBlowupLabels
+public import Section5.MultiCoordinateBlowup
+public import Section5.BlowupOverlap
+public import Section5.BlowupIteration
+public import Section5.BlowupMultiplierDefinability
+public import Section5.ZeroBlowupObject
+public import Section5.PositiveBlowupObject
+public import Section5.BlowupClassProducts
+public import Section5.BlowupCongruence
+public import Section5.GradedScissorRealization
+public import Section5.BlowupFocusChoice
