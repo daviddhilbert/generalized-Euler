@@ -65,4 +65,48 @@ theorem positioningLeafValid_of_geometry
         rw [← (graph x y hx).1 hxy.1,← (graph v w hv).1 hvw.1]
         exact affine (x .vf 0) hx (v .vf 0) hv
 
+theorem positioningLeafValid.geometry
+    {D : Set (SortedAssignment Z (SumVariables P U))}
+    {G : Set (SortedAssignment Z (SumVariables (SumVariables P U) U))}
+    {p : SortedAssignment Z P} (h : positioningLeafValid O D G p)
+    (A : Set K) (f : K → K)
+    (dom : ∀ x : fieldAssignment 1 Z, appendAssignments p x ∈ D ↔ x .vf 0 ∈ A)
+    (graph : ∀ x y : fieldAssignment 1 Z, x .vf 0 ∈ A →
+      (appendAssignments (appendAssignments p x) y ∈ G ↔ f (x .vf 0) = y .vf 0)) :
+    (∀ x ∈ A, ∀ y ∈ A, f x = f y) ∨
+      ∃ (a b : K) (r s : O.ValueGroup) (u : RV O), r ≠ 0 ∧ s ≠ 0 ∧
+        A = openDisc O a r ∧ f '' A = openDisc O b s ∧ RVAffineOn O A f u := by
+  let a (x : K) : fieldAssignment 1 Z := fieldTupleAssignment (fun _ => x)
+  have defined (x : K) (hx : x ∈ A) : appendAssignments (appendAssignments p (a x)) (a (f x)) ∈ G :=
+    (graph (a x) (a (f x)) hx).2 rfl
+  rcases h with empty | point | ⟨⟨x,r,hr,ball⟩,part⟩
+  · exact Or.inl (fun x hx _ _ => (empty (a x) ((dom (a x)).2 hx)).elim)
+  · obtain ⟨x,point⟩ := point
+    apply Or.inl
+    intro y hy z hz
+    have ey : y = x := (point (a y)).1 ((dom (a y)).2 hy)
+    have ez : z = x := (point (a z)).1 ((dom (a z)).2 hz)
+    exact congrArg f (ey.trans ez.symm)
+  · rcases part with constant | ⟨⟨y,s,hs,img⟩,u,un,aff⟩
+    · apply Or.inl
+      intro x hx y hy
+      have same := constant (a x) (a (f x)) (a y) (a (f y))
+        ((dom (a x)).2 hx) ((dom (a y)).2 hy) (defined x hx) (defined y hy)
+      exact congrFun (congrFun same .vf) 0
+    · obtain ⟨w,hw⟩ := WithZero.ne_zero_iff_exists.mp un
+      refine Or.inr ⟨x,y,r,s,w,hr,hs,?_,?_,?_⟩
+      · ext z
+        exact (dom (a z)).symm.trans (ball (a z))
+      · ext z
+        refine Iff.trans ?_ (img (a z))
+        constructor
+        · rintro ⟨x,hx,e⟩
+          exact ⟨a x,(graph (a x) (a z) hx).2 e,(dom (a x)).2 hx⟩
+        · rintro ⟨x,hg,hd⟩
+          exact ⟨x .vf 0,(dom x).1 hd,(graph x (a z) ((dom x).1 hd)).1 hg⟩
+      · intro x hx y hy
+        have slope := aff (a x) (a (f x)) (a y) (a (f y))
+          ⟨defined x hx,(dom (a x)).2 hx⟩ ⟨defined y hy,(dom (a y)).2 hy⟩
+        exact (congrArg (· * rv O (x-y)) hw).symm ▸ slope
+
 end GeneralizedEuler.Section5

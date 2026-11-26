@@ -70,23 +70,37 @@ end HeadContractionData
 
 namespace HeadContractionRun
 
+theorem restrictRuns_with_source {A : RetainedFieldFamily M S n k} {l : ℕ} {B : RetainedFieldFamily M S 0 l}
+    (run : HeadContractionRun A B) :
+    ∃ old : A.tags → B.tags,
+    (∀ t : B.tags → RV0 O, (Fin.elim0,t) ∈ B.carrier → ∃ b, (b,t ∘ old) ∈ A.carrier) ∧
+    ∀ (D : Set (A.tags → RV0 O)) (defD : isRVSet M S D),
+      HeadContractionRun (A.restrictTags D defD)
+        (B.restrictTags {t | t ∘ old ∈ D} (isRVSet_precomp old defD)) := by
+  induction run with
+  | done A =>
+    refine ⟨id,fun t ht => ⟨Fin.elim0,ht⟩,?_⟩
+    intro D defD
+    exact .done _
+  | next H tail ih =>
+    obtain ⟨old,source,all⟩ := ih
+    refine ⟨old ∘ Sum.inr,?_,?_⟩
+    · intro t ht
+      obtain ⟨b,hb⟩ := source t ht
+      obtain ⟨x,hx,_⟩ := hb
+      exact ⟨Fin.cons x b,hx⟩
+    · intro D defD
+      refine .next (H.restrictTags D defD) ?_
+      rw [H.restrictTags_target]
+      exact all _ _
+
 theorem restrictRuns {A : RetainedFieldFamily M S n k} {l : ℕ} {B : RetainedFieldFamily M S 0 l}
     (run : HeadContractionRun A B) :
     ∃ old : A.tags → B.tags, ∀ (D : Set (A.tags → RV0 O)) (defD : isRVSet M S D),
       HeadContractionRun (A.restrictTags D defD)
         (B.restrictTags {t | t ∘ old ∈ D} (isRVSet_precomp old defD)) := by
-  induction run with
-  | done A =>
-    refine ⟨id,?_⟩
-    intro D defD
-    exact .done _
-  | next H tail ih =>
-    obtain ⟨old,all⟩ := ih
-    refine ⟨old ∘ Sum.inr,?_⟩
-    intro D defD
-    refine .next (H.restrictTags D defD) ?_
-    rw [H.restrictTags_target]
-    exact all _ _
+  obtain ⟨old,_,runs⟩ := run.restrictRuns_with_source
+  exact ⟨old,runs⟩
 
 end HeadContractionRun
 

@@ -164,4 +164,28 @@ theorem positionedCell_translate_first {c : K} {r : O.ValueGroup} {f g : K → K
     rw [hfg] at he
     exact ⟨(x,p.2),⟨hx,he⟩,Prod.ext (add_sub_cancel_right _ _) rfl⟩
 
+theorem positionedCell_reverse_mem {c : K} {r : O.ValueGroup} {f g : K → K}
+    {t : RV0 O} {u : RV O} (B : Set K)
+    (hf : RVAffineOn O (openDisc O c r) f u)
+    (small : unsignedValue O (oppositeParadigm O t u) < r)
+    (target : ∀ p ∈ positionedCell O (openDisc O c r) f t, p.2 ∈ B)
+    (inverse : ∀ b ∈ B, g b ∈ openDisc O c r ∧ f (g b) = b)
+    (x y : K) :
+    (x,y) ∈ positionedCell O (openDisc O c r) f t ↔
+      y ∈ B ∧ rv O (x-g y) = oppositeParadigm O t u := by
+  let C := positionedCell O (openDisc O c r) f t
+  let translate (p : K × K) : K × K := (p.1 - g p.2,p.2)
+  have image : translate '' C = (rv O ⁻¹' {oppositeParadigm O t u}) ×ˢ B :=
+    positionedCell_translate_first O B hf small target inverse
+  constructor
+  · intro h
+    have m := image ▸ Set.mem_image_of_mem translate h
+    exact ⟨m.2,m.1⟩
+  · rintro ⟨hy,hx⟩
+    have m : translate (x,y) ∈ (rv O ⁻¹' {oppositeParadigm O t u}) ×ˢ B := ⟨hx,hy⟩
+    obtain ⟨p,hp,e⟩ := image.symm ▸ m
+    have second : p.2 = y := congrArg Prod.snd e
+    have first : p.1 = x := sub_left_inj.mp (by simpa only [translate,second] using congrArg Prod.fst e)
+    exact (Prod.ext first second : p = (x,y)) ▸ hp
+
 end GeneralizedEuler.Section5
