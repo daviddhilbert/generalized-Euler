@@ -34,3 +34,8 @@ public import Section5.SpecialHeadPreparation
 public import Section5.SpecialSuccessor
 public import Section5.PreparedGraphContraction
 public import Section5.SpecialPrefixGraphs
+public import Section5.FinitePreparationFibers
+public import Section5.PullbackLabels
+public import Section5.DefinablePullbackLabels
+public import Section5.RVPatternObjects
+public import Section5.GradedLiftPresentation

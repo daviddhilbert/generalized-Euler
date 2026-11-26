@@ -2,6 +2,7 @@ module
 
 public import Section5.SuccessorTags
 public import Section5.UnaryLifting
+public import Section5.FinitePreparationFibers
 
 /-! The proof of the field-arity successor step for a definable
 preparation with a full image and all tests contractible. -/
@@ -48,8 +49,10 @@ preparations and the uniform head graph. -/
 @[expose] def PreparedMap.successor [Finite I] [Finite R]
     (G : PointTests O (n+1) I J)
     (firstDef : PointMapDefinable M S first) (firstInj : Function.Injective first)
+    (firstFinite : FiniteFieldPreimages first)
     (oldIndex : I ↪ R) (oldAux : ∀ p i, (first p).2 (oldIndex i) = p.2 i)
     (headGraph : PointMapDefinable M S (headMap (I := I) P))
+    (headFinite : FiniteFieldPreimages (headMap (I := I) P))
     (historyIndex : HistoryIndex k)
     (hLead : ∀ b t, (P b).lead t = encodeHistory O k t historyIndex)
     (hG : ∀ b x y ξ t, (P b).label x = (P b).label y →
@@ -161,7 +164,8 @@ preparations and the uniform head graph. -/
     exact congrFun hVF i.succ
 
   refine ⟨last.tags,last.finiteTags,oldIndex.trans (Function.Embedding.inl.trans last.oldIndex),
-    f,hinj,(headGraph.comp firstDef.keepTags.liftTail).comp last.definable.liftTail,?_,?_,?_⟩
+    f,hinj,(headGraph.comp firstDef.keepTags.liftTail).comp last.definable.liftTail,?_,?_,?_,
+    (headFinite.comp firstFinite.keepTags.liftTail).comp last.finiteFieldPreimages.liftTail⟩
   · intro p i
     exact (last.oldAux _ (.inl (oldIndex i))).trans (oldAux (tailPoint p) i)
   · intro u v he

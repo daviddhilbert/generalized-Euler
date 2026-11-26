@@ -1,7 +1,7 @@
 module
 
 public import Section5.DefinableRelations
-public import Section5.CoordinatePreparation
+public import Section5.FiniteFieldPreimages
 
 /-! Fixed-base data passed between the arity-induction steps. -/
 
@@ -52,6 +52,7 @@ structure PreparedMap
     (p ∈ Set.range map ↔ q ∈ Set.range map)
   tests : ∀ p q, preparationLabel (map p) = preparationLabel (map q) →
     ∀ t, (p,t) ∈ G ↔ (q,t) ∈ G
+  finiteFieldPreimages : FiniteFieldPreimages map
 
 theorem mixedTuple_injective :
     Function.Injective (mixedTuple (X := CanonicalSort O) (n := n) (R := I)) := by
@@ -82,6 +83,7 @@ RV label is already a point. -/
     change preparationLabel p = preparationLabel q at h
     have hr : p.2 = q.2 := congrArg (fun v : (Fin 0 → RV0 O) × (I → RV0 O) => v.2) h
     rw [Prod.ext hv hr]
+  finiteFieldPreimages := FiniteFieldPreimages.id
 
 /-- Restricting the map to any represented output test gives an
 RV-pullback, using the ambient image and test constancy together. -/

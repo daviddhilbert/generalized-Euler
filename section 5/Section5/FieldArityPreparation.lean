@@ -72,8 +72,11 @@ theorem preparedMap_of_definable
         (he : (P b).label x = (P b).label y) :
         (((Fin.cons x b, ξ),s) ∈ G ↔ ((Fin.cons y b, ξ),s) ∈ G) :=
       ht b x y (Sum.elim ξ s) he
+    have hHeadFinite : FiniteFieldPreimages (headMap (I := I) P) :=
+      FiniteFieldPreimages.head P (fun b => finite_prepared_offsets (O := O) (center b ∘ some) cs)
     refine ⟨PreparedMap.successor P first.map G first.definable first.injective
-      first.oldIndex first.oldAux hhead (lastIndex cs.length) hLead hconst last, ?_⟩
+      first.finiteFieldPreimages first.oldIndex first.oldAux hhead hHeadFinite
+      (lastIndex cs.length) hLead hconst last, ?_⟩
     exact specialSuccessor center first cs (fun _ => rfl) firstSpecial last.map lastSpecial
 
 end GeneralizedEuler.Section5
