@@ -52,4 +52,22 @@ theorem finite_tests {I : Type*} (sat : RealizesFinitelySatisfiableTypes M V W)
   obtain ⟨x, hx, hΔ⟩ := sat Δ hf
   exact hall x hx (fun i => hΔ _ (Or.inr (Set.mem_range_self i))) (hΔ _ (Or.inl rfl))
 
+/-- Pointwise existence of a valid formula scheme gives a finite cover.
+Later applications use one formula to test the validity of each entire
+definable preparation scheme. -/
+theorem finite_formula_cover {I : Type*} (sat : RealizesFinitelySatisfiableTypes M V W)
+    (valid : I → SortedFormula L E V)
+    (hcover : ∀ x ∈ W, ∃ i, (valid i).realize M x) :
+    ∃ C : Finset I, ∀ x ∈ W, ∃ i ∈ C, (valid i).realize M x := by
+  classical
+  obtain ⟨C, hC⟩ := finite_tests M V W sat (.falsum : SortedFormula L E V).neg
+    (fun i => (valid i).neg) (by
+      intro x hx hall _
+      obtain ⟨i, hi⟩ := hcover x hx
+      exact ((valid i).realize_neg M x).1 (hall i) hi)
+  refine ⟨C, fun x hx => ?_⟩
+  by_contra! h
+  exact hC x hx (fun i hi => ((valid i).realize_neg M x).2 (h i hi))
+    ((SortedFormula.realize_neg M x _).2 id)
+
 end GeneralizedEuler.Section5
