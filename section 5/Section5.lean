@@ -94,3 +94,8 @@ public import Section5.RelativeBlowupGraph
 public import Section5.FiberwiseBlowupFiniteness
 public import Section5.ContractionOrderInduction
 public import Section5.IntegrationKernelAlgebra
+public import Section5.DefinableElementaryLift
+public import Section5.DefinablePartitionBijection
+public import Section5.FiniteProjectionElementaryLift
+public import Section5.ElementaryLiftStrata
+public import Section5.BlowupOverlapClasses
