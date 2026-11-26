@@ -54,6 +54,12 @@ noncomputable def liftUnaryBlowup (c : K) (hc : c ≠ 0) :
     rw [add_sub_cancel_right, map_div₀]
     exact (div_eq_iff (G₀ := RV0 O) ((rv_eq_zero_iff O).not.mpr hc)).2 p.property.2
 
+theorem liftUnaryBlowup_apply_value (c : K) (hc : c ≠ 0)
+    (x : {x : K // rv O x = rv O c}) :
+    (liftUnaryBlowup O c hc x).val = (x.val-c,rv O ((x.val-c)/c)) := by
+  unfold liftUnaryBlowup
+  rfl
+
 theorem blowup_zero_multiplier_iff {t : RV0 O} (ht : t ≠ 0) (p : BlownUpFiber O t) :
     p.val.2 = 0 ↔ p.val.1 = 0 := by
   rw [← rv_eq_zero_iff O, p.property.2, mul_eq_zero, or_iff_left ht]

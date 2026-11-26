@@ -70,4 +70,11 @@ def commonBlowupRingCon
       exact commonBlowup_map step (fun x => x * b) (fun _ _ => mulStable _ _ b) g
     exact (commonBlowup_equivalence step diamond).trans first second
 
+theorem commonBlowupRingCon_iff
+    (diamond : ∀ {a b c}, step a b → step a c → ∃ d, step b d ∧ step c d)
+    (addStable : ∀ a b w, step a b → step (a + w) (b + w))
+    (mulStable : ∀ a b w, step a b → step (a * w) (b * w)) (a b : T) :
+    commonBlowupRingCon step diamond addStable mulStable a b ↔ CommonBlowup step a b :=
+  Iff.rfl
+
 end GeneralizedEuler.Section5

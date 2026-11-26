@@ -85,3 +85,12 @@ public import Section5.BlowupClassProducts
 public import Section5.BlowupCongruence
 public import Section5.GradedScissorRealization
 public import Section5.BlowupFocusChoice
+public import Section5.CenteredDiscContraction
+public import Section5.SimultaneousLabelRefinement
+public import Section5.PairedFocusStep
+public import Section5.PairedFocusDefinability
+public import Section5.PositioningDistance
+public import Section5.RelativeBlowupGraph
+public import Section5.FiberwiseBlowupFiniteness
+public import Section5.ContractionOrderInduction
+public import Section5.IntegrationKernelAlgebra

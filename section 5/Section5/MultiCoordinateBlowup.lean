@@ -96,6 +96,17 @@ private def blowupFiberPacking (j : F) (t : F → RV0 O) :
         exact insertCoordinate_at _ _ _
       · exact insertCoordinate_other _ _ _ ⟨i,hi⟩
 
+private def unaryBlowupWithLabel (c : K) (hc : c ≠ 0) (t : RV0 O) (ht : rv O c = t) :
+    {x : K // rv O x = t} ≃ BlownUpFiber O t :=
+  (Equiv.subtypeEquivRight (fun _ => by rw [ht])).trans
+    ((liftUnaryBlowup O c hc).trans
+      (Equiv.subtypeEquivRight (fun _ => by rw [ht])))
+
+private theorem unaryBlowupWithLabel_apply_value (c : K) (hc : c ≠ 0) (t : RV0 O)
+    (ht : rv O c = t) (x : {x : K // rv O x = t}) :
+    (unaryBlowupWithLabel O c hc t ht x).val = (x.val-c,rv O ((x.val-c)/c)) := by
+  exact liftUnaryBlowup_apply_value O c hc ⟨x.val,x.property.trans ht.symm⟩
+
 /-- The elementary blowup of a lifted label object is equivalent to
 the original lift once foci have been chosen in the selected fibers. -/
 def liftBlowupCoordinates (j : F) (f : A → F → RV0 O)
@@ -106,9 +117,7 @@ def liftBlowupCoordinates (j : F) (f : A → F → RV0 O)
         {y : F → K // ∀ i, rv O (y i) = blowupLabel O j f (a,s.val) i}) := by
   apply Equiv.sigmaCongrRight
   intro a
-  let chooseUnary : {x : K // rv O x = f a j} ≃ BlownUpFiber O (f a j) := by
-    rw [← label a]
-    exact liftUnaryBlowup O (focus a) (nonzero a)
+  let chooseUnary := unaryBlowupWithLabel O (focus a) (nonzero a) (f a j) (label a)
   exact (tupleFiberSplit O j (f a)).trans
     ((Equiv.prodCongr (Equiv.refl _) chooseUnary).trans (blowupFiberPacking O j (f a)))
 
@@ -123,10 +132,8 @@ def liftBlowupCoordinatesWithRelativeFocus (j : F) (f : A → F → RV0 O)
         {y : F → K // ∀ i, rv O (y i) = blowupLabel O j f (a,s.val) i}) := by
   apply Equiv.sigmaCongrRight
   intro a
-  let unary (v : RestFiber O j (f a)) :
-      {x : K // rv O x = f a j} ≃ BlownUpFiber O (f a j) := by
-    rw [← label a v]
-    exact liftUnaryBlowup O (focus a v) (nonzero a v)
+  let unary (v : RestFiber O j (f a)) :=
+    unaryBlowupWithLabel O (focus a v) (nonzero a v) (f a j) (label a v)
   let e : (RestFiber O j (f a) × {x : K // rv O x = f a j}) ≃
       (RestFiber O j (f a) × BlownUpFiber O (f a j)) :=
     { toFun w := (w.1,unary w.1 w.2)
@@ -134,5 +141,32 @@ def liftBlowupCoordinatesWithRelativeFocus (j : F) (f : A → F → RV0 O)
       left_inv w := Prod.ext rfl ((unary w.1).symm_apply_apply w.2)
       right_inv w := Prod.ext rfl ((unary w.1).apply_symm_apply w.2) }
   exact (tupleFiberSplit O j (f a)).trans (e.trans (blowupFiberPacking O j (f a)))
+
+theorem liftBlowupCoordinatesWithRelativeFocus_apply (j : F) (f : A → F → RV0 O)
+    (focus : ∀ a : A, {v : {i : F // i ≠ j} → K // ∀ i, rv O (v i) = f a i.val} → K)
+    (nonzero : ∀ a v, focus a v ≠ 0)
+    (label : ∀ a v, rv O (focus a v) = f a j)
+    (a : A) (x : {x : F → K // ∀ i, rv O (x i) = f a i}) :
+    let c := focus a ⟨fun i => x.val i.val,fun i => x.property i.val⟩
+    let y := liftBlowupCoordinatesWithRelativeFocus O j f focus nonzero label ⟨a,x⟩
+    y.1 = a ∧ y.2.1.val = rv O ((x.val j - c) / c) ∧
+      y.2.2.val = Function.update x.val j (x.val j - c) := by
+  intro c y
+  let v : RestFiber O j (f a) := ⟨fun i => x.val i.val,fun i => x.property i.val⟩
+  let w := unaryBlowupWithLabel O c (nonzero a v) (f a j) (label a v) ⟨x.val j,x.property j⟩
+  have h := unaryBlowupWithLabel_apply_value O c (nonzero a v) (f a j) (label a v)
+    ⟨x.val j,x.property j⟩
+  refine ⟨rfl,?_,?_⟩
+  · change w.val.2 = _
+    exact congrArg Prod.snd h
+  · funext i
+    change insertCoordinate j (fun z => x.val z.val) w.val.1 i =
+      Function.update x.val j (x.val j - c) i
+    by_cases hi : i = j
+    · subst i
+      rw [insertCoordinate_at,Function.update_self]
+      exact congrArg Prod.fst h
+    · rw [Function.update_of_ne hi]
+      exact insertCoordinate_other _ _ _ ⟨i,hi⟩
 
 end GeneralizedEuler.Section5
