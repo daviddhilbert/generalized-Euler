@@ -13,7 +13,7 @@ open Polynomial
 section NormalForms
 variable {K : Type*} [CommRing K] (e H : K)
 
-def cellPolynomials : Set K :=
+@[expose] def cellPolynomials : Set K :=
   {x | ∃ q r : Poly, x = q.eval₂ (Int.castRingHom K) e + H * r.eval₂ (Int.castRingHom K) e}
 
 theorem cellPolynomials_subring (rel : H^2 = -(e*H)) :
@@ -68,7 +68,7 @@ theorem all_cells_in_subring (A : Subring K) (he : e ∈ A) (hh : H ∈ A) {x}
 variable (g b : K →+* Poly) (ge : g e = X) (be : b e = X)
   (gh : g H = -X) (bh : b H = 0)
 
-private theorem map_eval (f : K →+* Poly) (he : f e = X) (q : Poly) :
+theorem map_eval_at_value_point (f : K →+* Poly) (he : f e = X) (q : Poly) :
     f (q.eval₂ (Int.castRingHom K) e) = q := by
   induction q using Polynomial.induction_on' with
   | add q r hq hr => simp [eval₂_add,map_add,hq,hr]
@@ -79,19 +79,13 @@ private theorem map_eval (f : K →+* Poly) (he : f e = X) (q : Poly) :
 /-- The two Euler evaluations realize the value ring as pairs of
 polynomials with equal constant terms. No relation between distinct
 ambient degrees is imposed by groupification. -/
-def valuePresentation (rel : H^2 = -(e*H))
-    (generated : ∀ x : K, ∃ a c, CellClass e H a ∧ CellClass e H c ∧ x = a-c) :
+@[expose] def valuePresentationOfNormal (normal : ∀ x : K, x ∈ cellPolynomials e H) :
     K ≃+* valueRing := by
-  have normal (x : K) : x ∈ cellPolynomials e H := by
-    obtain ⟨A,hA,he,hh⟩ := cellPolynomials_subring e H rel
-    obtain ⟨a,c,ha,hc,rfl⟩ := generated x
-    rw [← hA]
-    exact A.sub_mem (all_cells_in_subring e H A he hh ha) (all_cells_in_subring e H A he hh hc)
   have coords (q r : Poly) :
       (g (q.eval₂ (Int.castRingHom K) e + H*r.eval₂ (Int.castRingHom K) e),
        b (q.eval₂ (Int.castRingHom K) e + H*r.eval₂ (Int.castRingHom K) e)) =
         (q-X*r,q) := by
-    simp [map_add,map_mul,map_eval e g ge,map_eval e b be,gh,bh,sub_eq_add_neg]
+    simp [map_add,map_mul,map_eval_at_value_point e g ge,map_eval_at_value_point e b be,gh,bh,sub_eq_add_neg]
   let f : K →+* valueRing := (g.prod b).codRestrict valueRing (by
     intro x
     obtain ⟨q,r,rfl⟩ := normal x
@@ -117,6 +111,19 @@ def valuePresentation (rel : H^2 = -(e*H))
     apply Prod.ext
     · change q-X*r = q+(-X)*r; ring
     · change q = q+0*r; ring
+
+theorem valuePresentationOfNormal_apply (normal : ∀ x : K, x ∈ cellPolynomials e H) (x : K) :
+    (valuePresentationOfNormal e H g b ge be gh bh normal x).val = (g x,b x) := rfl
+
+def valuePresentation (rel : H^2 = -(e*H))
+    (generated : ∀ x : K, ∃ a c, CellClass e H a ∧ CellClass e H c ∧ x = a-c) :
+    K ≃+* valueRing := by
+  have normal (x : K) : x ∈ cellPolynomials e H := by
+    obtain ⟨A,hA,he,hh⟩ := cellPolynomials_subring e H rel
+    obtain ⟨a,c,ha,hc,rfl⟩ := generated x
+    rw [← hA]
+    exact A.sub_mem (all_cells_in_subring e H A he hh ha) (all_cells_in_subring e H A he hh hc)
+  exact valuePresentationOfNormal e H g b ge be gh bh normal
 
 end NormalForms
 end GeneralizedEuler.Section4

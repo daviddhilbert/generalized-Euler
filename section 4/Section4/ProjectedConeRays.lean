@@ -55,29 +55,26 @@ theorem perturb [Finite I] (a : I → E →ₗ[F] F) {u w : E} (hu : u ∈ polyC
   · simp only [map_sub,map_smul,smul_eq_mul]
     linarith [(abs_le.mp (bound i)).2]
 
-/-- If the image of the active face contains the parameter face of the
-point, an extreme ray has at most one positive parameter coordinate. -/
-theorem extreme_projection [Finite I] [Finite B] [DecidableEq B]
+theorem extreme_projection_of_directions [Finite I] [Finite B] [DecidableEq B]
     (a : I → E →ₗ[F] F) (π : E →ₗ[F] (B → F)) (u : E)
     (inside : u ∈ polyCone a) (positive : ∀ j, 0 ≤ π u j)
-    (adapted : {p : B → F | (∀ j, 0 ≤ p j) ∧ ∀ j, π u j = 0 → p j = 0} ⊆ π '' activeFace a u)
+    (directions : ∀ i, 0 < π u i → ∃ w : E, (∀ t, a t u=0 → a t w=0) ∧ π w=Pi.single i 1)
     (extreme : IsExtreme F (polyCone a ∩ {x | ∀ j, 0 ≤ π x j}) (positiveRay (F := F) u))
     {i j : B} (hi : 0 < π u i) (hj : 0 < π u j) : i=j := by
   by_contra ne
   let e : B → F := Pi.single i 1
-  have en (t) : 0 ≤ e t := by by_cases h : t=i <;> simp [e,h]
-  have ez (t) (h : π u t = 0) : e t = 0 := by
-    have n : t ≠ i := by rintro rfl; exact hi.ne' h
-    simp [e,n]
-  obtain ⟨w,hw,image⟩ := adapted ⟨en,ez⟩
+  obtain ⟨w,hw,image⟩ := directions i hi
   let rows : I ⊕ B → E →ₗ[F] F := Sum.elim a (fun t => (LinearMap.proj t).comp π)
   have whole : polyCone rows = polyCone a ∩ {x | ∀ t, 0 ≤ π x t} := by
     ext x; exact ⟨fun h => ⟨fun t => h (.inl t),fun t => h (.inr t)⟩,
       fun h t => by cases t with | inl t => exact h.1 t | inr t => exact h.2 t⟩
   have tight (t) : rows t u = 0 → rows t w = 0 := by
     cases t with
-    | inl t => exact hw.2 t
-    | inr t => exact fun h => (congrFun image t).trans (ez t h)
+    | inl t => exact hw t
+    | inr t =>
+      intro h
+      have neq : t≠i := fun eq => hi.ne' (eq ▸ h)
+      exact (congrFun image t).trans (Pi.single_eq_of_ne neq _)
   obtain ⟨ε,hε,left,right⟩ := perturb rows (whole.symm ▸ And.intro inside positive) tight
   have onRay : u ∈ positiveRay (F := F) u := ⟨1,zero_le_one,one_smul _ _⟩
   obtain ⟨t,_,same⟩ := extreme.left_mem_of_mem_openSegment (whole ▸ left) (whole ▸ right) onRay
@@ -88,5 +85,23 @@ theorem extreme_projection [Finite I] [Finite B] [DecidableEq B]
     exact mul_right_cancel₀ hj.ne' (h.trans (one_mul _).symm)
   have h : π u i = π u i + ε := by simpa [unit,image,e] using eq i
   linarith
+
+/-- If the image of the active face contains the parameter face of the
+point, an extreme ray has at most one positive parameter coordinate. -/
+theorem extreme_projection [Finite I] [Finite B] [DecidableEq B]
+    (a : I → E →ₗ[F] F) (π : E →ₗ[F] (B → F)) (u : E)
+    (inside : u ∈ polyCone a) (positive : ∀ j, 0 ≤ π u j)
+    (adapted : {p : B → F | (∀ j, 0 ≤ p j) ∧ ∀ j, π u j = 0 → p j = 0} ⊆ π '' activeFace a u)
+    (extreme : IsExtreme F (polyCone a ∩ {x | ∀ j, 0 ≤ π x j}) (positiveRay (F := F) u))
+    {i j : B} (hi : 0 < π u i) (hj : 0 < π u j) : i=j := by
+  apply extreme_projection_of_directions a π u inside positive _ extreme hi hj
+  intro i hi
+  have nonneg (j) : 0 ≤ (Pi.single i 1 : B → F) j := by by_cases h : j=i <;> simp [h]
+  have zeros (j) (hz : π u j=0) : (Pi.single i 1 : B → F) j=0 :=
+    by
+      have ne : j≠i := fun eq => hi.ne' ((congrArg (π u) eq).symm.trans hz)
+      exact Pi.single_eq_of_ne ne _
+  obtain ⟨w,mem,im⟩ := adapted ⟨nonneg,zeros⟩
+  exact ⟨w,mem.2,im⟩
 
 end GeneralizedEuler.Section4.Polyhedral

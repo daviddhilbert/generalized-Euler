@@ -1,12 +1,16 @@
 module
 
+public import Section4.AdaptedParameterCones
 public import Section4.AffineLifts
+public import Section4.AllDegreeValueInclusion
 public import Section4.AlphabetRankProfiles
 public import Section4.AnnulusRingExample
 public import Section4.AnnulusWidths
 public import Section4.ArbitraryBoxUnions
 public import Section4.ArbitraryRectangleWeight
 public import Section4.AssignedScissors
+public import Section4.AxialFiberCharts
+public import Section4.AxialRayCoordinates
 public import Section4.BarycentricValueFibers
 public import Section4.BaseAndDimension
 public import Section4.BoundedIntervalScissors
@@ -56,11 +60,13 @@ public import Section4.FiniteBaseFibers
 public import Section4.FiniteFiberEuler
 public import Section4.FiniteScaleAlphabet
 public import Section4.FiniteScissors
+public import Section4.FiniteSignSpecialization
 public import Section4.FixedBasePartitions
 public import Section4.FixedParameterSpans
 public import Section4.FixedResidueImages
 public import Section4.FrameComparison
 public import Section4.GeometricValueInclusion
+public import Section4.GeometricValuePresentation
 public import Section4.GlobalRectangleMatches
 public import Section4.GradedEulerMaps
 public import Section4.GradedValues
@@ -72,6 +78,7 @@ public import Section4.GraphProjectionSums
 public import Section4.GroupifiedRectangle
 public import Section4.HeightDrop
 public import Section4.HeightDropSharp
+public import Section4.HomogeneousBoxDecomposition
 public import Section4.HomogeneousMatchedPieces
 public import Section4.HomogeneousValueLift
 public import Section4.IndependentRectangleMatches
@@ -112,6 +119,7 @@ public import Section4.OldValueCharts
 public import Section4.OldValuePair
 public import Section4.OrderedBoxCuts
 public import Section4.PackedGraph
+public import Section4.ParameterConeDirections
 public import Section4.PointedConeSubdivision
 public import Section4.PolyhedralGenerators
 public import Section4.PolyhedralProjectionTests
@@ -141,6 +149,7 @@ public import Section4.RVParameterSlices
 public import Section4.RVProducts
 public import Section4.RVScissorRealization
 public import Section4.RVTaggedEquivalence
+public import Section4.RayBlockLayout
 public import Section4.RaySquareScissors
 public import Section4.RectangleClasses
 public import Section4.RectangleDecomposition
@@ -188,6 +197,7 @@ public import Section4.RestrictedBijections
 public import Section4.ScaleAvoidance
 public import Section4.Scissors
 public import Section4.SelectedSharpFibers
+public import Section4.SemilinearBoxDecomposition
 public import Section4.SemiringGroupification
 public import Section4.SignPieces
 public import Section4.SignedFiberCoordinates
@@ -203,8 +213,10 @@ public import Section4.SimplicialValueFibers
 public import Section4.SimultaneousBoxRanks
 public import Section4.SliceComparison
 public import Section4.SliceWeights
+public import Section4.SpecializedConePartitions
 public import Section4.StandardFrame
 public import Section4.StandardRectangleWeight
+public import Section4.StrictConePartition
 public import Section4.SubframeCarrier
 public import Section4.Subrectangles
 public import Section4.TaggedBoxComparison
@@ -226,11 +238,13 @@ public import Section4.UnitFiberNormalization
 public import Section4.UnmatchedValueProjection
 public import Section4.ValueBoxProducts
 public import Section4.ValueBoxes
+public import Section4.ValueConePartition
 public import Section4.ValueDegrees
 public import Section4.ValueDescent
 public import Section4.ValueEmbedding
 public import Section4.ValueFactorMap
 public import Section4.ValueFrames
+public import Section4.ValueMatrixExtension
 public import Section4.ValueMembershipPartition
 public import Section4.ValuePadding
 public import Section4.ValuePointCardinality
