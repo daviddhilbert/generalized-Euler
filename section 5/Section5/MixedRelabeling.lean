@@ -60,6 +60,33 @@ theorem mixed_reindex_equivalent [Finite (W .vf)] [Finite (W .rv)]
     | vf => exact hf i
     | rv => exact hr i
 
+theorem mixed_projection_graph [Finite (W .vf)] [Finite (W .rv)]
+    (p : ∀ s, W s → V s) :
+    DefinableRelation M S.carrier (fun x y => (fun s => x s ∘ p s) = y) := by
+  let T := SumVariables V W
+  have vf := SortedDefinableOver.iInter (fun i : W .vf =>
+    SortedDefinableOver.coordinate_eq (M := M) (A := S.carrier) (Var := T)
+      .vf (.inl (p .vf i)) (.inr i))
+  have rv := SortedDefinableOver.iInter (fun i : W .rv =>
+    SortedDefinableOver.coordinate_eq (M := M) (A := S.carrier) (Var := T)
+      .rv (.inl (p .rv i)) (.inr i))
+  unfold DefinableRelation
+  convert vf.inter rv using 1
+  ext w
+  simp only [Set.mem_inter_iff,Set.mem_iInter,Set.mem_ofPred_eq]
+  let x : SortedAssignment X V := fun s => w s ∘ Sum.inl
+  let y : SortedAssignment X W := fun s => w s ∘ Sum.inr
+  change (fun s => x s ∘ p s) = y ↔
+    (∀ i, x .vf (p .vf i) = y .vf i) ∧ (∀ i, x .rv (p .rv i) = y .rv i)
+  constructor
+  · intro eq
+    exact ⟨fun i => congrFun (congrFun eq .vf) i,fun i => congrFun (congrFun eq .rv) i⟩
+  · rintro ⟨hf,hr⟩
+    funext s i
+    cases s with
+    | vf => exact hf i
+    | rv => exact hr i
+
 /-- A bijective coordinate projection between definable sets has a
 definable graph, even when it drops coordinates fixed by the domain. -/
 theorem mixed_projection_equivalent [Finite (W .vf)] [Finite (W .rv)]
@@ -76,31 +103,8 @@ theorem mixed_projection_equivalent [Finite (W .vf)] [Finite (W .rv)]
     · intro y
       obtain ⟨x,hx,eq⟩ := bij.surjOn y.property
       exact ⟨⟨x,hx⟩,Subtype.ext eq⟩
-  refine ⟨Equiv.ofBijective f bf,?_⟩
-  let T := SumVariables V W
-  have source := defA.pullback_relabel (fun s => (Sum.inl : V s → T s))
-  have vf := SortedDefinableOver.iInter (fun i : W .vf =>
-    SortedDefinableOver.coordinate_eq (M := M) (A := S.carrier) (Var := T)
-      .vf (.inl (p .vf i)) (.inr i))
-  have rv := SortedDefinableOver.iInter (fun i : W .rv =>
-    SortedDefinableOver.coordinate_eq (M := M) (A := S.carrier) (Var := T)
-      .rv (.inl (p .rv i)) (.inr i))
-  unfold DefinableRelation
-  convert source.inter (vf.inter rv) using 1
-  ext w
-  simp only [Set.mem_inter_iff,Set.mem_iInter,Set.mem_ofPred_eq]
-  let x : SortedAssignment X V := fun s => w s ∘ Sum.inl
-  let y : SortedAssignment X W := fun s => w s ∘ Sum.inr
-  change (∃ h : x ∈ A, (fun s => x s ∘ p s) = y) ↔
-    x ∈ A ∧ ((∀ i, x .vf (p .vf i) = y .vf i) ∧ (∀ i, x .rv (p .rv i) = y .rv i))
-  constructor
-  · rintro ⟨h,eq⟩
-    exact ⟨h,fun i => congrFun (congrFun eq .vf) i,fun i => congrFun (congrFun eq .rv) i⟩
-  · rintro ⟨h,hf,hr⟩
-    refine ⟨h,?_⟩
-    funext s i
-    cases s with
-    | vf => exact hf i
-    | rv => exact hr i
+  refine ⟨Equiv.ofBijective f bf,((mixed_projection_graph p).inter_left defA).congr ?_⟩
+  intro a b
+  exact ⟨fun ⟨e,h⟩ => ⟨h,e⟩,fun ⟨h,e⟩ => ⟨e,h⟩⟩
 
 end GeneralizedEuler.Section5
