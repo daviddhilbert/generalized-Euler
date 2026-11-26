@@ -1,0 +1,10 @@
+name = "generalized_euler_section5"
+version = "0.1.0"
+defaultTargets = ["Section5"]
+
+[[require]]
+name = "generalized_euler_section4"
+path = "../section 4"
+
+[[lean_lib]]
+name = "Section5"
