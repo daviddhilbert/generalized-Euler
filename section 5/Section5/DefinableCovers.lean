@@ -88,4 +88,26 @@ theorem disjoint_definable_subcover {I : Type*} [Finite I]
       have hjEq : e j = k := e.apply_symm_apply _
       exact hLe.not_gt (hjEq ▸ hi')
 
+theorem finite_definable_partition_of_cover {I : Type*}
+    (sat : RealizesFinitelySatisfiableTypes M (WithBase S.carrier V) (BaseAssignments S.carrier V))
+    (A : Set (SortedAssignment X V)) (hA : SortedDefinableOver M S.carrier A)
+    (B : I → Set (SortedAssignment X V)) (hB : ∀ i, SortedDefinableOver M S.carrier (B i))
+    (cover : ∀ x ∈ A, ∃ i, x ∈ B i) :
+    ∃ (C : Finset I) (D : {i : I // i ∈ C} → Set (SortedAssignment X V)),
+      (∀ i, SortedDefinableOver M S.carrier (D i)) ∧ (∀ i, D i ⊆ B i.val) ∧
+      Pairwise (fun i j => Disjoint (D i) (D j)) ∧ (⋃ i, D i) = A := by
+  obtain ⟨C,hC⟩ := finite_definable_cover sat A hA B hB cover
+  let J := {i : I // i ∈ C}
+  obtain ⟨D,hD,sub,disj,un⟩ := disjoint_definable_subcover (fun i : J => A ∩ B i.val)
+    (fun i => hA.inter (hB i.val))
+  refine ⟨C,D,hD,fun i x hx => (sub i hx).2,disj,?_⟩
+  rw [un]
+  apply Set.Subset.antisymm
+  · rintro x hx
+    obtain ⟨_,hp⟩ := Set.mem_iUnion.1 hx
+    exact hp.1
+  · intro x hx
+    obtain ⟨i,hi,hix⟩ := hC x hx
+    exact Set.mem_iUnion.2 ⟨⟨i,hi⟩,hx,hix⟩
+
 end GeneralizedEuler.Section5

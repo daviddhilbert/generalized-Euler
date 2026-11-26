@@ -171,4 +171,41 @@ noncomputable def FiberBijectionScheme.equiv
     let u : Subtype source := ⟨a,(h.1 a).2 ⟨b.val,ha⟩⟩
     exact ⟨u,Subtype.ext (h.2.2.1 u.val _ _ (hf u) ha)⟩
 
+theorem FiberBijectionScheme.equiv_graph
+    {A : Set (SortedAssignment X (SumVariables P U))}
+    {B : Set (SortedAssignment X (SumVariables P V))}
+    {G : Set (SortedAssignment X (SumVariables (SumVariables P U) V))}
+    {p : SortedAssignment X P} (h : FiberBijectionScheme A B G p)
+    (u : {u : SortedAssignment X U | appendAssignments p u ∈ A}) (v : SortedAssignment X V) :
+    appendAssignments (appendAssignments p u.val) v ∈ G ↔ (h.equiv u).val = v := by
+  have hmem : appendAssignments (appendAssignments p u.val) (h.equiv u).val ∈ G :=
+    ((h.1 u.val).1 u.property).choose_spec
+  exact ⟨fun hv => h.2.2.1 u.val _ _ hmem hv,fun eq => eq ▸ hmem⟩
+
+theorem fiberBijectionScheme_of_equiv
+    {A : Set (SortedAssignment X (SumVariables P U))}
+    {B : Set (SortedAssignment X (SumVariables P V))}
+    {G : Set (SortedAssignment X (SumVariables (SumVariables P U) V))}
+    (p : SortedAssignment X P)
+    (F : {u : SortedAssignment X U | appendAssignments p u ∈ A} ≃
+      {v : SortedAssignment X V | appendAssignments p v ∈ B})
+    (graph : ∀ u v, appendAssignments (appendAssignments p u) v ∈ G ↔
+      ∃ hu : appendAssignments p u ∈ A, (F ⟨u,hu⟩).val = v) :
+    FiberBijectionScheme A B G p := by
+  unfold FiberBijectionScheme
+  simp only [graph]
+  refine ⟨?_,?_,?_,?_⟩
+  · exact fun u => ⟨fun hu => ⟨(F ⟨u,hu⟩).val,hu,rfl⟩,fun ⟨_,hu,_⟩ => hu⟩
+  · intro v
+    constructor
+    · intro hv
+      obtain ⟨u,hu⟩ := F.surjective ⟨v,hv⟩
+      exact ⟨u.val,u.property,congrArg Subtype.val hu⟩
+    · rintro ⟨u,hu,rfl⟩
+      exact (F ⟨u,hu⟩).property
+  · rintro u v w ⟨hu,hv⟩ ⟨_,hw⟩
+    exact hv.symm.trans hw
+  · rintro v u w ⟨hu,hv⟩ ⟨hw,he⟩
+    exact congrArg Subtype.val (F.injective (Subtype.ext (hv.trans he.symm)))
+
 end GeneralizedEuler.Section5

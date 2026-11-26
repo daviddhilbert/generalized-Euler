@@ -200,42 +200,52 @@ theorem pairedSourceOffset_definable
       exact ha (full x.val x.property _ hx)
     simp [no,RelativeTranslation.offset,outside]
 
+theorem targetOffsetAtLabel_definable
+    (cDef : targetFocusGraphDefinable O hO power S C focus) :
+    DefinableRelation 𝓜 S.carrier
+      (fun (b : SortedAssignment (CanonicalSort O) (RVVariables (Fin 1 ⊕ J)))
+        (v : fieldAssignment 1 (CanonicalSort O)) =>
+        v .vf 0 = (pairedTargetTranslation O C focus).offset
+          ((decodeUnaryLabel O (b .rv)).2) ((decodeUnaryLabel O (b .rv)).1)) := by
+  classical
+  let d (b : SortedAssignment (CanonicalSort O) (RVVariables (Fin 1 ⊕ J))) := decodeUnaryLabel O (b .rv)
+  let chosen (b : SortedAssignment (CanonicalSort O) (RVVariables (Fin 1 ⊕ J))) (c : K) :=
+    d b ∈ C ∧ c = (focus (d b)).val.1
+  have graph := cDef.comp (unary_field_projection_definable O hO power S (I := J))
+  have hf : DefinableRelation 𝓜 S.carrier
+      (fun b (v : fieldAssignment 1 (CanonicalSort O)) => chosen b (v .vf 0)) := by
+    refine graph.congr ?_
+    intro b v
+    constructor
+    · rintro ⟨y,⟨hC,hy⟩,hv⟩
+      exact ⟨hC,hv.symm.trans (congrArg Prod.fst hy).symm⟩
+    · rintro ⟨hC,hv⟩
+      let w := (focus (d b)).val
+      let y : SortedAssignment (CanonicalSort O) (MixedVariables 1 J)
+        | .vf => fun _ => w.1
+        | .rv => w.2
+      exact ⟨y,⟨hC,rfl⟩,hv.symm⟩
+  refine (default_zero_focus_definable O hO power S chosen hf).congr ?_
+  intro b v
+  unfold RelativeTranslation.offset pairedTargetTranslation
+  change (chosen b (v .vf 0) ∨ ((∀ c, ¬ chosen b c) ∧ v .vf 0 = 0)) ↔
+    v .vf 0 = (if d b ∈ C then (focus (d b)).val.1 else 0)
+  by_cases h : d b ∈ C
+  · rw [ite_eq_left h]
+    simp [chosen,h]
+  · rw [ite_eq_right h]
+    simp [chosen,h]
+
 theorem pairedTargetOffset_definable
     (cDef : targetFocusGraphDefinable O hO power S C focus) :
     DefinableRelation 𝓜 S.carrier
       (fun (b : SortedAssignment (CanonicalSort O) (MixedVariables 1 J))
         (v : fieldAssignment 1 (CanonicalSort O)) =>
         v .vf 0 = (pairedTargetTranslation O C focus).offset (b .rv) (rv O (b .vf 0))) := by
-  classical
-  let chosen (b : SortedAssignment (CanonicalSort O) (MixedVariables 1 J)) (c : K) :=
-    unaryMixedLabel O (unaryPair O b) ∈ C ∧ c = (focus (unaryMixedLabel O (unaryPair O b))).val.1
-  have graph := ((unaryLabelAssignment_definable O hO power S (H := J)).comp cDef).comp
-    (unary_field_projection_definable O hO power S (I := J))
-  have hf : DefinableRelation 𝓜 S.carrier
-      (fun b (v : fieldAssignment 1 (CanonicalSort O)) => chosen b (v .vf 0)) := by
-    refine graph.congr ?_
-    intro b v
-    constructor
-    · rintro ⟨y,⟨u,hu,hC,hy⟩,hv⟩
-      subst u
-      exact ⟨hC,hv.symm.trans (congrArg Prod.fst hy).symm⟩
-    · rintro ⟨hC,hv⟩
-      let w := (focus (unaryMixedLabel O (unaryPair O b))).val
-      let y : SortedAssignment (CanonicalSort O) (MixedVariables 1 J)
-        | .vf => fun _ => w.1
-        | .rv => w.2
-      exact ⟨y,⟨unaryLabelAssignment O b,rfl,hC,rfl⟩,hv.symm⟩
-  refine (default_zero_focus_definable O hO power S chosen hf).congr ?_
+  refine ((unaryLabelAssignment_definable O hO power S (H := J)).comp
+    (targetOffsetAtLabel_definable O hO power S C focus cDef)).congr ?_
   intro b v
-  unfold RelativeTranslation.offset pairedTargetTranslation
-  change (chosen b (v .vf 0) ∨ ((∀ c, ¬ chosen b c) ∧ v .vf 0 = 0)) ↔
-    v .vf 0 = (if unaryMixedLabel O (unaryPair O b) ∈ C then
-      (focus (unaryMixedLabel O (unaryPair O b))).val.1 else 0)
-  by_cases h : unaryMixedLabel O (unaryPair O b) ∈ C
-  · rw [ite_eq_left h]
-    simp [chosen,h]
-  · rw [ite_eq_right h]
-    simp [chosen,h]
+  exact ⟨fun ⟨_,rfl,h⟩ => h,fun h => ⟨_,rfl,h⟩⟩
 
 end OffsetGraphs
 
