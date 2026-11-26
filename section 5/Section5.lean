@@ -393,3 +393,13 @@ public import Section5.RelativePositiveIntegration
 public import Section5.RelativeRVBaseCuts
 public import Section5.RelativeRVFunctions
 public import Section5.UniformRelativeMixedIsomorphisms
+public import Section5.ConstantRelativeRVObjects
+public import Section5.FieldClassBaseExtension
+public import Section5.MixedProductIsomorphisms
+public import Section5.MixedVFRankComparison
+public import Section5.ProjectionLiftCovers
+public import Section5.RelativeConstantLiftProducts
+public import Section5.RelativeFunctionModule
+public import Section5.RelativeLinearIntegral
+public import Section5.RelativeRVProducts
+public import Section5.RelativeScalarRepresentatives

@@ -103,9 +103,9 @@ theorem output_recovery_terms_of_exchange (i : Fin n)
     a b exchange output (fun k nk => (nk (Finset.mem_univ k)).elim)
   exact ⟨j,T,e⟩
 
-theorem output_field_closure_of_immediate_movers
+theorem output_field_closure_of_immediate_movers {m : ℕ}
     (A : Set (SortedAssignment X (MixedVariables n I)))
-    (B : Set (SortedAssignment X (MixedVariables n J))) (f : A ≃ B)
+    (B : Set (SortedAssignment X (MixedVariables m J))) (f : A ≃ B)
     (defF : DefinableRelation M S.carrier (fun a b => ∃ ha : a ∈ A, (f ⟨a,ha⟩).val = b))
     (move : letI := valuedStructureOfSorted M ∅
       ∀ (a : A) (y : X .vf),
@@ -114,7 +114,7 @@ theorem output_field_closure_of_immediate_movers
           (∀ x ∈ S.carrier .vf ∪ Set.range (a.val .vf), e.toEmbedding .vf x = x) ∧
           ∀ t : X .rv, e.toEmbedding .rv t = t) :
     letI := valuedStructureOfSorted M ∅
-    ∀ (a : A) (k : Fin n), (f a).val .vf k ∈
+    ∀ (a : A) (k : Fin m), (f a).val .vf k ∈
       Substructure.closure (convexLanguage L) (S.carrier .vf ∪ Set.range (a.val .vf)) := by
   intro a k
   by_contra outside
@@ -122,7 +122,7 @@ theorem output_field_closure_of_immediate_movers
   obtain ⟨φ,hφ⟩ := defF
   let w := appendAssignments a.val (f a).val
   let b := e.toSortedEmbedding.mapAssignment (f a).val
-  let W := SumVariables (MixedVariables n I) (MixedVariables n J)
+  let W := SumVariables (MixedVariables n I) (MixedVariables m J)
   let named (x : SortedAssignment X W) (s : TCsort) : WithBase S.carrier W s → X s :=
     Sum.elim Subtype.val (x s)
   have old : ∃ ha : a.val ∈ A, (f ⟨a.val,ha⟩).val = (f a).val := ⟨a.property,rfl⟩

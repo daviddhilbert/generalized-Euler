@@ -34,7 +34,7 @@ def vfDimensionAtMost (k : ℕ) : AddSubmonoid (VFSemiring 𝓜 S) :=
 
 /-- The dimension input is the mixed form of the fixed-base
 projection-dimension invariance theorem. -/
-def MixedVFDimensionInvariant : Prop :=
+@[expose] def MixedVFDimensionInvariant : Prop :=
   ∀ {n m d e : ℕ} {A : Set (SortedAssignment Z (MixedVariables n (Fin m)))}
     {B : Set (SortedAssignment Z (MixedVariables d (Fin e)))},
     SortedDefinableOver 𝓜 S.carrier A → SortedDefinableOver 𝓜 S.carrier B →
