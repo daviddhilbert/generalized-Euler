@@ -59,6 +59,9 @@ end RetainedFieldFamily
 structure HeadContractionData (A : RetainedFieldFamily M S (n+1) k) where
   length : ℕ
   preparation : (Fin n → K) → UnaryPreparation O (PreparationLabels O (RV0 O) length)
+  mapGraph : SortedDefinableOver M S.carrier
+    {a : SortedAssignment (CanonicalSort O) (HistoryGraphVariables n length) |
+      (preparation (a .vf ∘ Sum.inr)).map (a .vf (.inl 0)) = (a .vf (.inl 1),decodeHistory O length (a .rv))}
   historyGraph : DefinableRelation M S.carrier
     (fun (a : SortedAssignment (CanonicalSort O) (VerticalVariables n A.tags))
       (h : SortedAssignment (CanonicalSort O) (RVVariables (HistoryIndex length))) =>
@@ -127,7 +130,7 @@ theorem head_contraction_data_exists
   let cs := List.ofFn (id : Fin m → Fin m)
   let centers := centerValues O hO power S₀ terms
   let P (b : Fin n → K) := centerPreparation (O := O) (centers b) cs
-  exact ⟨⟨cs.length,P,vertical_history_graph_definable O hO power S₀ (I := A.tags) (ℓ := cs.length) P graph,
+  exact ⟨⟨cs.length,P,graph,vertical_history_graph_definable O hO power S₀ (I := A.tags) (ℓ := cs.length) P graph,
     stable,fun b => UnaryPreparation.finite_prepared_offsets (centers b ∘ some) cs,
     fun b => lead_decode_history O (centers b ∘ some) cs⟩⟩
 

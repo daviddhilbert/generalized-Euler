@@ -255,3 +255,17 @@ public import Section5.UniformPreparedBlowupPaths
 public import Section5.RelativeIndexPartitions
 public import Section5.UniformRVBlowupGluing
 public import Section5.GluedPreparedBlowupPaths
+public import Section5.RetainedCoordinateSlices
+public import Section5.HeadContractionLift
+public import Section5.HeadContractionSlices
+public import Section5.UnaryHeadPullbacks
+public import Section5.UnaryHeadSliceComparison
+public import Section5.ProjectedRelativeObjects
+public import Section5.TerminalUnaryRows
+public import Section5.TerminalUnarySliceClasses
+public import Section5.RVCoordinateGraphs
+public import Section5.HeadPatternIndices
+public import Section5.GluedRowCoordinateGraphs
+public import Section5.TerminalUnaryEndpointClasses
+public import Section5.UnaryHeadContractionComparison
+public import Section5.UnaryTerminalSupports
