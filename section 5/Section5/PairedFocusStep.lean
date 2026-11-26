@@ -15,7 +15,7 @@ open GeneralizedEuler.Section2 GeneralizedEuler.Section3
 
 variable {K : Type*} [Field K] (O : ValuationSubring K)
 
-private theorem discToDisc_restrict_image {A B C : Set K} {f g : K → K}
+theorem discToDisc_restrict_image {A B C : Set K} {f g : K → K}
     (dtdp : DiscToDiscOn O A B f g) (sub : C ⊆ A) :
     DiscToDiscOn O C (f '' C) f g := by
   obtain ⟨bij,inv,forward,backward⟩ := dtdp

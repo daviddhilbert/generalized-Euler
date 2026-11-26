@@ -47,7 +47,7 @@ theorem map_injective : Function.Injective T.map := by
   rw [ht] at hy
   exact Prod.ext rfl (sub_left_inj.mp hy)
 
-private theorem focus_translation_iff {c y : K} {t : RV0 O}
+theorem focus_translation_iff {c y : K} {t : RV0 O}
     (ht : t ≠ 0) (hc : rv O c = t) :
     rv O (y + c) = t ↔ O.valuation y < unsignedValue O t := by
   have hn : c ≠ 0 := (rv_eq_zero_iff O).not.mp (hc ▸ ht)

@@ -42,40 +42,51 @@ theorem pairedSourceTranslation_focus_lead {r : R} {t : RV0 O}
   rw [dite_eq_left h]
   exact congrArg Prod.fst h.choose_spec.2.2
 
+theorem pairedSourceTranslation_offset
+    (contract : Contractible (unaryMixedLabel O ∘ Subtype.val)
+      (unaryMixedLabel O ∘ Subtype.val) e) (x : A) :
+    let t := unaryMixedLabel O (e x).val
+    let y := e.symm (focus t)
+    letI := Classical.propDecidable (t ∈ C ∧ unaryMixedLabel O x.val = unaryMixedLabel O y.val)
+    (pairedSourceTranslation O e C focus).offset x.val.2 (rv O x.val.1) =
+      if t ∈ C ∧ unaryMixedLabel O x.val = unaryMixedLabel O y.val then y.val.1 else 0 := by
+  classical
+  intro t y
+  let r := (x.val.2,rv O x.val.1)
+  have selected : r ∈ pairedSourceLocus O e C focus ↔
+      t ∈ C ∧ unaryMixedLabel O x.val = unaryMixedLabel O y.val := by
+    constructor
+    · rintro ⟨w,hw,ht,he⟩
+      have same : unaryMixedLabel O w.val = unaryMixedLabel O x.val := hw
+      have eq : unaryMixedLabel O (e w).val = t := contract w x same
+      rw [eq] at ht he
+      exact ⟨ht,he.symm⟩
+    · rintro ⟨ht,hy⟩
+      exact ⟨x,rfl,ht,hy.symm⟩
+  unfold RelativeTranslation.offset pairedSourceTranslation
+  dsimp only [id]
+  by_cases h : r ∈ pairedSourceLocus O e C focus
+  · rw [ite_eq_left h,dite_eq_left h,ite_eq_left (selected.1 h)]
+    have same : unaryMixedLabel O h.choose.val = unaryMixedLabel O x.val := h.choose_spec.1
+    have eq : unaryMixedLabel O (e h.choose).val = t := contract h.choose x same
+    rw [eq]
+  · rw [ite_eq_right h,ite_eq_right (fun hh => h (selected.2 hh))]
+
 theorem pairedSourceTranslation_label
     (contract : Contractible (unaryMixedLabel O ∘ Subtype.val)
       (unaryMixedLabel O ∘ Subtype.val) e) (x : A) :
     rv O ((pairedSourceTranslation O e C focus).map (x.val.2,x.val.1)).2.1 =
       mixedSourceFocusLabel O e C focus x := by
   classical
-  let r := x.val.2
-  let t := rv O x.val.1
-  let a := unaryMixedLabel O (e x).val
-  let c := e.symm (focus a)
-  have dom : (r,t) ∈ pairedSourceLocus O e C focus ↔
-      a ∈ C ∧ unaryMixedLabel O x.val = unaryMixedLabel O c.val := by
-    constructor
-    · rintro ⟨w,hw,ht,he⟩
-      have same : unaryMixedLabel O w.val = unaryMixedLabel O x.val := hw
-      have va : unaryMixedLabel O (e w).val = a := contract w x same
-      rw [va] at ht he
-      exact ⟨ht,he.symm⟩
-    · rintro ⟨ht,he⟩
-      exact ⟨x,rfl,ht,he.symm⟩
-  change rv O (x.val.1 - (pairedSourceTranslation O e C focus).offset r t) =
-    (if a ∈ C ∧ unaryMixedLabel O x.val = unaryMixedLabel O c.val
-      then rv O (x.val.1-c.val.1) else rv O x.val.1)
-  by_cases h : (r,t) ∈ pairedSourceLocus O e C focus
-  · rw [ite_eq_left (dom.1 h)]
-    have same : unaryMixedLabel O h.choose.val = unaryMixedLabel O x.val := h.choose_spec.1
-    have va : unaryMixedLabel O (e h.choose).val = a := contract h.choose x same
-    unfold RelativeTranslation.offset pairedSourceTranslation
-    dsimp only [id]
-    rw [ite_eq_left h,dite_eq_left h,va]
-  · rw [ite_eq_right (fun h' => h (dom.2 h'))]
-    unfold RelativeTranslation.offset pairedSourceTranslation
-    dsimp only [id]
-    rw [ite_eq_right h,sub_zero]
+  change rv O (x.val.1 - (pairedSourceTranslation O e C focus).offset x.val.2 (rv O x.val.1)) =
+    mixedSourceFocusLabel O e C focus x
+  rw [pairedSourceTranslation_offset O e C focus contract]
+  unfold mixedSourceFocusLabel
+  by_cases h : unaryMixedLabel O (e x).val ∈ C ∧
+      unaryMixedLabel O x.val =
+        unaryMixedLabel O (e.symm (focus (unaryMixedLabel O (e x).val))).val
+  · rw [ite_eq_left h,ite_eq_left h]
+  · rw [ite_eq_right h,ite_eq_right h,sub_zero]
 
 def pairedTargetTranslation : RelativeTranslation O (id : T → T) where
   locus := {u | (u.2,u.1) ∈ C}

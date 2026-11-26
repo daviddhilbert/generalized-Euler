@@ -130,3 +130,16 @@ public import Section5.DefinableContractionIso
 public import Section5.PairedMixedFocus
 public import Section5.GroupifiedBlowupQuotient
 public import Section5.PairedSourceTranslation
+public import Section5.TranslatedDiscMaps
+public import Section5.UnaryTranslationPullback
+public import Section5.PairedUnaryStep
+public import Section5.PairedUnaryCharts
+public import Section5.PairedUnaryChains
+public import Section5.UnaryCenterChains
+public import Section5.InverseUnaryTests
+public import Section5.UnaryTranslationGraph
+public import Section5.PairedUnaryGraphs
+public import Section5.PairedConjugateGraph
+public import Section5.BlowupEulerQuotient
+public import Section5.DefinableBijectionSchemes
+public import Section5.UniformFiberBijections
