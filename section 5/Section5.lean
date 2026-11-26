@@ -102,3 +102,17 @@ public import Section5.BlowupOverlapClasses
 public import Section5.MixedLiftPresentation
 public import Section5.BlowupLocusTransport
 public import Section5.OneStepBlowupComparison
+public import Section5.GradedRVProducts
+public import Section5.PositiveRVClasses
+public import Section5.RVFamilyGraphCuts
+public import Section5.GradedFamilyIsomorphism
+public import Section5.UnitLabelExtension
+public import Section5.GradedClassCuts
+public import Section5.ElementaryClassSteps
+public import Section5.MarkedBlowupLocus
+public import Section5.ClassBlowupDiamond
+public import Section5.GradedBlowupCongruence
+public import Section5.FocusDeletionFiniteness
+public import Section5.TranslatedBlowupLabels
+public import Section5.TranslatedBlowupObjects
+public import Section5.FocusTranslationImage
