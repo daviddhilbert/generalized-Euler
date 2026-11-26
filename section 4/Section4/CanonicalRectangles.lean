@@ -72,6 +72,7 @@ theorem canonical_rectangles {n}
         (residuePullback (JH := JH) v B)),
       (∀ x, x ∈ D ↔ ∃ i, x ∈ (p i).carrier D) ∧
       Pairwise (fun i j => Disjoint ((p i).carrier D) ((p j).carrier D)) ∧
+      (∀ γ, ∃! i, γ ∈ (p i).value.support) ∧
       ∀ i, ∃ e : (p i).rectangle ≃ (p i).carrier D, ∀ z,
         (e z).val = (p i).value.frame.assemble v s z.1.val z.2.val := by
   classical

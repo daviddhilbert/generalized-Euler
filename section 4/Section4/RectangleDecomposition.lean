@@ -46,6 +46,7 @@ theorem decompose_positive_set (U : Set (Fin n → T))
     ∃ (l : ℕ) (p : Fin l → PositivePiece v G P Q),
       (∀ x, x ∈ U ↔ ∃ i, x ∈ (p i).carrier U) ∧
       Pairwise (fun i j => Disjoint ((p i).carrier U) ((p j).carrier U)) ∧
+      (∀ γ, ∃! i, γ ∈ (p i).value.support) ∧
       ∀ i, ∃ e : (p i).rectangle ≃ (p i).carrier U, ∀ z,
         (e z).val = (p i).value.frame.assemble v s z.1.val z.2.val := by
   classical
@@ -56,31 +57,26 @@ theorem decompose_positive_set (U : Set (Fin n → T))
   let piece (i : I) : PositivePiece v G P Q := ⟨a i.1 i.2,R i.1,(hDR i.1).2⟩
   have orig (i : I) (γ) (h : γ ∈ (piece i).value.support) : γ ∈ D i.1 :=
     ((cover i.1 γ).1).mpr ⟨i.2,h⟩
-  refine ⟨_,piece ∘ idx,?_,?_,?_⟩
+  have supports (γ : Fin n → V) : ∃! j, γ ∈ (piece (idx j)).value.support := by
+    obtain ⟨i,hi,only⟩ := unique γ
+    obtain ⟨j,hj⟩ := (cover i γ).1.mp hi
+    refine ⟨idx.symm ⟨i,j⟩,by change γ ∈ (piece (idx (idx.symm ⟨i,j⟩))).value.support; rw [Equiv.apply_symm_apply]; exact hj,?_⟩
+    intro t ht
+    apply idx.injective
+    rw [Equiv.apply_symm_apply]
+    obtain ⟨i',u,eq⟩ : ∃ i' u, idx t = ⟨i',u⟩ := ⟨_,_,rfl⟩
+    have same := only _ (orig (idx t) _ ht)
+    rw [eq] at same ht ⊢
+    change i' = i at same
+    subst i'
+    exact congrArg (Sigma.mk i) ((cover i γ).2 _ _ ht hj)
+  refine ⟨_,piece ∘ idx,?_,?_,supports,?_⟩
   · intro x
-    constructor
-    · intro hx
-      obtain ⟨i,hi,_⟩ := unique (v ∘ x)
-      obtain ⟨j,hj⟩ := (cover i _).1.mp hi
-      refine ⟨idx.symm ⟨i,j⟩,?_⟩
-      change x ∈ (piece (idx (idx.symm ⟨i,j⟩))).carrier U
-      rw [Equiv.apply_symm_apply]; exact ⟨hx,hj⟩
-    · rintro ⟨i,hi⟩; exact hi.1
+    exact ⟨fun hx => ⟨_,hx,(supports (v ∘ x)).choose_spec.1⟩,fun ⟨_,hx⟩ => hx.1⟩
   · intro i j hn
     apply Set.disjoint_left.mpr
     intro x hi hj
-    apply hn; apply idx.injective
-    obtain ⟨k,hk,uniq⟩ := unique (v ∘ x)
-    have e : (idx i).1 = (idx j).1 :=
-      (uniq _ (orig (idx i) _ hi.2)).trans (uniq _ (orig (idx j) _ hj.2)).symm
-    obtain ⟨i',u,ei⟩ : ∃ i' u, idx i = ⟨i',u⟩ := ⟨_,_,rfl⟩
-    obtain ⟨j',w,ej⟩ : ∃ j' w, idx j = ⟨j',w⟩ := ⟨_,_,rfl⟩
-    change x ∈ (piece (idx i)).carrier U at hi
-    change x ∈ (piece (idx j)).carrier U at hj
-    rw [ei] at hi; rw [ej] at hj
-    rw [ei,ej] at e ⊢
-    change i' = j' at e; subst j'
-    exact congrArg (Sigma.mk i') ((cover i' _).2 _ _ hi.2 hj.2)
+    exact hn ((supports (v ∘ x)).unique hi.2 hj.2)
   · intro j
     let i := idx j
     let b := a i.1 i.2
