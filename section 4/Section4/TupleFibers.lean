@@ -47,6 +47,47 @@ theorem dependent_coordinate {n : ℕ} (α : Fin n → V) (U : Set (Fin n → T)
   rw [map_add,map_sum,he]
   simp only [map_smul,ht,sub_add_cancel]
 
+open scoped Classical in
+/-- Choose independent coordinates of the value tuple. Every representative of
+the projected tuple occurs, and all remaining values have simultaneous
+monomial lifts with leading coefficients from the original base. -/
+theorem independent_coordinate_projection {n : ℕ} (α : Fin n → V)
+    (U : Set (Fin n → T)) (sub : U ⊆ fullFiber v α) (hne : U.Nonempty)
+    (invariant : ∀ L x, x ∈ U → shear v (W.map v) L ∘ x ∈ U) :
+    ∃ I : Set (Fin n), LinearIndependent F (fun j : I => (W.map v).mkQ (α j)) ∧
+      (fun x : Fin n → T => fun j : I => x j) '' U = fullFiber v (fun j : I => α j) ∧
+      ∀ i : Fin n, ∃ (c : I → F) (u : W), ∀ t ∈ fullFiber v (fun j : I => α j),
+        v (u.val + ∑ j : I, c j • t j) = α i := by
+  classical
+  let G := W.map v
+  let a := G.mkQ ∘ α
+  obtain ⟨I,_,_,spans,indep⟩ := exists_linearIndepOn_extension
+    (v := a) (linearIndepOn_empty F a) (Set.empty_subset (Set.univ : Set (Fin n)))
+  refine ⟨I,indep,?_,?_⟩
+  · ext t
+    constructor
+    · rintro ⟨x,hx,rfl⟩
+      exact funext fun j => congrFun (sub hx) j.val
+    · intro ht
+      obtain ⟨x,hx⟩ := hne
+      let xI (j : I) := x j
+      have hav : v ∘ xI = fun j : I => α j := funext fun j => congrFun (sub hx) j.val
+      have hin : LinearIndependent F (G.mkQ ∘ v ∘ xI) := by
+        rw [hav]; exact indep
+      obtain ⟨L,hL⟩ := transitive_independent_fiber v G xI t hin (hav.trans (Eq.symm ht))
+      exact ⟨_,invariant L x hx,hL⟩
+  · intro i
+    have hi := spans (Set.mem_image_of_mem a (Set.mem_univ i))
+    rw [Set.image_eq_range] at hi
+    obtain ⟨c,hc⟩ := (Submodule.mem_span_range_iff_exists_fun F).mp hi
+    have hz : G.mkQ (α i - ∑ j : I, c j • α j) = 0 := by
+      rw [map_sub,map_sum]; simp only [map_smul]
+      exact sub_eq_zero.mpr hc.symm
+    obtain ⟨u,hu,he⟩ := (Submodule.Quotient.mk_eq_zero G).mp hz
+    refine ⟨c,⟨u,hu⟩,fun t ht => ?_⟩
+    rw [map_add,map_sum,he]
+    simp only [map_smul,show ∀ j : I, v (t j) = α j from congrFun ht,sub_add_cancel]
+
 /-- At maximal height an equivariant graph matches the entire input and
 output fibers. Both containments are needed. -/
 theorem whole_fiber_match {n : ℕ} (G : Submodule F V) (R : (Fin n → T) → (Fin n → T) → Prop)

@@ -66,6 +66,18 @@ theorem mixed_fiber_partition (f : (Σ a, P a) → Σ b, Q b) (a : A)
   simp only [Set.mem_iUnion,mixedSlice,Set.mem_ofPred_eq, exists_prop]
   exact ⟨fun hx => ⟨_,cover ⟨x,hx⟩,hx,rfl⟩,fun ⟨_,_,hx,_⟩ => hx⟩
 
+/-- Restriction of the bijection to one pair of field tuples gives an
+embedding of RV sets. The output fiber is fixed in this construction. -/
+def sliceEmbedding (f : (Σ a, P a) ≃ Σ b, Q b) (a : A) (b : B) :
+    mixedSlice P Q f a b ↪ Q b := by
+  let pre (x : mixedSlice P Q f a b) : Σ a, P a := ⟨a,⟨x.val,x.property.choose⟩⟩
+  have tag (x) : (f (pre x)).1 = b := x.property.choose_spec
+  let out (x) : Q b := (tag x) ▸ (f (pre x)).2
+  have eq (x) : f (pre x) = ⟨b,out x⟩ := Sigma.ext (tag x) (by simp [out])
+  refine ⟨out,fun {x y} he => ?_⟩
+  have h : pre x = pre y := f.injective ((eq x).trans ((congrArg (Sigma.mk b) he).trans (eq y).symm))
+  exact Subtype.ext (congrArg (fun p : Σ a, P a => p.2.val) h)
+
 /-- The dimension comparison for 4.2. The two dimension inputs are the
 finite union law and monotonicity under the definable fiber embeddings. -/
 theorem fiber_dimension_le {D : Type*} [Preorder D] (d : D)

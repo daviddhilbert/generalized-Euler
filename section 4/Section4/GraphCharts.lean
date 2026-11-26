@@ -48,7 +48,7 @@ Coordinates in the kernel of a projection keep their original leading terms. -/
 def chartDirection (A : Matrix j i F) (w : i → F) : i ⊕ j → F :=
   Sum.elim w (actRows A w)
 
-def chartPoint (A : Matrix j i F) (u : j → T) (z : i → T) (b : j → T) : i ⊕ j → T :=
+@[expose] def chartPoint (A : Matrix j i F) (u : j → T) (z : i → T) (b : j → T) : i ⊕ j → T :=
   Sum.elim z (fun k => b k + actRows A z k + u k)
 
 theorem chartPoint_translate (A : Matrix j i F) (u : j → T) (z : i → T) (b : j → T)
