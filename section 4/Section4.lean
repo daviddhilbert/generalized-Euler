@@ -50,6 +50,7 @@ public import Section4.DefinableValueFrames
 public import Section4.DegreeOneInclusion
 public import Section4.DegreeOneMatching
 public import Section4.DegreeZeroInclusion
+public import Section4.DistinguishedResiduePoint
 public import Section4.EmptyProductCoordinates
 public import Section4.EulerRetractions
 public import Section4.EulerRing
@@ -65,10 +66,13 @@ public import Section4.FixedBasePartitions
 public import Section4.FixedParameterSpans
 public import Section4.FixedResidueImages
 public import Section4.FrameComparison
+public import Section4.GeometricRVCoordinates
+public import Section4.GeometricResidueLocalizations
 public import Section4.GeometricValueInclusion
 public import Section4.GeometricValuePresentation
 public import Section4.GlobalRectangleMatches
 public import Section4.GradedEulerMaps
+public import Section4.GradedValueLift
 public import Section4.GradedValues
 public import Section4.GraphChartBasis
 public import Section4.GraphCharts
@@ -153,6 +157,7 @@ public import Section4.RayBlockLayout
 public import Section4.RaySquareScissors
 public import Section4.RectangleClasses
 public import Section4.RectangleDecomposition
+public import Section4.RectangleEulerCoordinates
 public import Section4.RectangleFiberFamilies
 public import Section4.RectangleGeneration
 public import Section4.RectangleHeightCut
@@ -183,8 +188,10 @@ public import Section4.ResidueAssignmentPartition
 public import Section4.ResidueBaseValues
 public import Section4.ResidueCancellation
 public import Section4.ResidueClasses
+public import Section4.ResidueEulerIsomorphism
 public import Section4.ResidueEulerMeasure
 public import Section4.ResidueFactorAssignment
+public import Section4.ResidueLocalizationFormulas
 public import Section4.ResidueMatrices
 public import Section4.ResidueProductBoxRanks
 public import Section4.ResidueProductProfiles
@@ -201,6 +208,7 @@ public import Section4.SemilinearBoxDecomposition
 public import Section4.SemiringGroupification
 public import Section4.SignPieces
 public import Section4.SignedFiberCoordinates
+public import Section4.SignedPuncturedIdeal
 public import Section4.SignedRectangleFactors
 public import Section4.SignedShears
 public import Section4.SignedTensorFactors

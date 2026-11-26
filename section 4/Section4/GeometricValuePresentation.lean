@@ -122,4 +122,12 @@ theorem geometric_value_coordinates (x : SemiringGroupification.Ring (SemiringOf
   unfold geometric_value_presentation
   apply valuePresentationOfNormal_apply
 
+theorem geometric_value_ray :
+    geometric_value_presentation L order A one interpret @semi geometric bounded gp gr bp br hray = ray := by
+  apply Subtype.ext
+  rw [geometric_value_coordinates]
+  change (_,_) = (-Polynomial.X,0)
+  rw [unsigned_graded,unsigned_graded,gr,br]
+  simp
+
 end GeneralizedEuler.Section4

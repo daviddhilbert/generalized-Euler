@@ -1,5 +1,7 @@
 module
 
+public import Section4.GradedValueLift
+
 public import Section4.PositiveResidueLineCut
 public import Section4.HomogeneousValueLift
 import all Section4.HomogeneousValueLift
@@ -38,5 +40,15 @@ theorem no_additive_value_retraction (terms : OrderedFieldTerms J)
   apply no_additive_splitting_of_line_cut A (1 : Fin 1 → SignedValueGroup O) he
     (homogeneousRVClass U) (homogeneousRVClass R) cut back back.map_add
   exact congrArg Subtype.val sends
+
+theorem no_full_additive_value_retraction (terms : OrderedFieldTerms J)
+    (h : InterpretsFieldTerms (K := Residue O) terms.toFieldTerms)
+    (one : terms.one.realize (Empty.elim : Empty → Residue O) = 1)
+    (he : A.Definable H ({1} : Set (Fin 1 → SignedValueGroup O))) :
+    ¬ ∃ r : RVSemiring M S →+ SemiringOfSets (J := H) A,
+      Function.LeftInverse r (valueFactorHom M S val A defSharp liftIso) := by
+  rintro ⟨r,left⟩
+  exact no_additive_value_retraction O hO P S A defSharp liftIso terms h one he
+    (full_retraction_restricts A M S val defSharp liftIso r left 1)
 
 end GeneralizedEuler.Section4

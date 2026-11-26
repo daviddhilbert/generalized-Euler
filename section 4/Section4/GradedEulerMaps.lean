@@ -76,9 +76,9 @@ theorem value_homogeneous {p q} (h : ValueObject.Relation (J := J) A p q) :
 
 variable (d : I → ℕ) (rel : MvPolynomial I ℕ → MvPolynomial I ℕ → Prop)
   (homogeneous : ∀ {p q}, rel p q → ∃ n, InDegree d p n ∧ InDegree d q n)
-  (χ : (ringConGen rel).Quotient →+* ℤ)
+  {C : Type*} [CommSemiring C] (χ : (ringConGen rel).Quotient →+* C)
 
-def polynomialMeasure : (ringConGen rel).Quotient →+* Polynomial ℤ := by
+def polynomialMeasure : (ringConGen rel).Quotient →+* Polynomial C := by
   let ev := χ.comp (ringConGen rel).mk'
   let graded := (Polynomial.mapRingHom ev).comp (mark d)
   apply (ringConGen rel).lift graded

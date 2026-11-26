@@ -1,5 +1,7 @@
 module
 
+public import Section4.ResidueEulerIsomorphism
+public import Section4.GradedValueLift
 public import Section4.BoxValueInclusion
 public import Section4.HomogeneousBoxDecomposition
 import all Section4.TaggedBoxPresentations
@@ -124,5 +126,36 @@ theorem all_degree_value_injective (k : ℕ) :
   exact value_injective_on_arbitrary_box_unions O v hv s hs G B hO P g agrees units clamp powers S A defSharp liftIso
     @interpret he L signedDef witness primitives base reps minus @qe sat rvSat χ line order step positive satUnary
     bounded geometric bp br gp gr D E oldStep same
+
+include g agrees units clamp powers hv hs interpret witness primitives base reps minus qe sat rvSat χ line
+  order step positive satUnary bounded geometric bp br gp gr oldStep semi in
+theorem value_semiring_injective : Function.Injective val := by
+  apply graded_value_injective A model S lab defSharp liftIso
+  exact all_degree_value_injective O v hv s hs G B hO P g agrees units clamp powers S A defSharp liftIso
+    @interpret he L signedDef witness primitives base reps minus @qe sat rvSat χ line order step positive
+    satUnary bounded geometric bp br gp gr oldStep @semi
+
+include g agrees units clamp powers hv hs interpret witness primitives base reps minus qe sat rvSat χ line
+  order step positive satUnary bounded geometric bp br gp gr oldStep semi in
+theorem residue_cancellation_iff (ordinary : ResidueSemiring model S lab →+* ℤ)
+    (classify : ResidueEulerClassification (M := model) (S := S) lab ordinary) {i : ℕ} (R : RVObject model S i)
+    (finite : R.IsResidue model S lab)
+    (poly : χ (residueClass R finite) = Polynomial.C (ordinary (residueClass R finite)) * Polynomial.X^i) (k : ℕ) :
+    Function.Injective (fun x : homogeneousValue (J := JS) A k => objectClass model S ⟨i,R⟩ * val x.val) ↔
+      ordinary (residueClass R finite) ≠ 0 := by
+  constructor
+  · intro inj zero
+    let a : residueDegree (M := model) (S := S) lab i := ⟨residueClass R finite,residueDegree_class (M := model) (S := S) lab R finite⟩
+    have dup : residueClass R finite + residueClass R finite = residueClass R finite :=
+      congrArg Subtype.val (classify.zero_double a zero)
+    have dr : objectClass model S ⟨i,R⟩ + objectClass model S ⟨i,R⟩ = objectClass model S ⟨i,R⟩ := by
+      rw [← includeResidue_class R finite,← map_add,dup]
+    have hp : A.Definable JS ({1} : Set (Fin k → SignedValueGroup O)) :=
+      (image_value_zero O) ▸ signedDef (zeroTuple_definable (J := JG) G k)
+    exact duplicate_residue_not_injective A val (1 : Fin k → SignedValueGroup O) hp _ dr inj
+  · intro nz
+    exact nonzero_euler_residue_cancellation O v hv s hs G B hO P g agrees units clamp powers S A defSharp liftIso
+      @interpret he L signedDef witness primitives base reps minus @qe sat rvSat χ line order step positive
+      satUnary bounded geometric bp br gp gr oldStep @semi R finite _ nz poly k
 
 end GeneralizedEuler.Section4
