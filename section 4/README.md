@@ -28,6 +28,10 @@ The fixed base is a two-sorted substructure. The positive leading-term group and
 
 `ValueDescent` descends the weight of a single value piece through all five tagged relations. In `ValueFactorMap` the weight is the actual RV pullback class, assuming definability of the pullback and the single-piece lifting conclusion of Lemma 4.12. `RectangleMap` proves balance on finite value pieces and constructs the homomorphism on the tensor product of the concrete factor semirings. `ValueDegrees` proves the rank and point-factor decomposition for single value pieces.
 
+`GeneralizedEuler.Section4.canonical_rectangle_surjective` in `CanonicalSurjectivity` proves surjectivity of the concrete map. It uses the fixed-base QE and saturation hypotheses, the signed value interpretation and the single-piece lifting assertion of 4.12.
+
+`ResidueRefinement` proves that subdividing a chart from rank r to rank s multiplies its residue class by the class of r−s unrestricted positive units. `equal_chart_sums` in `ChartIndependence` proves equality of the assigned sums for any two finite measurable chart families with disjoint carriers and the same union. It stratifies all value supports simultaneously and applies finite scissors to the normalized residues on each stratum. `ProjectedRVChart` computes the carrier of a projected chart. `ProjectedPieceWeights` proves that two injective projections into the same ambient degree have equal normalized residue classes, given the bases selected by the full-rank minors.
+
 ## Remaining geometric steps
 
 Proposition 4.21 still has hypotheses at the point where the two geometric proofs meet the semiring presentation. In `TensorComparison.lean`, the declaration `GeneralizedEuler.Section4.tensorIsoOfCharts` proves the isomorphism conditionally. Its inputs include a finite rectangle assignment to every graded RV object, invariance under each defining scissor relation, coverage, and recovery of pure tensors. Lean proves both inverse identities from these inputs.
