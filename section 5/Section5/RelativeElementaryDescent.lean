@@ -45,7 +45,7 @@ theorem relativeDeleteLabelGraph_descend (j : Fin (k+1))
   · rintro ⟨v,⟨p,hp,hv⟩,he⟩
     exact ⟨p,hp,v,hv,he⟩
 
-def RelativeElementaryScheme.descend [Finite (P .vf)] [Finite (P .rv)]
+@[expose] def RelativeElementaryScheme.descend [Finite (P .vf)] [Finite (P .rv)]
     (I : RelativeElementaryScheme M S P k)
     {H : SortedAssignment X P → SortedAssignment X Q → Prop}
     (defH : DefinableRelation M S.carrier H) : RelativeElementaryScheme M S Q k where
