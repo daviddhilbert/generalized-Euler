@@ -86,10 +86,9 @@ def rvTensorAssignment : RVSemiring (canonicalStructure (L := J) O hO P) S →+*
 
 theorem rvTensorAssignment_assigned {n} (U : RVObject _ S n) {x : TensorProduct C R W} (hx : μ[n].assigned U.carrier x) :
     rvTensorAssignment O v hv hO P powers S lang e Rmap Vmap resBalance valBalance s hs sat complete @pull @covers
-      minus @rvSat (objectClass _ S ⟨n,U⟩) = x :=
-  by
-    unfold rvTensorAssignment
-    apply LocalRVMeasure.descend_assigned
-    exact hx
+      minus @rvSat (objectClass _ S ⟨n,U⟩) = x := by
+  unfold rvTensorAssignment
+  apply LocalRVMeasure.descend_assigned
+  exact hx
 
 end GeneralizedEuler.Section4
