@@ -45,6 +45,13 @@ omit [Finite (P .vf)] [Finite (P .rv)] in
   | refl A => exact RelativeObjectFamily.tests A
   | @cons a m b A C B head tail ih => exact RelativeObjectFamily.tests A ++ head.tests ++ ih
 
+omit [Finite (P .vf)] [Finite (P .rv)] in
+theorem tests_agree_at_source (W : RelativeBlowupPath neg A B) {p p' : SortedAssignment Z P}
+    (agree : Agree W.tests p p') : Agree (RelativeObjectFamily.tests A) p p' := by
+  cases W with
+  | refl => exact agree
+  | cons => exact (agree_append.1 (agree_append.1 agree).1).1
+
 theorem descend_valid_of_tests (W : RelativeBlowupPath neg A B)
     {p : SortedAssignment Z P} {q : SortedAssignment Z Q} (hp : H p q)
     (agree : ∀ p', H p' q → Agree W.tests p p') (zero : S.carrier .rv)

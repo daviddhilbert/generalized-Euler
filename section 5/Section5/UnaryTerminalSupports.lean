@@ -66,6 +66,17 @@ of its last coordinate. -/
     · rw [castSucc_mem_extendTerminalSupport]
       simp
 
+theorem sum_extendTerminalSupport {R : Type*} [AddCommMonoid R] (f : Finset (Fin (k+1)) → R) :
+    (∑ old : Finset (Fin k), f (extendTerminalSupport old false)) +
+      (∑ old : Finset (Fin k), f (extendTerminalSupport old true)) = ∑ s, f s := by
+  calc
+    _ = ∑ old : Finset (Fin k), ∑ new : Bool, f (extendTerminalSupport old new) := by
+      rw [← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun s _ => by rw [Fintype.sum_bool,add_comm]
+    _ = ∑ p : Finset (Fin k) × Bool, f (unaryTerminalSupportEquiv p) :=
+      (Fintype.sum_prod_type (fun p : Finset (Fin k) × Bool => f (extendTerminalSupport p.1 p.2))).symm
+    _ = _ := Fintype.sum_equiv unaryTerminalSupportEquiv _ _ (fun _ => rfl)
+
 variable {K : Type z} [Field K] {O : ValuationSubring K}
   {L : Language} {E : Type*}
   {M : SortedStructure L E (CanonicalSort O)} {S : SortedSubstructure M} {a : ℕ}
