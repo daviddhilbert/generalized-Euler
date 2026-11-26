@@ -64,14 +64,14 @@ theorem image_of_map {I H : Type*} [Finite I] [Finite H] (f : (I → V) → (H �
     exact ⟨Sum.elim t (f t),⟨ht,rfl⟩,rfl⟩
   · rintro ⟨t,⟨ht,eq⟩,rfl⟩; exact ⟨_,ht,eq⟩
 
-theorem pieceClass_images {m} (f g : (Fin m → V) → (Fin k → V))
+theorem pieceClass_images_of_finite {I : Type} [Finite I] (f g : (I → V) → (Fin k → V))
     (hf : A.DefinableMap J f) (hg : A.DefinableMap J g)
-    (D : Set (Fin m → V)) (hd : A.Definable J D) (injf : Set.InjOn f D) (injg : Set.InjOn g D) :
+    (D : Set (I → V)) (hd : A.Definable J D) (injf : Set.InjOn f D) (injg : Set.InjOn g D) :
     pieceClass (f '' D) (image_of_map f hf D hd) = pieceClass (g '' D) (image_of_map g hg D hd) := by
   let ef := Equiv.Set.imageOfInjOn f D injf
   let eg := Equiv.Set.imageOfInjOn g D injg
   let e := ef.symm.trans eg
-  let pair (x : Fin m → V) := Sum.elim (f x) (g x)
+  let pair (x : I → V) := Sum.elim (f x) (g x)
   have hp : A.DefinableMap J pair := by intro i; cases i with | inl i => exact hf i | inr j => exact hg j
   apply pieceClass_iso _ _ e
   convert image_of_map pair hp D hd using 1
@@ -89,6 +89,12 @@ theorem pieceClass_images {m} (f g : (Fin m → V) → (Fin k → V))
   · rintro ⟨t,ht,rfl⟩
     let a : D := ⟨t,ht⟩
     exact ⟨ef a,rfl,congrArg (fun z : D => (eg z).val) (ef.symm_apply_apply a)⟩
+
+theorem pieceClass_images {m} (f g : (Fin m → V) → (Fin k → V))
+    (hf : A.DefinableMap J f) (hg : A.DefinableMap J g)
+    (D : Set (Fin m → V)) (hd : A.Definable J D) (injf : Set.InjOn f D) (injg : Set.InjOn g D) :
+    pieceClass (f '' D) (image_of_map f hf D hd) = pieceClass (g '' D) (image_of_map g hg D hd) :=
+  pieceClass_images_of_finite f g hf hg D hd injf injg
 
 def cartesian {l} (D : Set (Fin k → V)) (E : Set (Fin l → V)) :=
   {x : Fin (k+l) → V | x ∘ finSumFinEquiv ∘ Sum.inl ∈ D ∧ x ∘ finSumFinEquiv ∘ Sum.inr ∈ E}

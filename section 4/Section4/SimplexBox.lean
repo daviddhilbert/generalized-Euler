@@ -33,7 +33,7 @@ private theorem drop_min {n} (x : Fin (n+1) → V) (i : Fin (n+1)) (h : ∀ j, x
   rw [Fin.sum_univ_succAbove _ i,min_eq_right (h _)]
   rfl
 
-private theorem simplex_injective (n : ℕ) : Function.Injective (simplexCoordinates (V := V) (n := n)) := by
+theorem simplex_injective (n : ℕ) : Function.Injective (simplexCoordinates (V := V) (n := n)) := by
   induction n with
   | zero => exact fun _ _ _ => Subsingleton.elim _ _
   | succ n ih =>

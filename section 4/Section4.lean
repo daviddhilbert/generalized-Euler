@@ -7,6 +7,7 @@ public import Section4.AnnulusWidths
 public import Section4.ArbitraryBoxUnions
 public import Section4.ArbitraryRectangleWeight
 public import Section4.AssignedScissors
+public import Section4.BarycentricValueFibers
 public import Section4.BaseAndDimension
 public import Section4.BoundedIntervalScissors
 public import Section4.BoundedRVAnnuli
@@ -36,6 +37,8 @@ public import Section4.ChartTransitions
 public import Section4.CombinePartitions
 public import Section4.CommonValueRefinement
 public import Section4.ConcreteMatchingSlices
+public import Section4.ConeBoundary
+public import Section4.ConeFiberPresentations
 public import Section4.CoordinateChanges
 public import Section4.DefinableLifts
 public import Section4.DefinableResidueMatrices
@@ -59,6 +62,7 @@ public import Section4.FixedResidueImages
 public import Section4.FrameComparison
 public import Section4.GeometricValueInclusion
 public import Section4.GlobalRectangleMatches
+public import Section4.GradedEulerMaps
 public import Section4.GradedValues
 public import Section4.GraphChartBasis
 public import Section4.GraphCharts
@@ -75,8 +79,10 @@ public import Section4.IntervalCutScissors
 public import Section4.IntervalScaleBijection
 public import Section4.IntervalScaleCuts
 public import Section4.IntervalScales
+public import Section4.LexicographicConeSubdivision
 public import Section4.LexicographicTags
 public import Section4.LiftQuotientProfiles
+public import Section4.LinearSignTransfer
 public import Section4.LocalRVMeasure
 public import Section4.LocalizedEuler
 public import Section4.LostCoordinates
@@ -106,6 +112,9 @@ public import Section4.OldValueCharts
 public import Section4.OldValuePair
 public import Section4.OrderedBoxCuts
 public import Section4.PackedGraph
+public import Section4.PointedConeSubdivision
+public import Section4.PolyhedralGenerators
+public import Section4.PolyhedralProjectionTests
 public import Section4.PositiveAdditivity
 public import Section4.PositiveObjectCover
 public import Section4.PositivePresentations
@@ -113,6 +122,7 @@ public import Section4.PositiveRectangles
 public import Section4.PositiveResidueLineCut
 public import Section4.PositiveValuation
 public import Section4.ProductAssignment
+public import Section4.ProjectedConeRays
 public import Section4.ProjectedFrame
 public import Section4.ProjectedPieceWeights
 public import Section4.ProjectedRVChart
@@ -188,6 +198,8 @@ public import Section4.SignedValueGeneration
 public import Section4.SignedValueReflection
 public import Section4.SignedWholeMatches
 public import Section4.SimplexBox
+public import Section4.SimplicialConeSubdivision
+public import Section4.SimplicialValueFibers
 public import Section4.SimultaneousBoxRanks
 public import Section4.SliceComparison
 public import Section4.SliceWeights
@@ -196,6 +208,7 @@ public import Section4.StandardRectangleWeight
 public import Section4.SubframeCarrier
 public import Section4.Subrectangles
 public import Section4.TaggedBoxComparison
+public import Section4.TaggedBoxPresentations
 public import Section4.TaggedFiberMatching
 public import Section4.TaggedLiftRealization
 public import Section4.TaggedMatchGraph
